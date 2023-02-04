@@ -1,0 +1,34 @@
+diff --git a/node_modules/declarative-e2e-test/dist/lib/tested-request.js b/node_modules/declarative-e2e-test/dist/lib/tested-request.js
+index 178c51c..a0d3467 100644
+--- a/node_modules/declarative-e2e-test/dist/lib/tested-request.js
++++ b/node_modules/declarative-e2e-test/dist/lib/tested-request.js
+@@ -25,7 +25,7 @@ class TestedRequest {
+                 .applyHeaders(requestProps)
+                 .applyBody(requestProps)
+                 .applyExpect(requestProps, context, resolve)
+-                .applyErrorHandler(requestProps, context);
++                .applyErrorHandler(requestProps, context, reject);
+         });
+     }
+     initializeAgent(requestProps, app) {
+@@ -107,14 +107,17 @@ class TestedRequest {
+         }
+         return this;
+     }
+-    applyErrorHandler(requestProps, context) {
++    applyErrorHandler(requestProps, context, done) {
+         this.agent.catch((error) => {
+             logger.error(error);
+             if (requestProps.error) {
+                 requestProps.error.call(context, error, this.response);
+-                return;
++            } else {
++                logger.error(`Error caught, use property "error" in the request definition to access error the object`);
++            }
++            if (done) {
++                done(error);
+             }
+-            logger.error(`Error caught, use property "error" in the request definition to access error the object`);
+         });
+         return this;
+     }
