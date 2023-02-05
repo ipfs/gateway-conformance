@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "patch": "patch-package",
+    "test": "mocha -R mocha-multi --reporter-options spec=-,json=reports/report.json,markdown=reports/report.md,xunit=reports/report.xml,doc=reports/report.html"
   },
   "author": "",
   "license": "ISC",
@@ -16,8 +17,8 @@
   },
   "dependencies": {
     "@ipld/dag-pb": "^4.0.0",
-    "declarative-e2e-test": "^1.0.1",
     "blockstore-core": "^3.0.0",
+    "declarative-e2e-test": "^1.0.1",
     "get-all-files": "^4.1.0",
     "ipfs-unixfs-exporter": "^10.0.0",
     "ipfs-unixfs-importer": "^12.0.0"
