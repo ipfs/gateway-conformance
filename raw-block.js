@@ -14,35 +14,50 @@ const rawBlockTestSources = {
   }
 }
 
-const rawBlockTestContext = await Context.fromSources(rawBlockTestSources)
-
 export const rawBlockTest = {
   'Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support': {
+    before: async function() {
+      this.context = await Context.fromSources(rawBlockTestSources)
+    },
     tests: {
       'GET with format=raw param returns a raw block': {
-        url: `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir?format=raw`,
-        expect: rawBlockTestContext.get('dir').getString('dir')
+        url: function() {
+          return `/ipfs/${this.context.get('dir').getRootCID()}/dir?format=raw`
+        },
+        expect: function() {
+          return this.context.get('dir').getString('dir')
+        }
       },
       'GET for application/vnd.ipld.raw returns a raw block': {
-        url: `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir`,
+        url: function() {
+          return `/ipfs/${this.context.get('dir').getRootCID()}/dir`
+        },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: rawBlockTestContext.get('dir').getString('dir')
+        expect: function() {
+          return this.context.get('dir').getString('dir')
+        }
       },
       'GET response for application/vnd.ipld.raw has expected response headers': {
-        url: `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir/ascii.txt`,
+        url: function() {
+          return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt`
+        },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: {
-          headers: {
-            'content-type': IPLD_RAW_TYPE,
-            'content-length': rawBlockTestContext.get('dir').getLength('dir/ascii.txt').toString(),
-            'content-disposition': new RegExp(`attachment;\\s*filename="${rawBlockTestContext.get('dir').getCID('dir/ascii.txt')}\\.bin`),
-            'x-content-type-options': 'nosniff'
-          },
-          body: rawBlockTestContext.get('dir').getString('dir/ascii.txt')
+        expect: function() {
+          return {
+            headers: {
+              'content-type': IPLD_RAW_TYPE,
+              'content-length': this.context.get('dir').getLength('dir/ascii.txt').toString(),
+              'content-disposition': new RegExp(`attachment;\\s*filename="${this.context.get('dir').getCID('dir/ascii.txt')}\\.bin`),
+              'x-content-type-options': 'nosniff'
+            },
+            body: this.context.get('dir').getString('dir/ascii.txt')
+          }
         }
       },
       'GET for application/vnd.ipld.raw with query filename includes Content-Disposition with custom filename': {
-        url: `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir/ascii.txt?filename=foobar.bin`,
+        url: function() {
+          return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt?filename=foobar.bin`
+        },
         headers: {accept: IPLD_RAW_TYPE},
         expect: {
           headers: {
@@ -51,13 +66,17 @@ export const rawBlockTest = {
         }
       },
       'GET response for application/vnd.ipld.raw has expected caching headers': {
-        url: `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir/ascii.txt`,
+        url: function() {
+          return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt`
+        },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: {
-          headers: {
-            'etag': `"${rawBlockTestContext.get('dir').getCID('dir/ascii.txt')}.raw"`,
-            'x-ipfs-path': `/ipfs/${rawBlockTestContext.get('dir').getRootCID()}/dir/ascii.txt`,
-            'x-ipfs-roots': new RegExp(rawBlockTestContext.get('dir').getRootCID()),
+        expect: function() {
+          return {
+            headers: {
+              'etag': `"${this.context.get('dir').getCID('dir/ascii.txt')}.raw"`,
+              'x-ipfs-path': `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt`,
+              'x-ipfs-roots': new RegExp(this.context.get('dir').getRootCID())
+            }
           }
         }
       }
