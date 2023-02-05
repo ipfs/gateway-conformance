@@ -5,15 +5,15 @@ export class Context {
     this.collections = collections
   }
 
-  static async fromSources(sources) {
+  static async fromFixtures(fixtures) {
     const collections = {}
-    for (const [name, {source, options}] of Object.entries(sources)) {
-      collections[name] = await Collection.fromSource(source, options)
+    for (const [name, {paths, options}] of Object.entries(fixtures)) {
+      collections[name] = await Collection.fromPaths(paths, options)
     }
     return new Context(collections)
   }
 
-  get(name) {
+  getFixture(name) {
     return this.collections[name]
   }
 }
