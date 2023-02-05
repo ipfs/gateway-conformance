@@ -24,25 +24,25 @@ export const rawBlockTest = {
         url: function() {
           return `/ipfs/${this.context.get('dir').getRootCID()}/dir?format=raw`
         },
-        expect: function() {
+        expect: [200, function() {
           return this.context.get('dir').getString('dir')
-        }
+        }]
       },
       'GET for application/vnd.ipld.raw returns a raw block': {
         url: function() {
           return `/ipfs/${this.context.get('dir').getRootCID()}/dir`
         },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: function() {
+        expect: [200, function() {
           return this.context.get('dir').getString('dir')
-        }
+        }]
       },
       'GET response for application/vnd.ipld.raw has expected response headers': {
         url: function() {
           return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt`
         },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: function() {
+        expect: [200, function() {
           return {
             headers: {
               'content-type': IPLD_RAW_TYPE,
@@ -52,25 +52,25 @@ export const rawBlockTest = {
             },
             body: this.context.get('dir').getString('dir/ascii.txt')
           }
-        }
+        }]
       },
       'GET for application/vnd.ipld.raw with query filename includes Content-Disposition with custom filename': {
         url: function() {
           return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt?filename=foobar.bin`
         },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: {
+        expect: [200, {
           headers: {
             'content-disposition': new RegExp(`attachment;\\s*filename="foobar\\.bin"`)
           }
-        }
+        }]
       },
       'GET response for application/vnd.ipld.raw has expected caching headers': {
         url: function() {
           return `/ipfs/${this.context.get('dir').getRootCID()}/dir/ascii.txt`
         },
         headers: {accept: IPLD_RAW_TYPE},
-        expect: function() {
+        expect: [200, function() {
           return {
             headers: {
               'etag': `"${this.context.get('dir').getCID('dir/ascii.txt')}.raw"`,
@@ -78,7 +78,7 @@ export const rawBlockTest = {
               'x-ipfs-roots': new RegExp(this.context.get('dir').getRootCID())
             }
           }
-        }
+        }]
       }
     }
   }
