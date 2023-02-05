@@ -13,11 +13,26 @@ export class Fixture {
     this.entries = entries;
   }
 
+  static getAbsolutePath(path) {
+    return new URL(joinPath('..', 'fixtures', path), import.meta.url).pathname
+  }
+
+  getAbsolutePath() {
+    return Fixture.getAbsolutePath(this.path)
+  }
+
+  static isDirectory(path) {
+    return fs.lstatSync(Fixture.getAbsolutePath(path)).isDirectory()
+  }
+
+  isDirectory() {
+    return Fixture.isDirectory(this.path)
+  }
+
   static async fromPath(path, options) {
-    const absolute = new URL(joinPath('..', 'fixtures', path), import.meta.url).pathname
+    const absolute = Fixture.getAbsolutePath(path)
     const source = []
-    const isDirectory = fs.lstatSync(absolute).isDirectory()
-    if (isDirectory) {
+    if (Fixture.isDirectory(path)) {
       for (const file of getAllFilesSync(absolute)) {
         source.push({
           path: `${path}/${file.slice(`${absolute}/`.length)}`,
@@ -51,6 +66,10 @@ export class Fixture {
 
   get(path) {
     return this.entries.find(entry => entry.imported.path === path)
+  }
+
+  getRoot() {
+    return this.get('')
   }
 
   getCID(path) {

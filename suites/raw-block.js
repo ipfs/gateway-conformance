@@ -1,8 +1,8 @@
-import { Fixture } from './util/fixture.js';
+import { Fixture } from '../util/fixture.js';
 
 const IPLD_RAW_TYPE = 'application/vnd.ipld.raw';
 
-export const rawBlockTestFixtures = [
+export const rawBlockFixtures = [
   await Fixture.fromPath('dir', {
     cidVersion: 1,
     rawLeaves: true,
@@ -11,7 +11,7 @@ export const rawBlockTestFixtures = [
 ]
 
 function getFixture(path) {
-  return rawBlockTestFixtures.find(fixture => fixture.path === path)
+  return rawBlockFixtures.find(fixture => fixture.path === path)
 }
 
 export const rawBlockTest = {
