@@ -10,13 +10,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "declarative-e2e-test": "^1.0.1",
     "mocha": "^10.2.0",
     "mocha-multi": "^1.1.7",
     "patch-package": "^6.5.1"
   },
   "dependencies": {
     "@ipld/dag-pb": "^4.0.0",
+    "declarative-e2e-test": "^1.0.1",
     "blockstore-core": "^3.0.0",
     "get-all-files": "^4.1.0",
     "ipfs-unixfs-exporter": "^10.0.0",
