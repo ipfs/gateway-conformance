@@ -7,6 +7,11 @@
 - defining test cases declratively in terms of request parameters and expected response
 - using mocha-multi to support multiple reporters
 
+## Issues
+
+- [ ] writeable-gateway provisioner does not really work for uploading directories
+- [ ] writeable-gateway provisioner will likely lack support for importer options
+
 ## Usage
 
 ### Install dependencies

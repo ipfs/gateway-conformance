@@ -25,9 +25,9 @@ async function provisionWithKubo(fixture) {
 }
 
 async function provisionWithWriteableGateway(fixture) {
-  const url = process.env.GATEWAY_URL || 'http://localhost:8080'
-  const response = await axios.post(`${url}/ipfs/`, {
-    data: fixture.getRoot().raw.toString(),
+  const baseURL = process.env.GATEWAY_URL || 'http://localhost:8080'
+  const client = axios.create({ baseURL })
+  const response = await client.post('/ipfs/', fixture.getRoot().raw, {
     headers: { 'Content-Type': 'application/vnd.ipld.raw' },
     maxRedirects: 0,
   });
