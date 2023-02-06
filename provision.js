@@ -1,19 +1,10 @@
+import { Fixture } from './util/fixtures.js'
 import { provisioners } from './util/provisioners.js'
-import { suites } from './util/suites.js'
 
-async function provision(provisioner, suite) {
-  if (suite === undefined) {
-    for (const suite of Object.keys(suites)) {
-      const fixtures = suites[suite].fixtures
-      for (const fixture of fixtures) {
-        await provisioners[provisioner](fixture)
-      }
-    }
-  } else {
-    const fixtures = suites[suite].fixtures
-    for (const fixture of fixtures) {
-      await provisioners[provisioner](fixture)
-    }
+async function provision(provisioner, path) {
+  const fixtures = Fixture.getAll().filter(fixture => fixture === undefined || fixture.path === path)
+  for (const fixture of fixtures) {
+    await provisioners[provisioner](fixture)
   }
 }
 

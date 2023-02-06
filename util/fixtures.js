@@ -13,6 +13,14 @@ export class Fixture {
     this.entries = entries;
   }
 
+  static get(path) {
+    return fixtures.find(fixture => fixture.path === path)
+  }
+
+  static getAll() {
+    return fixtures
+  }
+
   static getAbsolutePath(path) {
     return new URL(joinPath('..', 'fixtures', path), import.meta.url).pathname
   }
@@ -92,3 +100,11 @@ export class Fixture {
     return this.getRaw(path).length
   }
 }
+
+const fixtures = [
+  await Fixture.fromPath('dir', {
+    cidVersion: 1,
+    rawLeaves: true,
+    wrapWithDirectory: true,
+  })
+]
