@@ -3,10 +3,3 @@ extension:
 spec: test/**/*.spec.ts
 require: ts-node/register
 loader: ts-node/esm
-# reporter: mocha-multi
-# reporter-option:
-#   spec: "-"
-#   json: reports/report.json
-#   markdown: reports/report.md
-#   xunit: reports/report.xml
-#   doc: reports/report.html
