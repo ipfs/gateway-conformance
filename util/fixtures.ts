@@ -18,6 +18,7 @@ interface Entry {
   imported: ImportResult;
   exported: UnixFSEntry;
   raw: Buffer | Uint8Array;
+  cid: CID;
 }
 
 export class Fixture {
@@ -91,10 +92,12 @@ export class Fixture {
         // @ts-ignore: fix the UInt8Array | PBNode type
         raw = Buffer.from(dagPB.encode(exported.node));
       }
+      // TODO: this api deserve to be unified behind a single Fixture object.
       entries.push({
         imported,
         exported,
         raw,
+        cid: imported.cid,
       });
     }
 
@@ -119,7 +122,7 @@ export class Fixture {
     return this.get(path).imported?.cid;
   }
 
-  getRootCID(): CID {
+  get cid(): CID {
     return this.getCID("");
   }
 
@@ -138,6 +141,11 @@ export class Fixture {
 
 const fixtures = await Promise.all([
   Fixture.fromPath("dir", {
+    cidVersion: 1,
+    rawLeaves: true,
+    wrapWithDirectory: true,
+  }),
+  Fixture.fromPath("root2", {
     cidVersion: 1,
     rawLeaves: true,
     wrapWithDirectory: true,

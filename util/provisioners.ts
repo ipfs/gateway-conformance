@@ -43,11 +43,9 @@ async function provisionWithWriteableGateway(fixture: Fixture) {
   if (response.status !== 201) {
     throw new Error(`Unexpected status code: ${response.status}`);
   }
-  if (response.headers["ipfs-hash"] !== fixture.getRootCID().toString()) {
+  if (response.headers["ipfs-hash"] !== fixture.cid.toString()) {
     throw new Error(
-      `Unexpected IPFS hash: ${
-        response.headers["ipfs-hash"]
-      } (expected ${fixture.getRootCID()})`
+      `Unexpected IPFS hash: ${response.headers["ipfs-hash"]} (expected ${fixture.cid})`
     );
   }
 }

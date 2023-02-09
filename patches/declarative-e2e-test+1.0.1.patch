@@ -1,8 +1,8 @@
 diff --git a/node_modules/declarative-e2e-test/dist/lib/tested-request.js b/node_modules/declarative-e2e-test/dist/lib/tested-request.js
-index 178c51c..a0d3467 100644
+index 178c51c..14155c6 100644
 --- a/node_modules/declarative-e2e-test/dist/lib/tested-request.js
 +++ b/node_modules/declarative-e2e-test/dist/lib/tested-request.js
-@@ -25,7 +25,7 @@ class TestedRequest {
+@@ -25,11 +25,11 @@ class TestedRequest {
                  .applyHeaders(requestProps)
                  .applyBody(requestProps)
                  .applyExpect(requestProps, context, resolve)
@@ -11,6 +11,11 @@ index 178c51c..a0d3467 100644
          });
      }
      initializeAgent(requestProps, app) {
+-        this.agent = this.createAgent(requestProps, app);
++        this.agent = this.createAgent(requestProps, app).redirects(10);
+         return this;
+     }
+     createAgent(requestProps, app) {
 @@ -107,14 +107,17 @@ class TestedRequest {
          }
          return this;

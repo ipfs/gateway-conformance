@@ -10,17 +10,17 @@ const test: TestRequestSuiteDefinition = {
   "Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support": {
     tests: {
       "GET with format=raw param returns a raw block": {
-        url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir?format=raw`,
+        url: `/ipfs/${Fixture.get("dir").cid}/dir?format=raw`,
         expect: [200, Fixture.get("dir").getString("dir")],
       },
       "GET for application/vnd.ipld.raw returns a raw block": {
-        url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir`,
+        url: `/ipfs/${Fixture.get("dir").cid}/dir`,
         headers: { accept: IPLD_RAW_TYPE },
         expect: [200, Fixture.get("dir").getString("dir")],
       },
       "GET response for application/vnd.ipld.raw has expected response headers":
         {
-          url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir/ascii.txt`,
+          url: `/ipfs/${Fixture.get("dir").cid}/dir/ascii.txt`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
@@ -45,7 +45,7 @@ const test: TestRequestSuiteDefinition = {
         {
           url: `/ipfs/${Fixture.get(
             "dir"
-          ).getRootCID()}/dir/ascii.txt?filename=foobar.bin`,
+          ).cid}/dir/ascii.txt?filename=foobar.bin`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
@@ -60,7 +60,7 @@ const test: TestRequestSuiteDefinition = {
         },
       "GET response for application/vnd.ipld.raw has expected caching headers":
         {
-          url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir/ascii.txt`,
+          url: `/ipfs/${Fixture.get("dir").cid}/dir/ascii.txt`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
@@ -69,9 +69,9 @@ const test: TestRequestSuiteDefinition = {
                 etag: `"${Fixture.get("dir").getCID("dir/ascii.txt")}.raw"`,
                 "x-ipfs-path": `/ipfs/${Fixture.get(
                   "dir"
-                ).getRootCID()}/dir/ascii.txt`,
+                ).cid}/dir/ascii.txt`,
                 "x-ipfs-roots": new RegExp(
-                  Fixture.get("dir").getRootCID().toString()
+                  Fixture.get("dir").cid.toString()
                 ),
               },
             },
@@ -100,5 +100,5 @@ const test: TestRequestSuiteDefinition = {
   },
 };
 
-console.log('Running test: raw-block.spec.ts', config)
+console.log('Running test: raw-block.spec.ts')
 run(test, config);
