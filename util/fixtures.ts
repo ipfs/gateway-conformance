@@ -11,6 +11,7 @@ import {
 } from "ipfs-unixfs-importer";
 import { CID } from "multiformats/cid";
 import { join as joinPath } from "path";
+import { IPNSFixtureOptions, provisionIPNSWithKubo } from "./provisioners.js";
 
 interface FixtureOptions extends UserImporterOptions {}
 
@@ -21,6 +22,8 @@ interface Entry {
   cid: CID;
 }
 
+const fixtures: Fixture[] = [];
+
 export class Fixture {
   public readonly path: string;
   public readonly options: FixtureOptions;
@@ -30,6 +33,8 @@ export class Fixture {
     this.path = path;
     this.options = options;
     this.entries = entries;
+
+    fixtures.push(this);
   }
 
   static get(path: string): Fixture {
@@ -114,7 +119,7 @@ export class Fixture {
     return entry;
   }
 
-  getRoot(): Entry {
+  get root(): Entry {
     return this.get("");
   }
 
@@ -139,7 +144,7 @@ export class Fixture {
   }
 }
 
-const fixtures = await Promise.all([
+await Promise.all([
   Fixture.fromPath("dir", {
     cidVersion: 1,
     rawLeaves: true,
@@ -151,3 +156,28 @@ const fixtures = await Promise.all([
     wrapWithDirectory: true,
   }),
 ]);
+
+export class IPNSFixture {
+  public readonly ipnsId: string;
+
+  constructor(ipnsId: string) {
+    this.ipnsId = ipnsId;
+  }
+
+  public static async fromFixture(
+    fixture: string,
+    options: IPNSFixtureOptions
+  ) {
+    const ipnsId = await provisionIPNSWithKubo(fixture, options);
+    return new IPNSFixture(ipnsId);
+  }
+}
+
+const ipnsFixtures = await Promise.all([
+  IPNSFixture.fromFixture(`/ipfs/${Fixture.get("root2").root.cid}`, {
+    key: "cache_test_key",
+    allowOffline: true,
+  }),
+]);
+
+export const ipnsFixture = ipnsFixtures[0];

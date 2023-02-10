@@ -1,6 +1,6 @@
 // https://github.com/ipfs/kubo/blob/master/test/sharness/t0116-gateway-cache.sh
 import { run, TestRequestSuiteDefinition } from "declarative-e2e-test";
-import { Fixture } from "../util/fixtures.js";
+import { Fixture, ipnsFixture } from "../util/fixtures.js";
 import { config } from "./config.js";
 
 // TODO: this pattern with wrap directory is confusing.
@@ -46,12 +46,36 @@ const test: TestRequestSuiteDefinition = {
               },
             ],
           },
+          // TODO: https://github.com/ipfs/kubo/blob/799e5ac0a5a6600e844aad585282ad23789a88e7/test/sharness/t0116-gateway-cache.sh#L58-L61
           "GET for /ipfs/ unixfs file succeeds": {
             url: `/ipfs/${root.cid}/root2/root3/root4/index.html`,
             expect: [
               200,
               {
                 headers: {
+                  "X-Ipfs-Path": `/ipfs/${root.cid}/root2/root3/root4/index.html`,
+                  "X-Ipfs-Roots": `${root.cid},${root2.cid},${root3.cid},${root4.cid},${index.cid}`,
+                  "Cache-Control": "public, max-age=29030400, immutable",
+                  Etag: `"${index.cid}"`,
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+  "GET /ipns/": {
+    tests: {
+      unixfs: {
+        tests: {
+          "GET for /ipns/ unixfs dir listing succeeds": {
+            url: `/ipns/${ipnsFixture.ipnsId}/root2/root3/`,
+            expect: [
+              200,
+              {
+                headers: {
+                  // TODO: https://github.com/ipfs/kubo/blob/799e5ac0a5a6600e844aad585282ad23789a88e7/test/sharness/t0116-gateway-cache.sh#L109
                   "X-Ipfs-Path": `/ipfs/${root.cid}/root2/root3/root4/index.html`,
                   "X-Ipfs-Roots": `${root.cid},${root2.cid},${root3.cid},${root4.cid},${index.cid}`,
                   "Cache-Control": "public, max-age=29030400, immutable",
