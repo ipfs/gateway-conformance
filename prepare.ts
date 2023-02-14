@@ -1,10 +1,7 @@
-import { execSync } from "child_process";
 import {
-  exportFixtureDefinitionToTs,
-  listFixtures,
+  exportFixtureDefinitionToTs, generateFixturesCarFile, listFixtures,
   loadFixturesDefinition,
-  loadFixtureYaml,
-  generateFixturesCarFile,
+  loadFixtureYaml
 } from "./util/fixtures.js";
 
 async function prepare(...args: string[]) {

@@ -1,8 +1,8 @@
-import { config } from "./config.js";
-import { run, TestRequestSuiteDefinition } from "declarative-e2e-test";
 import { ok } from "assert";
+import { run, TestRequestSuiteDefinition } from "declarative-e2e-test";
 import { Response } from "supertest";
-import fixture, { size, asString } from "./fixtures.js";
+import { config } from "./config.js";
+import fixture, { blockAsString, blockSize } from "./fixtures.js";
 
 const IPLD_RAW_TYPE = "application/vnd.ipld.raw";
 
@@ -11,12 +11,12 @@ const test: TestRequestSuiteDefinition = {
     tests: {
       "GET with format=raw param returns a raw block": {
         url: `/ipfs/${fixture.root._cid}/dir?format=raw`,
-        expect: [200, asString(fixture.root.dir)],
+        expect: [200, blockAsString(fixture.root.dir)],
       },
       "GET for application/vnd.ipld.raw returns a raw block": {
         url: `/ipfs/${fixture.root._cid}/dir`,
         headers: { accept: IPLD_RAW_TYPE },
-        expect: [200, asString(fixture.root.dir)],
+        expect: [200, blockAsString(fixture.root.dir)],
       },
       "GET response for application/vnd.ipld.raw has expected response headers":
         {
@@ -27,7 +27,7 @@ const test: TestRequestSuiteDefinition = {
             {
               headers: {
                 "content-type": IPLD_RAW_TYPE,
-                "content-length": size(
+                "content-length": blockSize(
                   fixture.root.dir["ascii.txt"]
                 ).toString(),
                 "content-disposition": new RegExp(
@@ -35,7 +35,7 @@ const test: TestRequestSuiteDefinition = {
                 ),
                 "x-content-type-options": "nosniff",
               },
-              body: asString(fixture.root.dir["ascii.txt"]),
+              body: blockAsString(fixture.root.dir["ascii.txt"]),
             },
           ],
         },

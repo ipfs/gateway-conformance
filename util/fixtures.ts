@@ -22,7 +22,8 @@ interface IFixturesDefinition {
 interface IPFSFixture {
   [key: string]: IPFSFixture | string;
   _cid: string;
-  _data: string;
+  _block: string;
+  _dag: string;
 }
 
 export function* listFixtures(
@@ -65,31 +66,37 @@ export async function loadFixturesDefinition(
 
 async function loadIPFSFixture(cid: string): Promise<IPFSFixture> {
   const blockData = execSync(`ipfs block get ${cid}`).toString("base64");
+  const dagData = execSync(`ipfs dag export ${cid}`).toString("base64");
 
   const result: IPFSFixture = {
     _cid: cid,
-    _data: blockData,
+    _block: blockData,
+    _dag: dagData,
   };
 
-  const out = execSync(`ipfs ls ${cid}`);
-  const lines = out
-    .toString("utf-8")
-    .split("\n")
-    .filter((line) => !!line);
+  try {
+    const out = execSync(`ipfs ls ${cid}`);
+    const lines = out
+      .toString("utf-8")
+      .split("\n")
+      .filter((line) => !!line);
 
-  if (lines.length === 0) {
-    return result;
-  }
-
-  for (const line of lines) {
-    const [cid, _size, name] = line.split(/\s+/);
-    const cleanName = name.replace(/\/$/, "");
-
-    if (name === "_cid") {
-      throw new Error(`collision with names`);
+    if (lines.length === 0) {
+      return result;
     }
 
-    result[cleanName] = await loadIPFSFixture(cid);
+    for (const line of lines) {
+      const [cid, _size, name] = line.split(/\s+/);
+      const cleanName = name.replace(/\/$/, "");
+
+      if (name === "_cid") {
+        throw new Error(`collision with names`);
+      }
+
+      result[cleanName] = await loadIPFSFixture(cid);
+    }
+  } catch (err) {
+    console.error(err);
   }
 
   return result;
@@ -103,16 +110,28 @@ export function exportFixtureDefinitionToTs(
 // This file was generated from the fixtures.yaml file.    
 const fixture = ${JSON.stringify(structure, null, 2)}
 
-export const raw = (x: {_data: string}): Buffer => {
-  return Buffer.from(x._data, "base64");
-}
-
-export const size = (x: { _data: string }): number => {
-  return raw(x).length;
+export const rawBlock = (x: { _block: string }): Buffer => {
+  return Buffer.from(x._block, "base64");
 };
 
-export const asString = (x: { _data: string }): string => {
-  return raw(x).toString("utf-8");
+export const blockSize = (x: { _block: string }): number => {
+  return rawBlock(x).length;
+};
+
+export const blockAsString = (x: { _block: string }): string => {
+  return rawBlock(x).toString("utf-8");
+};
+
+export const rawDag = (x: { _dag: string }): Buffer => {
+  return Buffer.from(x._dag, "base64");
+};
+
+export const dagAsString = (x: { _dag: string }): string => {
+  return rawDag(x).toString("utf-8");
+};
+
+export const dagSize = (x: { _dag: string }): number => {
+  return rawDag(x).length;
 };
 
 export default fixture.ipfs
