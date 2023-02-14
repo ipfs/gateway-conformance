@@ -1,0 +1,8 @@
+ipfs:
+  badcodes: QmcBcFnKKqgpCVMxxGsriw9ByTVF6uDdKDMuEBq3m6f1bm
+  examples: QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj
+  forced: QmU7ysGXwAtiV7aBarZASJsxKoKyKmd9Xrz2FFamSCbg8S
+  goodcodes: QmWHn2TunA1g7gQ7q9rwAoWuot2hMpojZ6cZ9ERsNKm5gE
+  invalid: QmRgpzYQESidTtTojN8zRWjiNs9Cy6o7KHRxh7kDpJm3KH
+  newlines: QmYzMrtPyBv7LKiEAGLLRPtvqm3SjQYLWxwWQ2vnpxQwRd
+  toolarge: QmQTfvjGmvTfxFpUcZNLdTLuKV227KJkGiN6xooHVeVZAS

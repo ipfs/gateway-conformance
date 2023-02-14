@@ -1,145 +1,142 @@
-import * as dagPB from "@ipld/dag-pb";
-import { MemoryBlockstore } from "blockstore-core/memory";
-import * as fs from "fs";
-import { getAllFilesSync } from "get-all-files";
-import { exporter, UnixFSEntry } from "ipfs-unixfs-exporter";
-import {
-  ImportCandidate,
-  importer,
-  ImportResult,
-  UserImporterOptions,
-} from "ipfs-unixfs-importer";
-import { CID } from "multiformats/cid";
-import { join as joinPath } from "path";
+import fs from "fs";
+import path from "path";
+import { parse } from "yaml";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
-interface FixtureOptions extends UserImporterOptions {}
+const __dirname = path.join(dirname(fileURLToPath(import.meta.url)), "..");
 
-interface Entry {
-  imported: ImportResult;
-  exported: UnixFSEntry;
-  raw: Buffer | Uint8Array;
+const testFolder = path.join(__dirname, "test");
+
+interface FixturesYaml {
+  ipfs: { [key: string]: string };
 }
 
-export class Fixture {
-  public readonly path: string;
-  public readonly options: FixtureOptions;
-  public readonly entries: Entry[];
+interface IFixturesDefinition {
+  ipfs: {
+    [key: string]: IPFSFixture;
+  };
+}
 
-  constructor(path: string, options: FixtureOptions, entries: Entry[]) {
-    this.path = path;
-    this.options = options;
-    this.entries = entries;
-  }
+interface IPFSFixture {
+  [key: string]: IPFSFixture | string;
+  _cid: string;
+  _data: string;
+}
 
-  static get(path: string): Fixture {
-    const fixture = fixtures.find((fixture) => fixture.path === path);
+export function* listFixtures(
+  dir: string = testFolder,
+  suffix: string = "fixtures.yaml"
+): Generator<string> {
+  const files = fs.readdirSync(dir);
 
-    if (!fixture) {
-      throw new Error(`Fixture ${path} not found`);
-    }
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const isDirectory = fs.statSync(filePath).isDirectory();
 
-    return fixture;
-  }
-
-  static getAll(): Fixture[] {
-    return fixtures;
-  }
-
-  static getAbsolutePath(path: string): string {
-    return new URL(joinPath("..", "fixtures", path), import.meta.url).pathname;
-  }
-
-  getAbsolutePath(): string {
-    return Fixture.getAbsolutePath(this.path);
-  }
-
-  static isDirectory(path: string): boolean {
-    return fs.lstatSync(Fixture.getAbsolutePath(path)).isDirectory();
-  }
-
-  isDirectory(): boolean {
-    return Fixture.isDirectory(this.path);
-  }
-
-  static async fromPath(path: string, options: FixtureOptions = {}) {
-    const absolute = Fixture.getAbsolutePath(path);
-    const source: ImportCandidate[] = [];
-
-    if (Fixture.isDirectory(path)) {
-      for (const file of getAllFilesSync(absolute)) {
-        source.push({
-          path: `${path}/${file.slice(`${absolute}/`.length)}`,
-          content: fs.readFileSync(file),
-        });
-      }
+    if (isDirectory) {
+      yield* listFixtures(filePath, suffix);
     } else {
-      source.push({
-        path,
-        content: fs.readFileSync(absolute),
-      });
-    }
-
-    const blockstore = new MemoryBlockstore();
-    const entries: Entry[] = [];
-    for await (const imported of importer(source, blockstore, options)) {
-      const exported = await exporter(imported.cid, blockstore);
-      let raw;
-
-      if (exported.type === "raw") {
-        raw = exported.node;
-      } else {
-        // @ts-ignore: fix the UInt8Array | PBNode type
-        raw = Buffer.from(dagPB.encode(exported.node));
+      if (file.endsWith(suffix)) {
+        yield filePath;
       }
-      entries.push({
-        imported,
-        exported,
-        raw,
-      });
     }
-
-    return new Fixture(path, options, entries);
-  }
-
-  get(path: string): Entry {
-    const entry = this.entries.find((entry) => entry.imported.path === path);
-
-    if (!entry) {
-      throw new Error(`Entry not found for path: ${path}`);
-    }
-
-    return entry;
-  }
-
-  getRoot(): Entry {
-    return this.get("");
-  }
-
-  getCID(path: string): CID {
-    return this.get(path).imported?.cid;
-  }
-
-  getRootCID(): CID {
-    return this.getCID("");
-  }
-
-  getRaw(path: string): Buffer | Uint8Array {
-    return this.get(path).raw;
-  }
-
-  getString(path: string): string {
-    return this.getRaw(path)?.toString();
-  }
-
-  getLength(path: string): number {
-    return this.getRaw(path)?.length;
   }
 }
 
-const fixtures = await Promise.all([
-  Fixture.fromPath("dir", {
-    cidVersion: 1,
-    rawLeaves: true,
-    wrapWithDirectory: true,
-  }),
-]);
+export async function loadFixtureYaml(path: string): Promise<FixturesYaml> {
+  // TODO: validate data
+  return parse(fs.readFileSync(path).toString("utf-8"));
+}
+
+export async function loadFixturesDefinition(
+  yaml: FixturesYaml
+): Promise<IFixturesDefinition> {
+  const structure: IFixturesDefinition = { ipfs: {} };
+
+  for (const [name, cid] of Object.entries(yaml.ipfs)) {
+    console.log(`${name}: ${cid}`);
+    structure.ipfs[name] = await loadIPFSFixture(cid);
+  }
+
+  return structure;
+}
+
+async function loadIPFSFixture(cid: string): Promise<IPFSFixture> {
+  const blockData = execSync(`ipfs block get ${cid}`).toString("base64");
+
+  const result: IPFSFixture = {
+    _cid: cid,
+    _data: blockData,
+  };
+
+  const out = execSync(`ipfs ls ${cid}`);
+  const lines = out
+    .toString("utf-8")
+    .split("\n")
+    .filter((line) => !!line);
+
+  if (lines.length === 0) {
+    return result;
+  }
+
+  for (const line of lines) {
+    const [cid, _size, name] = line.split(/\s+/);
+    const cleanName = name.replace(/\/$/, "");
+
+    if (name === "_cid") {
+      throw new Error(`collision with names`);
+    }
+
+    result[cleanName] = await loadIPFSFixture(cid);
+  }
+
+  return result;
+}
+
+export function exportFixtureDefinitionToTs(
+  outputPath: string,
+  structure: IFixturesDefinition
+) {
+  const output = `
+// This file was generated from the fixtures.yaml file.    
+const fixture = ${JSON.stringify(structure, null, 2)}
+
+export const raw = (x: {_data: string}): Buffer => {
+  return Buffer.from(x._data, "base64");
+}
+
+export const size = (x: { _data: string }): number => {
+  return raw(x).length;
+};
+
+export const asString = (x: { _data: string }): string => {
+  return raw(x).toString("utf-8");
+};
+
+export default fixture.ipfs
+`;
+
+  fs.writeFileSync(outputPath, output);
+}
+
+export function generateFixturesCarFile(outputPath: string, cids: Set<string>) {
+  // Now go through every known CIDs and export them into a single fixtures.car file.
+
+  // TODO: this is a naive way to merge CIDs / car files.
+  const newName = `test-${Date.now()}`;
+  execSync(`ipfs files mkdir /${newName}`);
+
+  for (const cid of cids) {
+    console.log(`Importing ${cid} into MFS`);
+    const out = execSync(`ipfs files cp /ipfs/${cid} /${newName}/${cid}`);
+  }
+
+  const out = execSync(`ipfs files stat --hash /${newName}`);
+  const hash = out.toString("utf-8").trim();
+
+  console.log(`Exporting MFS folder to car file: ${hash}`);
+  const out2 = execSync(`ipfs dag export ${hash} > ${outputPath}`);
+  console.log(out2.toString());
+}

@@ -1,8 +1,8 @@
-import { Fixture } from "../util/fixtures.js";
 import { config } from "./config.js";
 import { run, TestRequestSuiteDefinition } from "declarative-e2e-test";
 import { ok } from "assert";
 import { Response } from "supertest";
+import fixture, { size, asString } from "./fixtures.js";
 
 const IPLD_RAW_TYPE = "application/vnd.ipld.raw";
 
@@ -10,42 +10,38 @@ const test: TestRequestSuiteDefinition = {
   "Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support": {
     tests: {
       "GET with format=raw param returns a raw block": {
-        url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir?format=raw`,
-        expect: [200, Fixture.get("dir").getString("dir")],
+        url: `/ipfs/${fixture.root._cid}/dir?format=raw`,
+        expect: [200, asString(fixture.root.dir)],
       },
       "GET for application/vnd.ipld.raw returns a raw block": {
-        url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir`,
+        url: `/ipfs/${fixture.root._cid}/dir`,
         headers: { accept: IPLD_RAW_TYPE },
-        expect: [200, Fixture.get("dir").getString("dir")],
+        expect: [200, asString(fixture.root.dir)],
       },
       "GET response for application/vnd.ipld.raw has expected response headers":
         {
-          url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir/ascii.txt`,
+          url: `/ipfs/${fixture.root._cid}/dir/ascii.txt`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
             {
               headers: {
                 "content-type": IPLD_RAW_TYPE,
-                "content-length": Fixture.get("dir")
-                  .getLength("dir/ascii.txt")
-                  .toString(),
+                "content-length": size(
+                  fixture.root.dir["ascii.txt"]
+                ).toString(),
                 "content-disposition": new RegExp(
-                  `attachment;\\s*filename="${Fixture.get("dir").getCID(
-                    "dir/ascii.txt"
-                  )}\\.bin`
+                  `attachment;\\s*filename="${fixture.root.dir["ascii.txt"]._cid}\\.bin`
                 ),
                 "x-content-type-options": "nosniff",
               },
-              body: Fixture.get("dir").getString("dir/ascii.txt"),
+              body: asString(fixture.root.dir["ascii.txt"]),
             },
           ],
         },
       "GET for application/vnd.ipld.raw with query filename includes Content-Disposition with custom filename":
         {
-          url: `/ipfs/${Fixture.get(
-            "dir"
-          ).getRootCID()}/dir/ascii.txt?filename=foobar.bin`,
+          url: `/ipfs/${fixture.root._cid}/dir/ascii.txt?filename=foobar.bin`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
@@ -60,19 +56,15 @@ const test: TestRequestSuiteDefinition = {
         },
       "GET response for application/vnd.ipld.raw has expected caching headers":
         {
-          url: `/ipfs/${Fixture.get("dir").getRootCID()}/dir/ascii.txt`,
+          url: `/ipfs/${fixture.root._cid}/dir/ascii.txt`,
           headers: { accept: IPLD_RAW_TYPE },
           expect: [
             200,
             {
               headers: {
-                etag: `"${Fixture.get("dir").getCID("dir/ascii.txt")}.raw"`,
-                "x-ipfs-path": `/ipfs/${Fixture.get(
-                  "dir"
-                ).getRootCID()}/dir/ascii.txt`,
-                "x-ipfs-roots": new RegExp(
-                  Fixture.get("dir").getRootCID().toString()
-                ),
+                etag: `"${fixture.root.dir["ascii.txt"]._cid}.raw"`,
+                "x-ipfs-path": `/ipfs/${fixture.root._cid}/dir/ascii.txt`,
+                "x-ipfs-roots": new RegExp(fixture.root._cid),
               },
             },
             function (response: Response) {
@@ -100,5 +92,5 @@ const test: TestRequestSuiteDefinition = {
   },
 };
 
-console.log('Running test: raw-block.spec.ts', config)
+console.log("Running test: raw-block.spec.ts");
 run(test, config);
