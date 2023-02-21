@@ -1,3 +1,4 @@
+# https://github.com/ipfs/specs/blob/main/IPIP/0002-gateway-redirects-file.md#test-fixtures
 ipfs:
   badcodes: QmcBcFnKKqgpCVMxxGsriw9ByTVF6uDdKDMuEBq3m6f1bm
   examples: QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj

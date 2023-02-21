@@ -69,31 +69,48 @@ const test: TestRequestSuiteDefinition = {
         headers: { accept: IPLD_CAR_TYPE },
         expect: {
           headers: {
-            // GET response for application/vnd.ipld.car has expected Content-Type
-            "Content-Type": `${IPLD_CAR_TYPE}; version=1`,
-            // GET response for application/vnd.ipld.car includes no Content-Length
-            // CAR is streamed, gateway may not have the entire thing, unable to calculate total size
-            // TODO: Implement assertion for MISSING headers.
-            // "Content-Length": null,
-            // GET response for application/vnd.ipld.car includes Content-Disposition"
-            "Content-Disposition": new RegExp(
-              `attachment; filename=\"${fixture.car.subdir["ascii.txt"]._cid}.car\"`
-            ),
-            // GET response for application/vnd.ipld.car includes nosniff hint
-            "X-Content-Type-Options": "nosniff",
-            // GET response for application/vnd.ipld.car includes Accept-Ranges header"
-            // CAR is streamed, gateway may not have the entire thing, unable to support range-requests
-            // Partial downloads and resumes should be handled using
-            // IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769
-            "Accept-Ranges": "none",
-            // GET response for application/vnd.ipld.car includes a weak Etag
-            ETag: new RegExp(`W/"${fixture.car.subdir["ascii.txt"]._cid}.car"`),
-            // GET response for application/vnd.ipld.car includes X-Ipfs-Path and X-Ipfs-Roots"
-            // (basic checks, detailed behavior for some fields is tested in  t0116-gateway-cache.sh)
-            "X-Ipfs-Path": /.+/,
-            "X-Ipfs-Roots": /.+/,
-            // GET response for application/vnd.ipld.car includes same Cache-Control as a block or a file"
-            "Cache-Control": "public, max-age=29030400, immutable",
+            "Content-Type": {
+              info: "GET response for application/vnd.ipld.car has expected Content-Type",
+              value: `${IPLD_CAR_TYPE}; version=1`,
+            },
+            "Content-Length": {
+              info: "GET response for application/vnd.ipld.car includes no Content-Length. CAR is streamed, gateway may not have the entire thing, unable to calculate total size.",
+              value: null,
+            },
+            "Content-Disposition": {
+              info: "GET response for application/vnd.ipld.car includes Content-Disposition",
+              value: new RegExp(
+                `attachment; filename=\"${fixture.car.subdir["ascii.txt"]._cid}.car\"`
+              ),
+            },
+            "X-Content-Type-Options": {
+              info: "GET response for application/vnd.ipld.car includes nosniff hint",
+              value: "nosniff",
+            },
+            "Accept-Ranges": {
+              info: `GET response for application/vnd.ipld.car includes Accept-Ranges header.
+              CAR is streamed, gateway may not have the entire thing, unable to support range-requests
+              Partial downloads and resumes should be handled using IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769`,
+              value: "none",
+            },
+            ETag: {
+              info: "GET response for application/vnd.ipld.car includes a weak Etag",
+              value: new RegExp(
+                `W/"${fixture.car.subdir["ascii.txt"]._cid}.car"`
+              ),
+            },
+            "X-Ipfs-Path": {
+              info: "GET response for application/vnd.ipld.car includes X-Ipfs-Path and X-Ipfs-Roots. (basic checks, detailed behavior for some fields is tested in  t0116-gateway-cache.sh)",
+              value: /.+/,
+            },
+            "X-Ipfs-Roots": {
+              info: "GET response for application/vnd.ipld.car includes X-Ipfs-Path and X-Ipfs-Roots. (basic checks, detailed behavior for some fields is tested in  t0116-gateway-cache.sh)",
+              value: /.+/,
+            },
+            "Cache-Control": {
+              info: "GET response for application/vnd.ipld.car includes same Cache-Control as a block or a file",
+              value: "public, max-age=29030400, immutable",
+            },
           },
         },
       },
