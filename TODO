@@ -1,0 +1,17 @@
+
+
+- [ ] implement a basic test (just write something with "expect 200")
+- [ ] port the features from the previous poc?
+- [ ] reporting to markdown + ci?
+
+
+- Previous POC structure:
+  - A way to run define & run the tests
+  - A way to define fixtures
+  - A way to provision a gateway
+  - Various reporting outputs (markdown, "cli / ci output")
+
+
+- A way to run define & run the tests
+  - writing a simpe expect 200 test. procedurally.
+  - then improve.
