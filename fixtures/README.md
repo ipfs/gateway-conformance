@@ -18,3 +18,9 @@ bafkreibyniihaqnhs536mbvc3wx66vbfttisc6zrvea6kzeku3w4as6lum
 
 .../gateway-conformance/dir
 .../gateway-conformance/dir/ascii.txt
+
+# go run extract.go fixtures/dir.car
+
+/dir
+/dir/ascii.txt
+goodbye application/vnd.ipld.raw
