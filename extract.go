@@ -82,6 +82,9 @@ func extractRoot(ls *ipld.LinkSystem, root cid.Cid) error {
 		return err
 	}
 
+	fmt.Printf("%s\n", "/")
+	fmt.Printf("  %s\n", root)
+
 	if err := extractDir(ls, ufn, "/"); err != nil {
 		if !errors.Is(err, ErrNotDir) {
 			return fmt.Errorf("%s: %w", root, err)
@@ -132,6 +135,11 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) error {
 			if err != nil {
 				return err
 			}
+			vcl, ok := vl.(cidlink.Link)
+			if !ok {
+				return fmt.Errorf("not a cidlink")
+			}
+			fmt.Printf("  %s\n", vcl.Cid)
 			dest, err := ls.Load(ipld.LinkContext{}, vl, basicnode.Prototype.Any)
 			if err != nil {
 				return err
@@ -206,7 +214,7 @@ func extractFile(ls *ipld.LinkSystem, n ipld.Node, outputName string) error {
 		return err
 	}
 
-	fmt.Print(buf.String())
+	fmt.Printf("  %s\n", buf.String())
 
 	return nil
 }

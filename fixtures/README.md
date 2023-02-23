@@ -21,6 +21,10 @@ bafkreibyniihaqnhs536mbvc3wx66vbfttisc6zrvea6kzeku3w4as6lum
 
 # go run extract.go fixtures/dir.car
 
+/
+  bafybeie7u7bbgvdqbur6inl6fpl4yw3xcg34bjjmnnzkmpwb5v6x3xz3hy
 /dir
+  bafybeiaxmpwa4nz2mekiiosayvkfgfpbubm7pch7tspx5syhzzsvkoewc4
 /dir/ascii.txt
-goodbye application/vnd.ipld.raw
+  bafkreibyniihaqnhs536mbvc3wx66vbfttisc6zrvea6kzeku3w4as6lum
+  goodbye application/vnd.ipld.raw
