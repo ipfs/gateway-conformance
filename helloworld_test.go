@@ -1,10 +1,21 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
 )
+
+func GetNode(t *testing.T, nodes []Node, p string) *Node {
+	t.Helper()
+	node := FindNode(nodes, p)
+	if node == nil {
+		t.Fatal(fmt.Errorf("node not found: %s", p))
+	}
+	return node
+}
 
 /**
  * "Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support": {
@@ -18,8 +29,17 @@ import (
 // # Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support
 // ## GET with format=raw param returns a raw block
 func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
+	nodes, err := ExtractCar("fixtures/dir.car")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	root := GetNode(t, nodes, "/")
+	ascii := GetNode(t, nodes, "/dir/ascii.txt")
+
 	// cid: `echo "helloworld" | ipfs add --inline -q`
-	res, err := http.Get("http://localhost:8080/ipfs/Qmckhu9X5A4K6wNzQGSrDRoHPhSpbmUELTFRdYjeQZx1M3/dir/ascii.txt?format=txt")
+	url := "http://localhost:8080/ipfs/" + root.Cid.String() + "/dir/ascii.txt?format=raw"
+	res, err := http.Get(url)
 
 	if err != nil {
 		t.Fatal(err)
@@ -35,9 +55,7 @@ func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bodyString := string(bodyBytes)
-	expected := "goodbye application/vnd.ipld.raw\n"
-	if bodyString != expected {
-		t.Fatalf("Body does not contain '%+v', got: '%+v'", expected, bodyString)
+	if !bytes.Equal(bodyBytes, ascii.Raw) {
+		t.Fatalf("Body does not contain '%+v', got: '%+v'", ascii.Raw, bodyBytes)
 	}
 }

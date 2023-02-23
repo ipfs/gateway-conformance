@@ -3,10 +3,8 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"strings"
 
@@ -23,18 +21,27 @@ import (
 
 var ErrNotDir = fmt.Errorf("not a directory")
 
-func main() {
-	if err := ExtractCar(os.Args[1]); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+type Node struct {
+	Path   string
+	Cid    cid.Cid
+	Raw    []byte
+	String string
+}
+
+func FindNode(nodes []Node, p string) *Node {
+	for _, node := range nodes {
+		if node.Path == p {
+			return &node
+		}
 	}
+	return nil
 }
 
 // ExtractCar pulls files and directories out of a car
-func ExtractCar(file string) error {
-	bs, err := blockstore.OpenReadOnly(file)
+func ExtractCar(file string) ([]Node, error) {
+	ns, err := blockstore.OpenReadOnly(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ls := cidlink.DefaultLinkSystem()
@@ -44,25 +51,28 @@ func ExtractCar(file string) error {
 		if err != nil {
 			return nil, err
 		}
-		blk, err := bs.Get(context.Background(), cid)
+		blk, err := ns.Get(context.Background(), cid)
 		if err != nil {
 			return nil, err
 		}
 		return bytes.NewBuffer(blk.RawData()), nil
 	}
 
-	roots, err := bs.Roots()
+	roots, err := ns.Roots()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	nodes := []Node{}
 	for _, root := range roots {
-		if err := extractRoot(&ls, root); err != nil {
-			return err
+		ns, err := extractRoot(&ls, root)
+		if err != nil {
+			return nil, err
 		}
+		nodes = append(nodes, ns...)
 	}
 
-	return nil
+	return nodes, nil
 }
 
 func getCid(l ipld.Link) (cid.Cid, error) {
@@ -74,111 +84,102 @@ func getCid(l ipld.Link) (cid.Cid, error) {
 	return cl.Cid, nil
 }
 
-
-func extractRoot(ls *ipld.LinkSystem, root cid.Cid) error {
+func extractRoot(ls *ipld.LinkSystem, root cid.Cid) ([]Node, error) {
 	if root.Prefix().Codec == cid.Raw {
 		fmt.Printf("skipping raw root %s\n", root)
-		return nil
+		return nil, nil
 	}
 
 	raw, err := ls.StorageReadOpener(ipld.LinkContext{}, cidlink.Link{Cid: root})
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	fmt.Printf("path: %s\n", "/")
-	fmt.Printf("  cid: %s\n", root)
-	fmt.Printf("  raw: %v\n", raw.(*bytes.Buffer).Bytes())
 
 	pbn, err := ls.Load(ipld.LinkContext{}, cidlink.Link{Cid: root}, dagpb.Type.PBNode)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	pbnode := pbn.(dagpb.PBNode)
 
 	ufn, err := unixfsnode.Reify(ipld.LinkContext{}, pbnode, ls)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := extractDir(ls, ufn, "/"); err != nil {
-		if !errors.Is(err, ErrNotDir) {
-			return fmt.Errorf("%s: %w", root, err)
-		}
-		ufsData, err := pbnode.LookupByString("Data")
-		if err != nil {
-			return err
-		}
-		ufsBytes, err := ufsData.AsBytes()
-		if err != nil {
-			return err
-		}
-		ufsNode, err := data.DecodeUnixFSData(ufsBytes)
-		if err != nil {
-			return err
-		}
-		if ufsNode.DataType.Int() == data.Data_File || ufsNode.DataType.Int() == data.Data_Raw {
-			if err := extractFile(ls, pbnode, "unknown"); err != nil {
-				return err
-			}
-		}
-		return nil
+	nodes := []Node{
+		{
+			Path:   "/",
+			Cid:    root,
+			Raw:    raw.(*bytes.Buffer).Bytes(),
+			String: "",
+		},
 	}
 
-	return nil
+	ns, err := extractDir(ls, ufn, "/")
+	if err != nil {
+		return nil, err
+	}
+	nodes = append(nodes, ns...)
+
+	return nodes, nil
 }
 
-func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) error {
+func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, error) {
 	if n.Kind() == ipld.Kind_Map {
 		mi := n.MapIterator()
+		nodes := []Node{}
 		for !mi.Done() {
 			key, val, err := mi.Next()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			ks, err := key.AsString()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			nextRes := path.Join(outputPath, ks)
 
 			if val.Kind() != ipld.Kind_Link {
-				return fmt.Errorf("unexpected map value for %s at %s", ks, outputPath)
+				return nil, fmt.Errorf("unexpected map value for %s at %s", ks, outputPath)
 			}
 			// a directory may be represented as a map of name:<link> if unixADL is applied
 			vl, err := val.AsLink()
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			cid, err := getCid(vl)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			raw, err := ls.StorageReadOpener(ipld.LinkContext{}, cidlink.Link{Cid: cid})
 			if err != nil {
-				return err
+				return nil, err
 			}
-
-			fmt.Printf("path: %s\n", nextRes)
-			fmt.Printf("  cid: %s\n", cid)
-			fmt.Printf("  raw: %v\n", raw.(*bytes.Buffer).Bytes())
 
 			dest, err := ls.Load(ipld.LinkContext{}, vl, basicnode.Prototype.Any)
 			if err != nil {
-				return err
+				return nil, err
 			}
+
 			// degenerate files are handled here.
 			if dest.Kind() == ipld.Kind_Bytes {
-				if err := extractFile(ls, dest, nextRes); err != nil {
-					return err
+				str, err := extractFile(ls, dest, nextRes)
+				if err != nil {
+					return nil, err
 				}
+				nodes = append(nodes, Node{
+					Path:   nextRes,
+					Cid:    cid,
+					Raw:    raw.(*bytes.Buffer).Bytes(),
+					String: str,
+				})
 				continue
 			} else {
 				// dir / pbnode
 				pbb := dagpb.Type.PBNode.NewBuilder()
 				if err := pbb.AssignNode(dest); err != nil {
-					return err
+					return nil, err
 				}
 				dest = pbb.Build()
 			}
@@ -187,58 +188,70 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) error {
 			// interpret dagpb 'data' as unixfs data and look at type.
 			ufsData, err := pbnode.LookupByString("Data")
 			if err != nil {
-				return err
+				return nil, err
 			}
 			ufsBytes, err := ufsData.AsBytes()
 			if err != nil {
-				return err
+				return nil, err
 			}
 			ufsNode, err := data.DecodeUnixFSData(ufsBytes)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if ufsNode.DataType.Int() == data.Data_Directory || ufsNode.DataType.Int() == data.Data_HAMTShard {
 				ufn, err := unixfsnode.Reify(ipld.LinkContext{}, pbnode, ls)
 				if err != nil {
-					return err
+					return nil, err
 				}
 
-				if err := extractDir(ls, ufn, nextRes); err != nil {
-					return err
+				nodes = append(nodes, Node{
+					Path:   nextRes,
+					Cid:    cid,
+					Raw:    raw.(*bytes.Buffer).Bytes(),
+					String: "",
+				})
+
+				ns, err := extractDir(ls, ufn, nextRes)
+				if err != nil {
+					return nil, err
 				}
+				nodes = append(nodes, ns...)
 			} else if ufsNode.DataType.Int() == data.Data_File || ufsNode.DataType.Int() == data.Data_Raw {
-				if err := extractFile(ls, pbnode, nextRes); err != nil {
-					return err
+				str, err := extractFile(ls, pbnode, nextRes)
+				if err != nil {
+					return nil, err
 				}
-			} else if ufsNode.DataType.Int() == data.Data_Symlink {
-				data := ufsNode.Data.Must().Bytes()
-				if err := os.Symlink(string(data), nextRes); err != nil {
-					return err
-				}
+				nodes = append(nodes, Node{
+					Path:   nextRes,
+					Cid:    cid,
+					Raw:    raw.(*bytes.Buffer).Bytes(),
+					String: str,
+				})
+			} else {
+				return nil, fmt.Errorf("unknown unixfs type: %d", ufsNode.DataType.Int())
 			}
 		}
-		return nil
+		return nodes, nil
 	}
-	return ErrNotDir
+	return nil, ErrNotDir
 }
 
-func extractFile(ls *ipld.LinkSystem, n ipld.Node, outputName string) error {
+func extractFile(ls *ipld.LinkSystem, n ipld.Node, outputName string) (string, error) {
 	node, err := file.NewUnixFSFile(context.Background(), n, ls)
 	if err != nil {
-		return err
+		return "", err
 	}
 	nlr, err := node.AsLargeBytes()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	buf := new(strings.Builder)
 	_, err = io.Copy(buf, nlr)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	fmt.Printf("  str: %s\n", buf.String())
-
-	return nil
+	str := buf.String()
+	return str, nil
 }
