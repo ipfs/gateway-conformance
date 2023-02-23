@@ -40,11 +40,11 @@ func ExtractCar(file string) error {
 	ls := cidlink.DefaultLinkSystem()
 	ls.TrustedStorage = true
 	ls.StorageReadOpener = func(_ ipld.LinkContext, l ipld.Link) (io.Reader, error) {
-		cl, ok := l.(cidlink.Link)
-		if !ok {
-			return nil, fmt.Errorf("not a cidlink")
+		cid, err := getCid(l)
+		if err != nil {
+			return nil, err
 		}
-		blk, err := bs.Get(context.Background(), cl.Cid)
+		blk, err := bs.Get(context.Background(), cid)
 		if err != nil {
 			return nil, err
 		}
@@ -65,11 +65,30 @@ func ExtractCar(file string) error {
 	return nil
 }
 
+func getCid(l ipld.Link) (cid.Cid, error) {
+	cl, ok := l.(cidlink.Link)
+	if !ok {
+		return cid.Undef, fmt.Errorf("not a cidlink")
+	}
+
+	return cl.Cid, nil
+}
+
+
 func extractRoot(ls *ipld.LinkSystem, root cid.Cid) error {
 	if root.Prefix().Codec == cid.Raw {
 		fmt.Printf("skipping raw root %s\n", root)
 		return nil
 	}
+
+	raw, err := ls.StorageReadOpener(ipld.LinkContext{}, cidlink.Link{Cid: root})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("path: %s\n", "/")
+	fmt.Printf("  cid: %s\n", root)
+	fmt.Printf("  raw: %v\n", raw.(*bytes.Buffer).Bytes())
 
 	pbn, err := ls.Load(ipld.LinkContext{}, cidlink.Link{Cid: root}, dagpb.Type.PBNode)
 	if err != nil {
@@ -81,9 +100,6 @@ func extractRoot(ls *ipld.LinkSystem, root cid.Cid) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("%s\n", "/")
-	fmt.Printf("  %s\n", root)
 
 	if err := extractDir(ls, ufn, "/"); err != nil {
 		if !errors.Is(err, ErrNotDir) {
@@ -125,7 +141,6 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) error {
 				return err
 			}
 			nextRes := path.Join(outputPath, ks)
-			fmt.Printf("%s\n", nextRes)
 
 			if val.Kind() != ipld.Kind_Link {
 				return fmt.Errorf("unexpected map value for %s at %s", ks, outputPath)
@@ -135,11 +150,20 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) error {
 			if err != nil {
 				return err
 			}
-			vcl, ok := vl.(cidlink.Link)
-			if !ok {
-				return fmt.Errorf("not a cidlink")
+
+			cid, err := getCid(vl)
+			if err != nil {
+				return err
 			}
-			fmt.Printf("  %s\n", vcl.Cid)
+			raw, err := ls.StorageReadOpener(ipld.LinkContext{}, cidlink.Link{Cid: cid})
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("path: %s\n", nextRes)
+			fmt.Printf("  cid: %s\n", cid)
+			fmt.Printf("  raw: %v\n", raw.(*bytes.Buffer).Bytes())
+
 			dest, err := ls.Load(ipld.LinkContext{}, vl, basicnode.Prototype.Any)
 			if err != nil {
 				return err
@@ -214,7 +238,7 @@ func extractFile(ls *ipld.LinkSystem, n ipld.Node, outputName string) error {
 		return err
 	}
 
-	fmt.Printf("  %s\n", buf.String())
+	fmt.Printf("  str: %s\n", buf.String())
 
 	return nil
 }
