@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"testing"
 )
 
@@ -18,19 +19,22 @@ func GetEnv(key string, fallback string) string {
 
 var GatewayUrl = GetEnv("GATEWAY_URL", "http://localhost:8080")
 
-type String string
-
-func (s String) String() string {
-	return string(s)
+type WithHintIface interface {
+	GetValue() interface{}
+	GetHint() string
 }
 
-type StringWithHint struct {
-	Value string
+type WithHint[T any] struct {
+	Value T
 	Hint  string
 }
 
-func (s StringWithHint) String() string {
-	return s.Value
+func (w WithHint[T]) GetValue() interface{} {
+	return w.Value
+}
+
+func (w WithHint[T]) GetHint() string {
+	return w.Hint
 }
 
 type Request struct {
@@ -40,11 +44,9 @@ type Request struct {
 	Body    []byte
 }
 
-type Headers map[string]fmt.Stringer
-
 type Response struct {
 	StatusCode int
-	Headers    Headers
+	Headers    map[string]interface{}
 	Body       []byte
 }
 
@@ -92,13 +94,25 @@ func Run(t *testing.T, tests map[string]Test) {
 
 			for key, value := range test.Response.Headers {
 				actual := res.Header.Get(key)
-				expected := value.String()
-				if actual != expected {
-					if hint, ok := value.(StringWithHint); ok {
-						t.Fatalf("Header '%s' is not '%s'. It is '%s'. Hint: %s", key, expected, actual, hint.Hint)
-					} else {
-						t.Fatalf("Header '%s' is not '%s'. It is '%s'", key, expected, actual)
-					}
+				var expected string
+				var hint string
+				var match bool
+				if w, ok := value.(WithHintIface); ok {
+					value = w.GetValue()
+					hint = w.GetHint()
+				}
+				switch v := value.(type) {
+				case string:
+					expected = v
+					match = actual == expected
+				case *regexp.Regexp:
+					expected = v.String()
+					match = v.MatchString(actual)
+				default:
+					t.Fatalf("Unknown header '%+v' type '%T'", value, v)
+				}
+				if !match {
+					t.Fatalf("Header '%s' is not '%s'. It is '%s'. %s", key, expected, actual, hint)
 				}
 			}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/car"
@@ -16,12 +17,12 @@ var tests = map[string]test.Test{
 		Response: test.Response{
 			StatusCode: 200,
 			Body:       car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"),
-			Headers: test.Headers{
-				"Content-Type": test.StringWithHint{
-					Value: "application/vnd.ipld.raw",
+			Headers: map[string]interface{}{
+				"Content-Type": test.WithHint[*regexp.Regexp]{
+					Value: regexp.MustCompile("application.vnd.ipld.raw"),
 					Hint:  "https://www.iana.org/assignments/media-types/application/vnd.ipld.raw",
 				},
-				"Content-Length": test.String(fmt.Sprintf("%d", len(car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt")))),
+				"Content-Length": fmt.Sprintf("%d", len(car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"))),
 			},
 		},
 	},
