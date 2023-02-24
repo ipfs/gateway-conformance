@@ -2,20 +2,12 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"testing"
+	"github.com/ipfs/gateway-conformance/car"
 )
 
-func GetNode(t *testing.T, nodes []Node, p string) *Node {
-	t.Helper()
-	node := FindNode(nodes, p)
-	if node == nil {
-		t.Fatal(fmt.Errorf("node not found: %s", p))
-	}
-	return node
-}
 
 /**
  * "Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support": {
@@ -29,16 +21,8 @@ func GetNode(t *testing.T, nodes []Node, p string) *Node {
 // # Test HTTP Gateway Raw Block (application/vnd.ipld.raw) Support
 // ## GET with format=raw param returns a raw block
 func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
-	nodes, err := ExtractCar("fixtures/dir.car")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	root := GetNode(t, nodes, "/")
-	ascii := GetNode(t, nodes, "/dir/ascii.txt")
-
 	// cid: `echo "helloworld" | ipfs add --inline -q`
-	url := "http://localhost:8080/ipfs/" + root.Cid.String() + "/dir/ascii.txt?format=raw"
+	url := "http://localhost:8080/ipfs/" + car.GetCid(t, "fixtures/dir.car", "/") + "/dir/ascii.txt?format=raw"
 	res, err := http.Get(url)
 
 	if err != nil {
@@ -55,7 +39,7 @@ func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(bodyBytes, ascii.Raw) {
-		t.Fatalf("Body does not contain '%+v', got: '%+v'", ascii.Raw, bodyBytes)
+	if !bytes.Equal(bodyBytes, car.GetRawBlock(t, "fixtures/dir.car", "/dir/ascii.txt")) {
+		t.Fatalf("Body does not contain '%+v', got: '%+v'", car.GetRawBlock(t, "fixtures/dir.car", "/dir/ascii.txt"), bodyBytes)
 	}
 }

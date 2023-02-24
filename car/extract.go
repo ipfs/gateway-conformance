@@ -1,4 +1,4 @@
-package main
+package car
 
 import (
 	"bytes"
@@ -19,16 +19,16 @@ import (
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 )
 
-var ErrNotDir = fmt.Errorf("not a directory")
+var errNotDir = fmt.Errorf("not a directory")
 
-type Node struct {
+type node struct {
 	Path   string
 	Cid    cid.Cid
 	Raw    []byte
 	String string
 }
 
-func FindNode(nodes []Node, p string) *Node {
+func findNode(nodes []node, p string) *node {
 	for _, node := range nodes {
 		if node.Path == p {
 			return &node
@@ -37,8 +37,8 @@ func FindNode(nodes []Node, p string) *Node {
 	return nil
 }
 
-// ExtractCar pulls files and directories out of a car
-func ExtractCar(file string) ([]Node, error) {
+// extractCar pulls files and directories out of a car
+func extractCar(file string) ([]node, error) {
 	ns, err := blockstore.OpenReadOnly(file)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func ExtractCar(file string) ([]Node, error) {
 		return nil, err
 	}
 
-	nodes := []Node{}
+	nodes := []node{}
 	for _, root := range roots {
 		ns, err := extractRoot(&ls, root)
 		if err != nil {
@@ -84,7 +84,7 @@ func getCid(l ipld.Link) (cid.Cid, error) {
 	return cl.Cid, nil
 }
 
-func extractRoot(ls *ipld.LinkSystem, root cid.Cid) ([]Node, error) {
+func extractRoot(ls *ipld.LinkSystem, root cid.Cid) ([]node, error) {
 	if root.Prefix().Codec == cid.Raw {
 		fmt.Printf("skipping raw root %s\n", root)
 		return nil, nil
@@ -106,7 +106,7 @@ func extractRoot(ls *ipld.LinkSystem, root cid.Cid) ([]Node, error) {
 		return nil, err
 	}
 
-	nodes := []Node{
+	nodes := []node{
 		{
 			Path:   "/",
 			Cid:    root,
@@ -124,10 +124,10 @@ func extractRoot(ls *ipld.LinkSystem, root cid.Cid) ([]Node, error) {
 	return nodes, nil
 }
 
-func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, error) {
+func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]node, error) {
 	if n.Kind() == ipld.Kind_Map {
 		mi := n.MapIterator()
-		nodes := []Node{}
+		nodes := []node{}
 		for !mi.Done() {
 			key, val, err := mi.Next()
 			if err != nil {
@@ -168,7 +168,7 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, er
 				if err != nil {
 					return nil, err
 				}
-				nodes = append(nodes, Node{
+				nodes = append(nodes, node{
 					Path:   nextRes,
 					Cid:    cid,
 					Raw:    raw.(*bytes.Buffer).Bytes(),
@@ -204,7 +204,7 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, er
 					return nil, err
 				}
 
-				nodes = append(nodes, Node{
+				nodes = append(nodes, node{
 					Path:   nextRes,
 					Cid:    cid,
 					Raw:    raw.(*bytes.Buffer).Bytes(),
@@ -221,7 +221,7 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, er
 				if err != nil {
 					return nil, err
 				}
-				nodes = append(nodes, Node{
+				nodes = append(nodes, node{
 					Path:   nextRes,
 					Cid:    cid,
 					Raw:    raw.(*bytes.Buffer).Bytes(),
@@ -233,7 +233,7 @@ func extractDir(ls *ipld.LinkSystem, n ipld.Node, outputPath string) ([]Node, er
 		}
 		return nodes, nil
 	}
-	return nil, ErrNotDir
+	return nil, errNotDir
 }
 
 func extractFile(ls *ipld.LinkSystem, n ipld.Node, outputName string) (string, error) {
