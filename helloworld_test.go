@@ -22,7 +22,7 @@ import (
 // ## GET with format=raw param returns a raw block
 func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
 	// cid: `echo "helloworld" | ipfs add --inline -q`
-	url := "http://localhost:8080/ipfs/" + car.GetCid(t, "fixtures/dir.car", "/") + "/dir/ascii.txt?format=raw"
+	url := "http://localhost:8080/ipfs/" + car.GetCid("fixtures/dir.car", "/") + "/dir/ascii.txt?format=raw"
 	res, err := http.Get(url)
 
 	if err != nil {
@@ -39,7 +39,7 @@ func TestGETWithFormatRawParamReturnsARawBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(bodyBytes, car.GetRawBlock(t, "fixtures/dir.car", "/dir/ascii.txt")) {
-		t.Fatalf("Body does not contain '%+v', got: '%+v'", car.GetRawBlock(t, "fixtures/dir.car", "/dir/ascii.txt"), bodyBytes)
+	if !bytes.Equal(bodyBytes, car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt")) {
+		t.Fatalf("Body does not contain '%+v', got: '%+v'", car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"), bodyBytes)
 	}
 }

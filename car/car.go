@@ -2,31 +2,33 @@ package car
 
 import (
 	"fmt"
-	"testing"
+	"os"
 )
 
-func GetCid(t *testing.T, carPath string, nodePath string) string {
-	t.Helper()
+func GetCid(carPath string, nodePath string) string {
 	nodes, err := extractCar(carPath)
 	if err != nil {
-		t.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	node := findNode(nodes, nodePath)
 	if node == nil {
-		t.Fatal(fmt.Errorf("node not found: %s", nodePath))
+		fmt.Println(fmt.Errorf("node not found: %s", nodePath))
+		os.Exit(1)
 	}
 	return node.Cid.String()
 }
 
-func GetRawBlock(t *testing.T, carPath string, nodePath string) []byte {
-	t.Helper()
+func GetRawBlock(carPath string, nodePath string) []byte {
 	nodes, err := extractCar(carPath)
 	if err != nil {
-		t.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	node := findNode(nodes, nodePath)
 	if node == nil {
-		t.Fatal(fmt.Errorf("node not found: %s", nodePath))
+		fmt.Println(fmt.Errorf("node not found: %s", nodePath))
+		os.Exit(1)
 	}
 	return node.Raw
 }
