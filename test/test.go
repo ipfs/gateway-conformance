@@ -37,6 +37,8 @@ func (w WithHint[T]) GetHint() string {
 	return w.Hint
 }
 
+type Check[T any] func(T) bool
+
 type Request struct {
 	Method  string
 	Url     string
@@ -88,8 +90,10 @@ func Run(t *testing.T, tests map[string]Test) {
 				t.Fatal(err)
 			}
 
-			if res.StatusCode != test.Response.StatusCode {
-				t.Fatalf("Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+			if test.Response.StatusCode != 0 {
+				if res.StatusCode != test.Response.StatusCode {
+					t.Fatalf("Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+				}
 			}
 
 			for key, value := range test.Response.Headers {
@@ -102,28 +106,31 @@ func Run(t *testing.T, tests map[string]Test) {
 					hint = w.GetHint()
 				}
 				switch v := value.(type) {
-				case string:
-					expected = v
-					match = actual == expected
 				case *regexp.Regexp:
 					expected = v.String()
 					match = v.MatchString(actual)
+				case Check[string]:
+					expected = "<Check[String]>"
+					match = v(actual)
 				default:
-					t.Fatalf("Unknown header '%+v' type '%T'", value, v)
+					expected = fmt.Sprintf("%v", value)
+					match = actual == expected
 				}
 				if !match {
 					t.Fatalf("Header '%s' is not '%s'. It is '%s'. %s", key, expected, actual, hint)
 				}
 			}
 
-			defer res.Body.Close()
-			resBody, err := io.ReadAll(res.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
+			if test.Response.Body != nil {
+				defer res.Body.Close()
+				resBody, err := io.ReadAll(res.Body)
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			if !bytes.Equal(resBody, test.Response.Body) {
-				t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, body)
+				if !bytes.Equal(resBody, test.Response.Body) {
+					t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, body)
+				}
 			}
 		})
 	}

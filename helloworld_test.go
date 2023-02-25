@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/car"
@@ -12,17 +14,103 @@ import (
 var tests = map[string]test.Test{
 	"GET with format=raw param returns a raw block": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?format=raw", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir?format=raw", car.GetCid("fixtures/dir.car", "/")),
 		},
 		Response: test.Response{
 			StatusCode: 200,
-			Body:       car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"),
+			Body:       car.GetRawBlock("fixtures/dir.car", "/dir"),
+		},
+	},
+	"GET with application/vnd.ipld.raw header returns a raw block": {
+		Request: test.Request{
+			Url: fmt.Sprintf("ipfs/%s/dir", car.GetCid("fixtures/dir.car", "/")),
+			Headers: map[string]string{
+				"Accept": "application/vnd.ipld.raw",
+			},
+		},
+		Response: test.Response{
+			StatusCode: 200,
+			Body:       car.GetRawBlock("fixtures/dir.car", "/dir"),
+		},
+	},
+	"GET with application/vnd.ipld.raw header returns expected response headers": {
+		Request: test.Request{
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
+			Headers: map[string]string{
+				"Accept": "application/vnd.ipld.raw",
+			},
+		},
+		Response: test.Response{
+			StatusCode: 200,
 			Headers: map[string]interface{}{
-				"Content-Type": test.WithHint[*regexp.Regexp]{
-					Value: regexp.MustCompile("application.vnd.ipld.raw"),
-					Hint:  "https://www.iana.org/assignments/media-types/application/vnd.ipld.raw",
+				"Content-Type":           "application/vnd.ipld.raw",
+				"Content-Length":         fmt.Sprintf("%d", len(car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"))),
+				"Content-Disposition":    regexp.MustCompile(fmt.Sprintf("attachment;\\s*filename=\"%s\\.bin", car.GetCid("fixtures/dir.car", "/dir/ascii.txt"))),
+				"X-Content-Type-Options": "nosniff",
+			},
+			Body: car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"),
+		},
+	},
+	"GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header": {
+		Request: test.Request{
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", car.GetCid("fixtures/dir.car", "/")),
+			Headers: map[string]string{
+				"Accept": "application/vnd.ipld.raw",
+			},
+		},
+		Response: test.Response{
+			StatusCode: 200,
+			Headers: map[string]interface{}{
+				"Content-Disposition": regexp.MustCompile("attachment;\\s*filename=\"foobar\\.bin"),
+			},
+		},
+	},
+	"GET with application/vnd.ipld.raw header returns expected caching headers": {
+		Request: test.Request{
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
+			Headers: map[string]string{
+				"Accept": "application/vnd.ipld.raw",
+			},
+		},
+		Response: test.Response{
+			StatusCode: 200,
+			Headers: map[string]interface{}{
+				"ETag":         fmt.Sprintf("\"%s.raw\"", car.GetCid("fixtures/dir.car", "/dir/ascii.txt")),
+				"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
+				"X-IPFS-Roots": regexp.MustCompile(car.GetCid("fixtures/dir.car", "/")),
+				"Cache-Control": test.WithHint[test.Check[string]]{
+					Value: func(v string) bool {
+						directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
+						dir := make(map[string]string)
+						for _, directive := range directives {
+							parts := strings.Split(directive, "=")
+							if len(parts) == 2 {
+								dir[parts[0]] = parts[1]
+							} else {
+								dir[parts[0]] = ""
+							}
+						}
+						if _, ok := dir["public"]; !ok {
+							return false
+						}
+						if _, ok := dir["immutable"]; !ok {
+							return false
+						}
+						if maxAge, ok := dir["max-age"]; ok {
+							maxAgeInt, err := strconv.Atoi(maxAge)
+							if err != nil {
+								return false
+							}
+							if maxAgeInt < 29030400 {
+								return false
+							}
+						} else {
+							return false
+						}
+						return true
+					},
+					Hint: "It should be public, immutable and have max-age of at least 31536000.",
 				},
-				"Content-Length": fmt.Sprintf("%d", len(car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"))),
 			},
 		},
 	},
