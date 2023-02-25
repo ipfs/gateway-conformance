@@ -14,28 +14,28 @@ import (
 var tests = map[string]test.Test{
 	"GET with format=raw param returns a raw block": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir?format=raw", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir?format=raw", car.GetCid("fixtures/dir.car")),
 		},
 		Response: test.Response{
 			StatusCode: 200,
-			Body:       car.GetRawBlock("fixtures/dir.car", "/dir"),
+			Body:       car.GetRawData("fixtures/dir.car", "dir"),
 		},
 	},
 	"GET with application/vnd.ipld.raw header returns a raw block": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir", car.GetCid("fixtures/dir.car")),
 			Headers: map[string]string{
 				"Accept": "application/vnd.ipld.raw",
 			},
 		},
 		Response: test.Response{
 			StatusCode: 200,
-			Body:       car.GetRawBlock("fixtures/dir.car", "/dir"),
+			Body:       car.GetRawData("fixtures/dir.car", "dir"),
 		},
 	},
 	"GET with application/vnd.ipld.raw header returns expected response headers": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car")),
 			Headers: map[string]string{
 				"Accept": "application/vnd.ipld.raw",
 			},
@@ -44,16 +44,16 @@ var tests = map[string]test.Test{
 			StatusCode: 200,
 			Headers: map[string]interface{}{
 				"Content-Type":           "application/vnd.ipld.raw",
-				"Content-Length":         fmt.Sprintf("%d", len(car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"))),
-				"Content-Disposition":    regexp.MustCompile(fmt.Sprintf("attachment;\\s*filename=\"%s\\.bin", car.GetCid("fixtures/dir.car", "/dir/ascii.txt"))),
+				"Content-Length":         fmt.Sprintf("%d", len(car.GetRawData("fixtures/dir.car", "dir", "ascii.txt"))),
+				"Content-Disposition":    regexp.MustCompile(fmt.Sprintf("attachment;\\s*filename=\"%s\\.bin", car.GetCid("fixtures/dir.car", "dir", "ascii.txt"))),
 				"X-Content-Type-Options": "nosniff",
 			},
-			Body: car.GetRawBlock("fixtures/dir.car", "/dir/ascii.txt"),
+			Body: car.GetRawData("fixtures/dir.car", "dir", "ascii.txt"),
 		},
 	},
 	"GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", car.GetCid("fixtures/dir.car")),
 			Headers: map[string]string{
 				"Accept": "application/vnd.ipld.raw",
 			},
@@ -67,7 +67,7 @@ var tests = map[string]test.Test{
 	},
 	"GET with application/vnd.ipld.raw header returns expected caching headers": {
 		Request: test.Request{
-			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
+			Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car")),
 			Headers: map[string]string{
 				"Accept": "application/vnd.ipld.raw",
 			},
@@ -75,9 +75,9 @@ var tests = map[string]test.Test{
 		Response: test.Response{
 			StatusCode: 200,
 			Headers: map[string]interface{}{
-				"ETag":         fmt.Sprintf("\"%s.raw\"", car.GetCid("fixtures/dir.car", "/dir/ascii.txt")),
-				"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car", "/")),
-				"X-IPFS-Roots": regexp.MustCompile(car.GetCid("fixtures/dir.car", "/")),
+				"ETag":         fmt.Sprintf("\"%s.raw\"", car.GetCid("fixtures/dir.car", "dir", "ascii.txt")),
+				"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/dir.car")),
+				"X-IPFS-Roots": regexp.MustCompile(car.GetCid("fixtures/dir.car")),
 				"Cache-Control": test.WithHint[test.Check[string]]{
 					Value: func(v string) bool {
 						directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
