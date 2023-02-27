@@ -1,4 +1,5 @@
-./fixtures.car
+/fixtures.car
+/generate
 
 # Logs
 logs
