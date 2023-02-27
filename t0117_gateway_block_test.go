@@ -12,31 +12,32 @@ import (
 )
 
 func TestGatewayBlock(t *testing.T) {
+	fixture := car.MustOpenUnixfsCar("fixtures/t0117-gateway-block.car")
 	tests := map[string]test.Test{
 		"GET with format=raw param returns a raw block": {
 			Request: test.Request{
-				Url: fmt.Sprintf("ipfs/%s/dir?format=raw", car.GetCid("fixtures/t0117-gateway-block.car")),
+				Url: fmt.Sprintf("ipfs/%s/dir?format=raw", fixture.MustGetCid()),
 			},
 			Response: test.Response{
 				StatusCode: 200,
-				Body:       car.GetRawData("fixtures/t0117-gateway-block.car", "dir"),
+				Body:       fixture.MustGetRawData("dir"),
 			},
 		},
 		"GET with application/vnd.ipld.raw header returns a raw block": {
 			Request: test.Request{
-				Url: fmt.Sprintf("ipfs/%s/dir", car.GetCid("fixtures/t0117-gateway-block.car")),
+				Url: fmt.Sprintf("ipfs/%s/dir", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
 			},
 			Response: test.Response{
 				StatusCode: 200,
-				Body:       car.GetRawData("fixtures/t0117-gateway-block.car", "dir"),
+				Body:       fixture.MustGetRawData("dir"),
 			},
 		},
 		"GET with application/vnd.ipld.raw header returns expected response headers": {
 			Request: test.Request{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/t0117-gateway-block.car")),
+				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -45,16 +46,16 @@ func TestGatewayBlock(t *testing.T) {
 				StatusCode: 200,
 				Headers: map[string]interface{}{
 					"Content-Type":           "application/vnd.ipld.raw",
-					"Content-Length":         fmt.Sprintf("%d", len(car.GetRawData("fixtures/t0117-gateway-block.car", "dir", "ascii.txt"))),
-					"Content-Disposition":    regexp.MustCompile(fmt.Sprintf("attachment;\\s*filename=\"%s\\.bin", car.GetCid("fixtures/t0117-gateway-block.car", "dir", "ascii.txt"))),
+					"Content-Length":         fmt.Sprintf("%d", len(fixture.MustGetRawData("dir", "ascii.txt"))),
+					"Content-Disposition":    regexp.MustCompile(fmt.Sprintf("attachment;\\s*filename=\"%s\\.bin", fixture.MustGetCid("dir", "ascii.txt"))),
 					"X-Content-Type-Options": "nosniff",
 				},
-				Body: car.GetRawData("fixtures/t0117-gateway-block.car", "dir", "ascii.txt"),
+				Body: fixture.MustGetRawData("dir", "ascii.txt"),
 			},
 		},
 		"GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header": {
 			Request: test.Request{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", car.GetCid("fixtures/t0117-gateway-block.car")),
+				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -68,7 +69,7 @@ func TestGatewayBlock(t *testing.T) {
 		},
 		"GET with application/vnd.ipld.raw header returns expected caching headers": {
 			Request: test.Request{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/t0117-gateway-block.car")),
+				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -76,9 +77,9 @@ func TestGatewayBlock(t *testing.T) {
 			Response: test.Response{
 				StatusCode: 200,
 				Headers: map[string]interface{}{
-					"ETag":         fmt.Sprintf("\"%s.raw\"", car.GetCid("fixtures/t0117-gateway-block.car", "dir", "ascii.txt")),
-					"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", car.GetCid("fixtures/t0117-gateway-block.car")),
-					"X-IPFS-Roots": regexp.MustCompile(car.GetCid("fixtures/t0117-gateway-block.car")),
+					"ETag":         fmt.Sprintf("\"%s.raw\"", fixture.MustGetCid("dir", "ascii.txt")),
+					"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
+					"X-IPFS-Roots": regexp.MustCompile(fixture.MustGetCid()),
 					"Cache-Control": test.WithHint[test.Check[string]]{
 						Value: func(v string) bool {
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")

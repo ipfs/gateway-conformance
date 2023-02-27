@@ -17,7 +17,7 @@ func GetEnv(key string, fallback string) string {
 	return fallback
 }
 
-var GatewayUrl = GetEnv("GATEWAY_URL", "http://localhost:8080")
+var GatewayUrl = GetEnv("GATEWAY_URL", "http://127.0.0.1:8080")
 
 type WithHintIface interface {
 	GetValue() interface{}
@@ -84,8 +84,7 @@ func Run(t *testing.T, tests map[string]Test) {
 			}
 
 			// send request
-			client := &http.Client{}
-			res, err := client.Do(req)
+			res, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -129,7 +128,11 @@ func Run(t *testing.T, tests map[string]Test) {
 				}
 
 				if !bytes.Equal(resBody, test.Response.Body) {
-					t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, body)
+					if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
+						t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
+					} else {
+						t.Fatalf("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
+					}
 				}
 			}
 		})
