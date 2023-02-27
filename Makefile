@@ -20,4 +20,12 @@ generate: ./generate_fixture.go
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest
-	gotestsum --junitfile output.xml
+	- gotestsum --junitfile output.xml
+
+output.xml: test-kubo
+
+output.html: output.xml
+	npx junit-viewer --results=./output.xml > output.html
+	open ./output.html
+
+.PHONY: output.html

@@ -116,7 +116,7 @@ func Run(t *testing.T, tests map[string]Test) {
 					match = actual == expected
 				}
 				if !match {
-					t.Fatalf("Header '%s' is not '%s'. It is '%s'. %s", key, expected, actual, hint)
+					t.Fatalf("Header '%s' expected: '%s'. got: '%s'. (%s)", key, expected, actual, hint)
 				}
 			}
 
