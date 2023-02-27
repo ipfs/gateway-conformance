@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/ipfs/go-cid"
-	carv2 "github.com/ipld/go-car/v2"
 	"github.com/ipld/go-car/v2/blockstore"
 )
 
@@ -39,35 +39,44 @@ func listAllCarFile(basePath string) []string {
 	return carFiles
 }
 
-func GetAll(ctx context.Context, bs blockstore.ReadOnly) []cid.Cid {
-	var cids []cid.Cid
-
-	c, err := bs.AllKeysChan(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	for c := range c {
-		cids = append(cids, c)
-	}
-
-	return cids
-}
-
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	rout, err := blockstore.OpenReadWrite("./fixtures.car", []cid.Cid{})
+	carFiles := listAllCarFile("./fixtures")
+
+	// First list all the roots in our fixtures
+	roots := make([]cid.Cid, 0)
+
+	for _, f := range carFiles {
+		fmt.Printf("processing %s\n", f)
+		robs, err := blockstore.OpenReadOnly(f,
+			blockstore.UseWholeCIDs(true),
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		r, err := robs.Roots()
+		if err != nil {
+			panic(err)
+		}
+
+		roots = append(roots, r...)
+	}
+
+	// Now prepare our new CAR file
+	fmt.Printf("Opening the ./fixtures.car file, with roots: %v\n", roots)
+	rout, err := blockstore.OpenReadWrite("./fixtures.car", roots)
 	if err != nil {
 		panic(err)
 	}
 
-	carFiles := listAllCarFile("./fixtures")
+	// Then aggregate all our blocks.
 	for _, f := range carFiles {
+		fmt.Printf("processing %s\n", f)
 		robs, err := blockstore.OpenReadOnly(f,
 			blockstore.UseWholeCIDs(true),
-			carv2.ZeroLengthSectionAsEOF(true),
 		)
 
 		if err != nil {
@@ -80,6 +89,7 @@ func main() {
 		}
 
 		for c := range cids {
+			fmt.Printf("Adding %s\n", c.String())
 			block, err := robs.Get(ctx, c)
 			if err != nil {
 				panic(err)
@@ -89,6 +99,7 @@ func main() {
 		}
 	}
 
+	fmt.Printf("Finalizing...\n")
 	err = rout.Finalize()
 	if err != nil {
 		panic(err)
