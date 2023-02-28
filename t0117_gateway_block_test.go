@@ -80,7 +80,7 @@ func TestGatewayBlock(t *testing.T) {
 					"ETag":         fmt.Sprintf("\"%s.raw\"", fixture.MustGetCid("dir", "ascii.txt")),
 					"X-IPFS-Path":  fmt.Sprintf("/ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 					"X-IPFS-Roots": regexp.MustCompile(fixture.MustGetCid()),
-					"Cache-Control": test.H[test.Check[string]](
+					"Cache-Control": test.Header[test.Check[string]](
 						"It should be public, immutable and have max-age of at least 31536000.",
 						func(v string) bool {
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")

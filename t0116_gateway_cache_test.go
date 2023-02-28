@@ -12,7 +12,7 @@ import (
 /* These tests do not cover the following:
 ** - /ipns/ paths
 ** - "If-None-Match" header handling for strong ETags for dir listings (the ones with xxhash)
-*/
+ */
 func TestGatewayCache(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("fixtures/t0116-gateway-cache.car")
 	tests := map[string]test.Test{
