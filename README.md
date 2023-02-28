@@ -2,48 +2,34 @@
 
 ## Key Concepts
 
-- using JS UnixFS implementation to parse fixtures and get their CIDs, etc.
-- decoupling fixtures provisioning from tests to make it easily replacable with custom provisioners
-- defining test cases declratively in terms of request parameters and expected response
-- using mocha-multi to support multiple reporters
+- TBD
 
 ## Issues
 
-- [ ] writeable-gateway provisioner does not really work for uploading directories
-- [ ] writeable-gateway provisioner will likely lack support for importer options
-- [ ] doc and markdown reporters try to include test code directly in the reports which does not really work with declarative tests because the code blocks end up saying `[native code]` only
-- [ ] markdown reporter does not report on errors at all
+- TBD
 
 ## Usage
 
-### Install dependencies
+### Retrieve fixtures
 
 ```bash
-npm ci
-```
-
-### Patch dependencies
-
-```bash
-npm run patch
-```
-
-### Provision fixtures
-
-```bash
-npm run provision <kubo|writeable-gateway> [<dir>]
+docker run -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures [output-dir]
 ```
 
 ### Run tests
 
 ```bash
-npm test
+docker run --network host -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance test [gateway-url] [output-xml]
 ```
 
-## Dependencies
+### Generate an html report
 
-- uses https://marc-ed-raffalli.github.io/declarative-e2e-test/ to define test suites declaratively
-- uses https://github.com/ipfs/js-ipfs-unixfs to parse fixtures and get their CIDs, etc.
-- uses https://mochajs.org/ as a test framework (easily replacable with others)
-- uses https://www.npmjs.com/package/mocha-multi to support multiple reporters
-- uses built-in mocha reporters (spec, doc, markdown, xml, json) to report on test results (easily replacable with custom reporters)
+```bash
+docker run --rm -w "/workspace" -v "${PWD}:/workspace" ghcr.io/pl-strflt/junit-xml-to-html:latest no-frames [output-xml] [output-html]
+```
+
+### Generate a single car file for testing
+
+```bash
+docker run --network host -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance merge-fixtures # outputs to ./fixtures.car
+```

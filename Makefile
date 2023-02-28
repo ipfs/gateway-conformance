@@ -1,4 +1,4 @@
-provision-cargateway:
+provision-cargateway: ./fixtures.car
 	# cd go-libipfs/examples/car && go install
 	car -c ./fixtures.car &
 
@@ -11,12 +11,12 @@ provision-kubo:
 test-kubo: provision-kubo
 	GATEWAY_URL=http://localhost:8080 make test
 
-# tools
-fixtures.car: generate
-	./generate
+merge-fixtures:
+	go build -o merge-fixtures ./cmd/merge_fixtures.go
 
-generate: ./generate_fixture.go
-	go build -o generate generate_fixture.go
+# tools
+fixtures.car: merge-fixtures
+	./merge-fixtures
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest
@@ -25,7 +25,7 @@ test: fixtures.car
 output.xml: test-kubo
 
 output.html: output.xml
-	npx junit-viewer --results=./output.xml > output.html
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/junit-xml-to-html:latest no-frames ./output.xml ./output.html
 	open ./output.html
 
-.PHONY: output.html
+.PHONY: merge-fixtures

@@ -1,4 +1,8 @@
 
+- [ ] Update the README
+  - [ ] How to use locally
+  - [ ] How to add to my CI
+    - [ ] Implement missing scripts
 
 - [ ] implement a basic test (just write something with "expect 200")
 - [ ] port the features from the previous poc?
