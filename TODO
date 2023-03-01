@@ -1,21 +1,21 @@
 
+## TODO
+
 - [ ] Update the README
-  - [ ] How to use locally
-  - [ ] How to add to my CI
+  - [x] How to use locally
+    - [ ] Validate this & improve during a peer programming session
+  - [ ] "How to add to my CI"
     - [ ] Implement missing scripts
+- [ ] Implement the complete fixtures for t0114
+  - Submodule "simulation" from the `test_localhost_gateway_response_should_contain` function.
 
-- [ ] implement a basic test (just write something with "expect 200")
-- [ ] port the features from the previous poc?
-- [ ] reporting to markdown + ci?
+## Done
 
-
+- [x] implement a basic test (just write something with "expect 200")
+- [x] port the features from the previous poc?
+- [x] reporting
 - Previous POC structure:
-  - A way to run define & run the tests
-  - A way to define fixtures
-  - A way to provision a gateway
-  - Various reporting outputs (markdown, "cli / ci output")
-
-
-- A way to run define & run the tests
-  - writing a simpe expect 200 test. procedurally.
-  - then improve.
+  - [x] A way to run define & run the tests
+  - [x] A way to define fixtures
+  - [-] A way to provision a gateway
+  - [ ] Various reporting outputs (markdown, "cli / ci output")
