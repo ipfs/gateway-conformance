@@ -6,8 +6,9 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"regexp"
 	"testing"
+
+	"github.com/ipfs/gateway-conformance/check"
 )
 
 func GetEnv(key string, fallback string) string {
@@ -19,47 +20,28 @@ func GetEnv(key string, fallback string) string {
 
 var GatewayUrl = GetEnv("GATEWAY_URL", "http://127.0.0.1:8080")
 
-type WithHintIface interface {
-	GetValue() interface{}
-	GetHint() string
-}
-
-type WithHint[T any] struct {
-	Value T
-	Hint  string
-}
-
-func (w WithHint[T]) GetValue() interface{} {
-	return w.Value
-}
-
-func (w WithHint[T]) GetHint() string {
-	return w.Hint
-}
-
-type Check[T any] func(T) bool
-
-type Request struct {
+type CRequest struct {
 	Method  string
 	Url     string
 	Headers map[string]string
 	Body    []byte
 }
 
-type Response struct {
+type CResponse struct {
 	StatusCode int
 	Headers    map[string]interface{}
 	Body       []byte
 }
 
-type Test struct {
-	Request  Request
-	Response Response
+type CTest struct {
+	Name     string
+	Request  CRequest
+	Response CResponse
 }
 
-func Run(t *testing.T, tests map[string]Test) {
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
+func Run(t *testing.T, tests []CTest) {
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
 			if method == "" {
 				method = "GET"
@@ -97,26 +79,28 @@ func Run(t *testing.T, tests map[string]Test) {
 
 			for key, value := range test.Response.Headers {
 				actual := res.Header.Get(key)
-				var expected string
+
+				var output check.CheckOutput
 				var hint string
-				var match bool
-				if w, ok := value.(WithHintIface); ok {
-					value = w.GetValue()
-					hint = w.GetHint()
-				}
+
 				switch v := value.(type) {
-				case *regexp.Regexp:
-					expected = v.String()
-					match = v.MatchString(actual)
-				case Check[string]:
-					expected = "<Check[String]>"
-					match = v(actual)
+				case check.Check[string]:
+					output = v.Check(actual)
+				case check.CheckWithHint[string]:
+					output = v.Check.Check(actual)
+					hint = v.Hint
+				case string:
+					output = check.IsEqual(v).Check(actual)
 				default:
-					expected = fmt.Sprintf("%v", value)
-					match = actual == expected
+					t.Fatalf("Header check '%s' has an invalid type: %T", key, value)
 				}
-				if !match {
-					t.Fatalf("Header '%s' expected: '%s'. got: '%s'. (%s)", key, expected, actual, hint)
+
+				if !output.Success {
+					if hint == "" {
+						t.Fatalf("Header '%s' %s", key, output.Reason)
+					} else {
+						t.Fatalf("Header '%s' %s (%s)", key, output.Reason, hint)
+					}
 				}
 			}
 

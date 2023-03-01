@@ -2,53 +2,35 @@ package test
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/ipfs/gateway-conformance/check"
 )
 
-func H[T any](hint string, v T) WithHint[T] {
-	return WithHint[T]{v, hint}
-}
-
-func HeaderContains(hint string, v string) WithHint[Check[string]] {
-	return H[Check[string]](hint, func(s string) bool {
-		return strings.Contains(s, v)
-	})
-}
-
-type Testable interface {
-}
-
-type HeaderIface struct {
-	Key   string
-	Value Testable
-	Hint  string
-}
-
-type RequestBuidler struct {
+type RequestBuilder struct {
 	Method_  string
 	Url_     string
 	Headers_ map[string]string
 }
 
-func RequesT() RequestBuidler {
-	return RequestBuidler{Method_: "GET"}
+func Request() RequestBuilder {
+	return RequestBuilder{Method_: "GET"}
 }
 
-func (r RequestBuidler) Url(url string, args ...any) RequestBuidler {
+func (r RequestBuilder) Url(url string, args ...any) RequestBuilder {
 	r.Url_ = fmt.Sprintf(url, args...)
 	return r
 }
 
-func (r RequestBuidler) Header(h HeaderBuilder) RequestBuidler {
+func (r RequestBuilder) Header(h HeaderBuilder) RequestBuilder {
 	if r.Headers_ == nil {
 		r.Headers_ = make(map[string]string)
 	}
 
-	r.Headers_[h.Key] = h.Value.(string)
+	r.Headers_[h.Key] = h.Value
 	return r
 }
 
-func (r RequestBuidler) Headers(hs ...HeaderBuilder) RequestBuidler {
+func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 	for _, h := range hs {
 		r = r.Header(h)
 	}
@@ -56,9 +38,8 @@ func (r RequestBuidler) Headers(hs ...HeaderBuilder) RequestBuidler {
 	return r
 }
 
-// generate the Request:
-func (r RequestBuidler) Request() Request {
-	return Request{
+func (r RequestBuilder) Request() CRequest {
+	return CRequest{
 		Method:  r.Method_,
 		Url:     r.Url_,
 		Headers: r.Headers_,
@@ -67,7 +48,7 @@ func (r RequestBuidler) Request() Request {
 
 type ExpectBuilder struct {
 	StatusCode int
-	Headers_   []HeaderIface
+	Headers_   []HeaderBuilder
 	Body       []byte
 }
 
@@ -81,24 +62,28 @@ func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
 }
 
 func (e ExpectBuilder) Header(h HeaderBuilder) ExpectBuilder {
-	e.Headers_ = append(e.Headers_, h.Header())
+	e.Headers_ = append(e.Headers_, h)
 	return e
 }
 
 func (e ExpectBuilder) Headers(hs ...HeaderBuilder) ExpectBuilder {
-	xs := make([]HeaderIface, len(hs))
-	for i, h := range hs {
-		xs[i] = h.Header()
-	}
-
-	e.Headers_ = append(e.Headers_, xs...)
+	e.Headers_ = append(e.Headers_, hs...)
 	return e
 }
 
-func (e ExpectBuilder) Response() Response {
+func (e ExpectBuilder) Response() CResponse {
 	headers := make(map[string]interface{})
 
-	return Response{
+	// TODO: detect collision in keys
+	for _, h := range e.Headers_ {
+		if h.Hint_ != "" {
+			headers[h.Key] = check.WithHint(h.Hint_, h.Check)
+		} else {
+			headers[h.Key] = h.Check
+		}
+	}
+
+	return CResponse{
 		StatusCode: e.StatusCode,
 		Headers:    headers,
 		Body:       e.Body,
@@ -107,7 +92,8 @@ func (e ExpectBuilder) Response() Response {
 
 type HeaderBuilder struct {
 	Key   string
-	Value Testable
+	Value string
+	Check check.Check[string]
 	Hint_ string
 }
 
@@ -123,7 +109,7 @@ func Header(key string, opts ...string) HeaderBuilder {
 }
 
 func (h HeaderBuilder) Contains(value string) HeaderBuilder {
-	h.Value = HeaderContains(h.Hint_, value)
+	h.Check = check.Contains(value)
 	return h
 }
 
@@ -133,19 +119,11 @@ func (h HeaderBuilder) Hint(hint string) HeaderBuilder {
 }
 
 func (h HeaderBuilder) Equals(value string, args ...any) HeaderBuilder {
-	h.Value = fmt.Sprintf(value, args...)
+	h.Check = check.IsEqual(value, args...)
 	return h
 }
 
 func (h HeaderBuilder) IsEmpty() HeaderBuilder {
-	h.Value = ""
+	h.Check = check.CheckIsEmpty{}
 	return h
-}
-
-func (h HeaderBuilder) Header() HeaderIface {
-	return HeaderIface{
-		Key:   h.Key,
-		Value: h.Value,
-		Hint:  h.Hint_,
-	}
 }

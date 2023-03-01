@@ -7,7 +7,7 @@ import (
 )
 
 func TestGatewayTar(t *testing.T) {
-	tests := map[string]test.Test{}
+	tests := []test.CTest{}
 
 	test.Run(t, tests)
 }

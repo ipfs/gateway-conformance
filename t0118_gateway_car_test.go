@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/car"
-	"github.com/ipfs/gateway-conformance/test"
+	. "github.com/ipfs/gateway-conformance/check"
 	. "github.com/ipfs/gateway-conformance/test"
 )
 
@@ -15,39 +15,40 @@ func TestGatewayCar(t *testing.T) {
 	// CAR stream is not deterministic, as blocks can arrive in random order,
 	// but if we have a small file that fits into a single block, and export its CID
 	// we will get a CAR that is a deterministic array of bytes.
-	tests := map[string]Test{
-		"GET response for application/vnd.ipld.car": {
+	tests := []CTest{
+		{
+			Name: "GET response for application/vnd.ipld.car",
 			// Test between l85 and l112
-			Request: Request{
+			Request: CRequest{
 				Url: fmt.Sprintf("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.car",
 				},
 			},
-			Response: Response{
+			Response: CResponse{
 				StatusCode: 200,
 				Headers: map[string]interface{}{
-					"Content-Type": HeaderContains(
+					"Content-Type": ContainsWithHint(
 						"Expected content type to be application/vnd.ipld.car",
 						"application/vnd.ipld.car",
 					),
-					"Content-Length": H(
-						"CAR is streamed, gateway may not have the entire thing, unable to calculate total size",
-						""),
-					"Content-Disposition": HeaderContains(
+					"Content-Length": IsEmpty(
+						"CAR is streamed, gateway may not have the entire thing, unable to calculate total size"),
+					"Content-Disposition": ContainsWithHint(
 						"Expected content disposition to be attachment; filename=\"<cid>.car\"",
-						fmt.Sprintf("attachment\\; filename=\"%s.car\"", fixture.MustGetCid("subdir", "ascii.txt"))),
-					"X-Content-Type-Options": "nosniff",
-					"Accept-Ranges": H(
+						"attachment\\; filename=\"%s.car\"", fixture.MustGetCid("subdir", "ascii.txt")),
+					"X-Content-Type-Options": IsEqual("nosniff"),
+					"Accept-Ranges": IsEqualWithHint(
 						"CAR is streamed, gateway may not have the entire thing, unable to support range-requests. Partial downloads and resumes should be handled using IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769",
 						"none",
 					),
 				},
 			},
 		},
-		"GET response for application/vnd.ipld.car2": {
+		{
 			// Test between l85 and l112
-			Request: RequesT().
+			Name: "GET response for application/vnd.ipld.car2",
+			Request: Request().
 				Url("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.car"),
@@ -74,5 +75,5 @@ func TestGatewayCar(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests)
+	Run(t, tests)
 }

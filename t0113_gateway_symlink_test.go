@@ -10,21 +10,23 @@ import (
 
 func TestGatewaySymlink(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("fixtures/t0113-gateway-symlink.car")
-	tests := map[string]test.Test{
-		"Test the directory listing": {
-			Request: test.Request{
+	tests := []test.CTest{
+		{
+			Name: "Test the directory listing",
+			Request: test.CRequest{
 				Url: fmt.Sprintf("ipfs/%s?format=raw", fixture.MustGetCid()),
 			},
-			Response: test.Response{
+			Response: test.CResponse{
 				StatusCode: 200,
 				Body:       fixture.MustGetRawData(),
 			},
 		},
-		"Test the symlink": {
-			Request: test.Request{
+		{
+			Name: "Test the symlink",
+			Request: test.CRequest{
 				Url: fmt.Sprintf("ipfs/%s/bar", fixture.MustGetCid()),
 			},
-			Response: test.Response{
+			Response: test.CResponse{
 				StatusCode: 200,
 				Body:       []byte("foo"),
 			},
