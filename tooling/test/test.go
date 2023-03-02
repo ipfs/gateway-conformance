@@ -23,6 +23,7 @@ var GatewayUrl = GetEnv("GATEWAY_URL", "http://127.0.0.1:8080")
 
 type CRequest struct {
 	Method  string
+	RawURL  string
 	Url     string
 	Headers map[string]string
 	Body    []byte
@@ -31,7 +32,7 @@ type CRequest struct {
 type CResponse struct {
 	StatusCode int
 	Headers    map[string]interface{}
-	Body       []byte
+	Body       interface{}
 }
 
 type CTest struct {
@@ -43,6 +44,10 @@ type CTest struct {
 func Run(t *testing.T, tests []CTest) {
 	client := &http.Client{
 		Timeout: time.Minute * 1,
+		// Do not follow redirects:
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 
 	for _, test := range tests {
@@ -52,7 +57,15 @@ func Run(t *testing.T, tests []CTest) {
 				method = "GET"
 			}
 
-			url := fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Url)
+			var url string
+			if test.Request.RawURL != "" {
+				if test.Request.Url != "" {
+					t.Fatalf("Both 'RawURL' and 'Url' are set")
+				}
+				url = test.Request.RawURL
+			} else {
+				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Url)
+			}
 
 			var body io.Reader
 			if test.Request.Body != nil {
@@ -116,12 +129,32 @@ func Run(t *testing.T, tests []CTest) {
 					t.Fatal(err)
 				}
 
-				if !bytes.Equal(resBody, test.Response.Body) {
-					if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
-						t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
-					} else {
-						t.Fatalf("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
+				switch v := test.Response.Body.(type) {
+				case check.Check[string]:
+					output := v.Check(string(resBody))
+					if !output.Success {
+						t.Fatalf("Body %s", output.Reason)
 					}
+				case check.CheckWithHint[string]:
+					output := v.Check.Check(string(resBody))
+					if !output.Success {
+						t.Fatalf("Body %s (%s)", output.Reason, v.Hint)
+					}
+				case string:
+					if string(resBody) != v {
+						t.Fatalf("Body is not '%s'. It is: '%s'", v, resBody)
+					}
+				case []byte:
+					if !bytes.Equal(resBody, v) {
+
+						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
+							t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
+						} else {
+							t.Fatalf("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
+						}
+					}
+				default:
+					t.Fatalf("Body check has an invalid type: %T", test.Response.Body)
 				}
 			}
 		})
