@@ -13,23 +13,21 @@ jobs:
     steps:
       - uses: ipfs/download-ipfs-distribution-action@v1
       - uses: ipfs/start-ipfs-daemon-action@v1
-      - name: Provision Kubo Gateway
-        run: |
-          docker pull ghcr.io/laurentsenta/gateway-conformance:latest
-          docker tag ghcr.io/laurentsenta/gateway-conformance:latest ghcr.io/ipfs/gateway-conformance:latest
-
-          mkdir ./fixtures
-          docker run -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures /workspace/fixtures
-          find ./fixtures -name '*.car' -exec ipfs dag import {} \;
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.1
       - uses: actions/checkout@v3
         with:
-          path: 'action'
+          path: 'gateway-conformance'
+      - name: Extract fixtures
+        uses: ./gateway-conformance/.github/actions/extract-fixtures
+        with:
+          output: fixtures
+      - name: Provision Kubo Gateway
+        run: find ./fixtures -name '*.car' -exec ipfs dag import {} \;
       - name: Run the tests
-        uses: ./action
+        uses: ./gateway-conformance/.github/actions/test
         with:
           gateway-url: http://localhost:8080/
           junitfile: output.xml

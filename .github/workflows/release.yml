@@ -6,7 +6,6 @@ on:
         description: 'Tag'
         required: true
         default: 'latest'
-  push:
 jobs:
   docker:
     name: Docker
