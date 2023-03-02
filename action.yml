@@ -15,4 +15,4 @@ runs:
   args:
     - test
     - ${{ inputs.gateway-url }}
-    - ${{ inputs.report }}
+    - ${{ inputs.junitfile }}
