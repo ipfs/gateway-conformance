@@ -6,6 +6,7 @@ on:
         description: 'Tag'
         required: true
         default: 'latest'
+  push:
 jobs:
   docker:
     name: Docker
@@ -28,4 +29,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag || 'latest' }}

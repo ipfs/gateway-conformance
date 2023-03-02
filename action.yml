@@ -15,5 +15,5 @@ runs:
     - env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
         JUNITFILE: ${{ inputs.junitfile }}
-      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/laurentsenta/gateway-conformance:latest "test" "$GATEWAY_URL" "$JUNITFILE"
+      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/ipfs/gateway-conformance:latest "test" "$GATEWAY_URL" "$JUNITFILE"
       shell: bash
