@@ -7,7 +7,7 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o /merge-fixtures ./cmd/merge_fixtures.go
+RUN go build -o /merge-fixtures ./tooling/cmd/merge_fixtures.go
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
