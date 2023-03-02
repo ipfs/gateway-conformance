@@ -8,6 +8,7 @@
 ## Issues / Open Questions
 
 - How to deal with subdomains & configuration (t0114 for example)?
+  - Some test relies on querying URLs like `http://$CIDv1.ipfs.example.com/`. While `http://$CIDv1.ipfs.localhost/` works by default, do we need / want to test with `.example.com`?
 
 ## Usage
 
