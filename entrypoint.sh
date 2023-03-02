@@ -2,8 +2,11 @@
 
 case "$1" in
   "test")
+    junitfile="$(realpath "$3")"
     export GATEWAY_URL="$2"
-    gotestsum --junitfile "$3"
+    pushd /app
+    gotestsum --junitfile "$junitfile"
+    popd
     ;;
   "extract-fixtures")
     find /app/fixtures -name '*.car' -exec cp {} "${2}/" \;

@@ -1,0 +1,18 @@
+# action.yml
+name: 'Gateway Conformance Tests'
+description: 'Runs the Gateway Conformance Tests'
+inputs:
+  gateway-url:
+    description: 'The URL of the Gateway to test'
+    required: true
+  junitfile:
+    description: 'The path where the jUnit XML report will be saved'
+    required: true
+    default: 'report.xml'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - test
+    - ${{ inputs.gateway-url }}
+    - ${{ inputs.report }}
