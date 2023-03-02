@@ -10,9 +10,10 @@ inputs:
     required: true
     default: 'report.xml'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - test
-    - ${{ inputs.gateway-url }}
-    - ${{ inputs.junitfile }}
+  using: 'composite'
+  steps:
+    - env:
+        GATEWAY_URL: ${{ inputs.gateway-url }}
+        JUNITFILE: ${{ inputs.junitfile }}
+      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/laurentsenta/gateway-conformance:latest "test" "$GATEWAY_URL" "$JUNITFILE"
+      shell: bash
