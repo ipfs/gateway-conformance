@@ -16,7 +16,7 @@ merge-fixtures:
 
 # tools
 fixtures.car: merge-fixtures
-	./merge-fixtures
+	./merge-fixtures ./fixtures.car
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest

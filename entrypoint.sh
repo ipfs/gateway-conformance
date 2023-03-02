@@ -9,10 +9,12 @@ case "$1" in
     find /app/fixtures -name '*.car' -exec cp {} "${2}/" \;
     ;;
   "merge-fixtures")
-    /merge-fixtures
+    /merge-fixtures "$2"
     ;;
   *)
-    echo "Usage: $0 <frames|no-frames> [input XML file] [output HTML file or directory]"
+    echo "Usage: $0 test <gateway-url> <junit-file>"
+    echo "       $0 extract-fixtures <output-dir>"
+    echo "       $0 merge-fixtures <output-car-file>"
     exit 1
     ;;
 esac

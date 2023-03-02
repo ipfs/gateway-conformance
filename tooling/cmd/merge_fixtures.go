@@ -40,6 +40,9 @@ func listAllCarFile(basePath string) []string {
 }
 
 func main() {
+	// First parameter is the output path:
+	outputPath := os.Args[1]
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -66,8 +69,8 @@ func main() {
 	}
 
 	// Now prepare our new CAR file
-	fmt.Printf("Opening the ./fixtures.car file, with roots: %v\n", roots)
-	rout, err := blockstore.OpenReadWrite("./fixtures.car", roots)
+	fmt.Printf("Opening the %s file, with roots: %v\n", outputPath, roots)
+	rout, err := blockstore.OpenReadWrite(outputPath, roots)
 	if err != nil {
 		panic(err)
 	}
