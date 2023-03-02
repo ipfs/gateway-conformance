@@ -1,0 +1,53 @@
+name: Test
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  test:
+    runs-on: 'ubuntu-latest'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: ipfs/download-ipfs-distribution-action@v1
+      - uses: ipfs/start-ipfs-daemon-action@v1
+      - name: Provision Kubo Gateway
+        run: |
+          docker pull ghcr.io/laurentsenta/gateway-conformance:latest
+          docker tag ghcr.io/laurentsenta/gateway-conformance:latest ghcr.io/ipfs/gateway-conformance:latest
+
+          mkdir ./fixtures
+          docker run -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures /workspace/fixtures
+          find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.1
+      - uses: actions/checkout@v3
+        with:
+          path: 'action'
+      - name: Run the tests
+        uses: ./action
+        with:
+          gateway-url: http://localhost:8080/
+          junitfile: output.xml
+      - name: Create the HTML
+        if: (failure() || success())
+        uses: pl-strflt/junit-xml-to-html@v1
+        with:
+          input: output.xml
+          output: output.html
+      - name: Convert to Markdown
+        if: (failure() || success())
+        run: |
+          go install github.com/alexec/junit2md@latest
+          junit2md < ./output.xml > ./report.md
+          cat ./report.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload one-page HTML report
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance.html
+          path: ./output.html
