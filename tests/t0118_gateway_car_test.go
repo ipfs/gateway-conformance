@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/car"
-	. "github.com/ipfs/gateway-conformance/check"
-	. "github.com/ipfs/gateway-conformance/test"
+	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
+	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayCar(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("fixtures/t0118-test-dag.car")
+	fixture := car.MustOpenUnixfsCar("t0118-test-dag.car")
 
 	// CAR stream is not deterministic, as blocks can arrive in random order,
 	// but if we have a small file that fits into a single block, and export its CID

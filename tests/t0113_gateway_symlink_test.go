@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/car"
-	"github.com/ipfs/gateway-conformance/test"
+	"github.com/ipfs/gateway-conformance/tooling/car"
+	"github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewaySymlink(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("fixtures/t0113-gateway-symlink.car")
+	fixture := car.MustOpenUnixfsCar("t0113-gateway-symlink.car")
 	tests := []test.CTest{
 		{
 			Name: "Test the directory listing",

@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/ipfs/go-blockservice"
@@ -91,7 +94,11 @@ func (d *UnixfsDag) MustGetRawData(names ...string) []byte {
 }
 
 func MustOpenUnixfsCar(file string) *UnixfsDag {
-	dag, err := newUnixfsDagFromCar(file)
+	_, filename, _, _ := runtime.Caller(0)
+	basePath := filepath.Dir(filename)
+	fixturePath := path.Join(basePath, "..", "..", "fixtures", file)
+
+	dag, err := newUnixfsDagFromCar(fixturePath)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -12,7 +12,7 @@ test-kubo: provision-kubo
 	GATEWAY_URL=http://localhost:8080 make test
 
 merge-fixtures:
-	go build -o merge-fixtures ./cmd/merge_fixtures.go
+	go build -o merge-fixtures ./tooling/cmd/merge_fixtures.go
 
 # tools
 fixtures.car: merge-fixtures
@@ -20,7 +20,7 @@ fixtures.car: merge-fixtures
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest
-	- gotestsum --junitfile output.xml
+	- gotestsum --junitfile output.xml ./tests
 
 output.xml: test-kubo
 

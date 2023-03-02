@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/test"
+	"github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayTar(t *testing.T) {

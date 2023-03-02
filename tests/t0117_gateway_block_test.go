@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/car"
-	. "github.com/ipfs/gateway-conformance/check"
-	. "github.com/ipfs/gateway-conformance/test"
+	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
+	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayBlock(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("fixtures/t0117-gateway-block.car")
+	fixture := car.MustOpenUnixfsCar("t0117-gateway-block.car")
 	tests := []CTest{
 		{
 			Name: "GET with format=raw param returns a raw block",

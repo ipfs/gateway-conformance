@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/ipfs/gateway-conformance/check"
+	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
 func GetEnv(key string, fallback string) string {
@@ -40,6 +41,10 @@ type CTest struct {
 }
 
 func Run(t *testing.T, tests []CTest) {
+	client := &http.Client{
+		Timeout: time.Minute * 1,
+	}
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
@@ -66,7 +71,7 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			// send request
-			res, err := http.DefaultClient.Do(req)
+			res, err := client.Do(req)
 			if err != nil {
 				t.Fatal(err)
 			}

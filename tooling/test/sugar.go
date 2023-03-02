@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 
-	"github.com/ipfs/gateway-conformance/check"
+	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
 type RequestBuilder struct {

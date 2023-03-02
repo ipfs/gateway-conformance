@@ -3,9 +3,10 @@
 
 - [ ] Update the README
   - [x] How to use locally
-    - [ ] Validate this & improve during a peer programming session
+    - [x] Validate this & improve during a peer programming session
   - [ ] "How to add to my CI"
-    - [ ] Implement missing scripts
+    - [x] Implement missing scripts
+    - [ ] Create the action.yml
 - [ ] Implement the complete fixtures for t0114
   - Submodule "simulation" from the `test_localhost_gateway_response_should_contain` function.
 
