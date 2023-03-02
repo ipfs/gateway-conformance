@@ -5,15 +5,38 @@ inputs:
   gateway-url:
     description: 'The URL of the Gateway to test'
     required: true
-  junitfile:
+  xml:
     description: 'The path where the jUnit XML report will be saved'
     required: true
     default: 'report.xml'
+  html:
+    description: 'The path where the HTML report will be saved'
+    required: false
+  markdown:
+    description: 'The path where the Markdown report will be saved'
+    required: false
 runs:
   using: 'composite'
   steps:
-    - env:
+    - name: Run the test
+      env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
-        JUNITFILE: ${{ inputs.junitfile }}
-      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/ipfs/gateway-conformance:latest "test" "$GATEWAY_URL" "$JUNITFILE"
+        XML: ${{ inputs.xml }}
+      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/ipfs/gateway-conformance:latest "test" "$GATEWAY_URL" "$XML"
+      shell: bash
+    - name: Create the HTML
+      if: inputs.html && (failure() || success())
+      uses: pl-strflt/junit-xml-to-html@v1
+      with:
+        input: ${{ inputs.xml }}
+        output: ${{ inputs.html }}
+    - name: Convert to Markdown
+      if: inputs.markdown && (failure() || success())
+      env:
+        XML: ${{ inputs.xml }}
+        MARKDOWN: ${{ inputs.markdown }}
+      run: |
+        go install github.com/alexec/junit2md@latest
+        mkdir -p "$( dirname $MARKDOWN )"
+        junit2md < "$XML" > "$MARKDOWN"
       shell: bash

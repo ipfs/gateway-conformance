@@ -11,6 +11,7 @@ case "$1" in
     popd
     ;;
   "extract-fixtures")
+    mkdir -p "$2"
     find /app/fixtures -name '*.car' -exec cp {} "${2}/" \;
     ;;
   "merge-fixtures")
