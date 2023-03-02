@@ -2,11 +2,12 @@
 
 ## Key Concepts
 
+- Built with Go for stability & ease of building
 - TBD
 
-## Issues
+## Issues / Open Questions
 
-- TBD
+- How to deal with subdomains & configuration (t0114 for example)?
 
 ## Usage
 
