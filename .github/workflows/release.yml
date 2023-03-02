@@ -1,10 +1,5 @@
 name: Docker
 on:
-  release:
-    types: [published]
-  push:
-    branches:
-      - master
   workflow_dispatch:
     inputs:
       tag:
@@ -33,5 +28,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name || github.event.inputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
