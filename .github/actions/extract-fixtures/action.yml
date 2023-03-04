@@ -19,7 +19,7 @@ runs:
         echo "tag=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
       shell: bash
     - name: Extract the fixtures
-      uses: pl-strflt/docker-container-action@main
+      uses: pl-strflt/docker-container-action@v1
       env:
         OUTPUT: ${{ inputs.output }}
       with:
