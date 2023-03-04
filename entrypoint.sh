@@ -4,6 +4,7 @@ set -euo pipefail
 
 case "$1" in
   "test")
+    echo "Running tests against $2 and writing JUnit output to $3"
     junitfile="$(realpath "$3")"
     export GATEWAY_URL="$2"
     pushd /app
@@ -11,10 +12,12 @@ case "$1" in
     popd
     ;;
   "extract-fixtures")
+    echo "Extracting fixtures to $2"
     mkdir -p "$2"
     find /app/fixtures -name '*.car' -exec cp {} "${2}/" \;
     ;;
   "merge-fixtures")
+    echo "Merging fixtures into $2"
     /merge-fixtures "$2"
     ;;
   *)

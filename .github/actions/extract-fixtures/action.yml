@@ -9,9 +9,21 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - env:
+    - name: Prepare for the extraction
+      id: prepare
+      env:
         OUTPUT: ${{ inputs.output }}
       run: |
         mkdir -p "$OUTPUT"
-        docker run --workdir /github/workspace --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/ipfs/gateway-conformance:latest "extract-fixtures" "$OUTPUT"
+        echo "repository=$GITHUB_ACTION_REPOSITORY" >> $GITHUB_OUTPUT
+        echo "tag=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
       shell: bash
+    - name: Extract the fixtures
+      uses: pl-strflt/docker-container-action@main
+      env:
+        OUTPUT: ${{ inputs.output }}
+      with:
+        repository: ${{ steps.prepare.outputs.repository || github.repository }}
+        tag: ${{ steps.prepare.outputs.tag || github.sha }}
+        dockerfile: Dockerfile
+        args: extract-fixtures "$OUTPUT"
