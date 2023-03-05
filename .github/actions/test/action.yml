@@ -18,20 +18,17 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Prepare for the test
-      id: prepare
-      run: |
-        echo "repository=$GITHUB_ACTION_REPOSITORY" >> $GITHUB_OUTPUT
-        echo "ref=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
-      shell: bash
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
       env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
         XML: ${{ inputs.xml }}
       with:
-        repository: ${{ steps.prepare.outputs.repository || github.repository }}
-        ref: ${{ steps.prepare.outputs.ref || github.sha }}
+        # Do not use github.action_repository or github.action_ref here, because
+        # we want to use the repository and ref of the test action,
+        # not the repository and ref of the docker-container-action.
+        repository: ${{ env.GITHUB_ACTION_REPOSITORY || github.repository }}
+        ref: ${{ env.GITHUB_ACTION_REF || github.sha }}
         dockerfile: Dockerfile
         opts: --network=host
         args: test "$GATEWAY_URL" "$XML"
