@@ -22,7 +22,7 @@ runs:
       id: prepare
       run: |
         echo "repository=$GITHUB_ACTION_REPOSITORY" >> $GITHUB_OUTPUT
-        echo "tag=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
+        echo "ref=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
       shell: bash
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
@@ -31,7 +31,7 @@ runs:
         XML: ${{ inputs.xml }}
       with:
         repository: ${{ steps.prepare.outputs.repository || github.repository }}
-        tag: ${{ steps.prepare.outputs.tag || github.sha }}
+        ref: ${{ steps.prepare.outputs.ref || github.sha }}
         dockerfile: Dockerfile
         opts: --network=host
         args: test "$GATEWAY_URL" "$XML"

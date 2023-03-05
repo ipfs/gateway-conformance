@@ -16,7 +16,7 @@ runs:
       run: |
         mkdir -p "$OUTPUT"
         echo "repository=$GITHUB_ACTION_REPOSITORY" >> $GITHUB_OUTPUT
-        echo "tag=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
+        echo "ref=$GITHUB_ACTION_REF" >> $GITHUB_OUTPUT
       shell: bash
     - name: Extract the fixtures
       uses: pl-strflt/docker-container-action@v1
@@ -24,6 +24,6 @@ runs:
         OUTPUT: ${{ inputs.output }}
       with:
         repository: ${{ steps.prepare.outputs.repository || github.repository }}
-        tag: ${{ steps.prepare.outputs.tag || github.sha }}
+        ref: ${{ steps.prepare.outputs.ref || github.sha }}
         dockerfile: Dockerfile
         args: extract-fixtures "$OUTPUT"
