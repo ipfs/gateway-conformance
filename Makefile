@@ -3,13 +3,13 @@ provision-cargateway: ./fixtures.car
 	car -c ./fixtures.car &
 
 test-cargateway: provision-cargateway
-	GATEWAY_URL=http://localhost:8040 make test
+	GATEWAY_URL=http://127.0.0.1:8080 make test
 
 provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
 test-kubo: provision-kubo
-	GATEWAY_URL=http://localhost:8080 make test
+	GATEWAY_URL=http://127.0.0.1:8080 make test
 
 merge-fixtures:
 	go build -o merge-fixtures ./tooling/cmd/merge_fixtures.go
