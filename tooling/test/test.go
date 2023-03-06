@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -18,7 +19,9 @@ func GetEnv(key string, fallback string) string {
 	return fallback
 }
 
-var GatewayUrl = GetEnv("GATEWAY_URL", "http://127.0.0.1:8080")
+var GatewayUrl = strings.TrimRight(
+	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
+	"/")
 
 type CRequest struct {
 	Method               string
