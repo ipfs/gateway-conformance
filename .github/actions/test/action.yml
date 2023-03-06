@@ -19,11 +19,19 @@ runs:
   using: 'composite'
   steps:
     - name: Run the test
+      uses: pl-strflt/docker-container-action@v1
       env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
         XML: ${{ inputs.xml }}
-      run: docker run --workdir /github/workspace --network=host --rm -e CI=true -v "$PWD":"/github/workspace" ghcr.io/ipfs/gateway-conformance:latest "test" "$GATEWAY_URL" "$XML"
-      shell: bash
+      with:
+        # Do not use github.action_repository or github.action_ref here, because
+        # we want to use the repository and ref of the test action,
+        # not the repository and ref of the docker-container-action.
+        repository: ${{ env.GITHUB_ACTION_REPOSITORY || github.repository }}
+        ref: ${{ env.GITHUB_ACTION_REF || github.sha }}
+        dockerfile: Dockerfile
+        opts: --network=host
+        args: test "$GATEWAY_URL" "$XML"
     - name: Create the HTML
       if: inputs.html && (failure() || success())
       uses: pl-strflt/junit-xml-to-html@v1
