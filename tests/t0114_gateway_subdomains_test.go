@@ -1,3 +1,6 @@
+//go:build test_subdomains
+// +build test_subdomains
+
 package main
 
 import (

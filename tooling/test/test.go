@@ -53,7 +53,6 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			client := &http.Client{}
-
 			if test.Request.DoNotFollowRedirects {
 				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
@@ -89,7 +88,7 @@ func Run(t *testing.T, tests []CTest) {
 			// send request
 			res, err := client.Do(req)
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("Querying %s failed: %s", url, err)
 			}
 
 			if test.Response.StatusCode != 0 {
