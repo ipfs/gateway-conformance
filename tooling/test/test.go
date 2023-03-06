@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
@@ -19,14 +19,17 @@ func GetEnv(key string, fallback string) string {
 	return fallback
 }
 
-var GatewayUrl = GetEnv("GATEWAY_URL", "http://127.0.0.1:8080")
+var GatewayUrl = strings.TrimRight(
+	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
+	"/")
 
 type CRequest struct {
-	Method  string
-	RawURL  string
-	Url     string
-	Headers map[string]string
-	Body    []byte
+	Method               string
+	RawURL               string
+	DoNotFollowRedirects bool
+	Url                  string
+	Headers              map[string]string
+	Body                 []byte
 }
 
 type CResponse struct {
@@ -42,19 +45,18 @@ type CTest struct {
 }
 
 func Run(t *testing.T, tests []CTest) {
-	client := &http.Client{
-		Timeout: time.Minute * 1,
-		// Do not follow redirects:
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
 			if method == "" {
 				method = "GET"
+			}
+
+			client := &http.Client{}
+			if test.Request.DoNotFollowRedirects {
+				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+					return http.ErrUseLastResponse
+				}
 			}
 
 			var url string
@@ -86,7 +88,7 @@ func Run(t *testing.T, tests []CTest) {
 			// send request
 			res, err := client.Do(req)
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("Querying %s failed: %s", url, err)
 			}
 
 			if test.Response.StatusCode != 0 {

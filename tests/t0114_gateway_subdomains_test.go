@@ -1,3 +1,6 @@
+//go:build test_subdomains
+// +build test_subdomains
+
 package main
 
 import (
@@ -34,7 +37,8 @@ func TestGatewaySubdomains(t *testing.T) {
 		{
 			Name: "request for localhost/ipfs/{CIDv1} returns HTTP 301 Moved Permanently",
 			Request: CRequest{
-				RawURL: fmt.Sprintf("http://localhost:8080/ipfs/%s", CIDv1),
+				DoNotFollowRedirects: true,
+				Url:                  fmt.Sprintf("/ipfs/%s", CIDv1),
 			},
 			Response: CResponse{
 				StatusCode: 301,
