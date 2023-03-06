@@ -3,7 +3,7 @@ provision-cargateway: ./fixtures.car
 	car -c ./fixtures.car &
 
 test-cargateway: provision-cargateway
-	GATEWAY_URL=http://127.0.0.1:8080 make test
+	GATEWAY_URL=http://127.0.0.1:8040 make test
 
 provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
