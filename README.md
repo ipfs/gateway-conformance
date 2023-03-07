@@ -35,3 +35,7 @@ docker run --rm -v "${PWD}:/workspace" ghcr.io/pl-strflt/junit-xml-to-html:lates
 ```bash
 docker run --network host -w "/workspace" -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance merge-fixtures /workspace/[output-car]
 ```
+
+## Working on the Test Suite
+
+Set the environment variable `GOLOG_LOG_LEVEL="conformance=debug"` to toggle debug logging.
