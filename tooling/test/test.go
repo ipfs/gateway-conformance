@@ -5,23 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
-
-func GetEnv(key string, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
-var GatewayUrl = strings.TrimRight(
-	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
-	"/")
 
 type CRequest struct {
 	Method               string
@@ -44,7 +31,10 @@ type CTest struct {
 	Response CResponse
 }
 
+
 func Run(t *testing.T, tests []CTest) {
+	NewDialer()
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
