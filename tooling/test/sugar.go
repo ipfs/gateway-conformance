@@ -124,6 +124,11 @@ func (e ExpectBuilder) Header(h HeaderBuilder) ExpectBuilder {
 	return e
 }
 
+func (e ExpectBuilder) Bytes(body string) ExpectBuilder {
+	e.Body_ = []byte(body)
+	return e
+}
+
 func (e ExpectBuilder) Headers(hs ...HeaderBuilder) ExpectBuilder {
 	e.Headers_ = append(e.Headers_, hs...)
 	return e
