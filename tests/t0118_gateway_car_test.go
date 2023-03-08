@@ -20,7 +20,7 @@ func TestGatewayCar(t *testing.T) {
 			Name: "GET response for application/vnd.ipld.car",
 			// Test between l85 and l112
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.car",
 				},
@@ -49,7 +49,7 @@ func TestGatewayCar(t *testing.T) {
 			// Test between l85 and l112
 			Name: "GET response for application/vnd.ipld.car2",
 			Request: Request().
-				Url("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.car"),
 				).Request(),

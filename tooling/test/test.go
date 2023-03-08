@@ -12,9 +12,10 @@ import (
 
 type CRequest struct {
 	Method               string
-	RawURL               string
-	DoNotFollowRedirects bool
 	Url                  string
+	DoNotFollowRedirects bool
+	Path                 string
+	Subdomain            string
 	Headers              map[string]string
 	Body                 []byte
 }
@@ -30,7 +31,6 @@ type CTest struct {
 	Request  CRequest
 	Response CResponse
 }
-
 
 func Run(t *testing.T, tests []CTest) {
 	NewDialer()
@@ -50,13 +50,17 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			var url string
-			if test.Request.RawURL != "" {
-				if test.Request.Url != "" {
-					t.Fatalf("Both 'RawURL' and 'Url' are set")
-				}
-				url = test.Request.RawURL
-			} else {
-				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Url)
+			if test.Request.Url != "" && test.Request.Path != "" {
+				t.Fatalf("Both 'Url' and 'Path' are set")
+			}
+			if test.Request.Url == "" && test.Request.Path == "" {
+				t.Fatalf("Neither 'Url' nor 'Path' are set")
+			}
+			if test.Request.Url != "" {
+				url = test.Request.Url
+			}
+			if test.Request.Path != "" {
+				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Path)
 			}
 
 			var body io.Reader
@@ -76,6 +80,7 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			// send request
+			log.Debugf("Querying %s", url)
 			res, err := client.Do(req)
 			if err != nil {
 				t.Fatalf("Querying %s failed: %s", url, err)

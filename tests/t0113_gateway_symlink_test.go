@@ -14,7 +14,7 @@ func TestGatewaySymlink(t *testing.T) {
 		{
 			Name: "Test the directory listing",
 			Request: test.CRequest{
-				Url: fmt.Sprintf("ipfs/%s?format=raw", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s?format=raw", fixture.MustGetCid()),
 			},
 			Response: test.CResponse{
 				StatusCode: 200,
@@ -24,7 +24,7 @@ func TestGatewaySymlink(t *testing.T) {
 		{
 			Name: "Test the symlink",
 			Request: test.CRequest{
-				Url: fmt.Sprintf("ipfs/%s/bar", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/bar", fixture.MustGetCid()),
 			},
 			Response: test.CResponse{
 				StatusCode: 200,

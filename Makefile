@@ -8,6 +8,16 @@ test-cargateway: provision-cargateway
 provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
+test-kubo-subdomains: provision-kubo gateway-conformance
+	ipfs config --json Gateway.PublicGateways '{	\
+		"example.com": {							\
+			"UseSubdomains": true,			 		\
+			"Paths": ["/ipfs", "/ipns", "/api"]		\
+		}											\
+	}'
+	# todo: SUBDOMAIN_GATEWAY_URL should be a cmd parameter
+	./gateway-conformance test --json output.json --gateway-url ${GATEWAY_URL} --subdomain-url ${SUBDOMAIN_GATEWAY_URL} --specs +subdomain-gateway
+
 test-kubo: provision-kubo
 	GATEWAY_URL=http://127.0.0.1:8080 make _test
 
