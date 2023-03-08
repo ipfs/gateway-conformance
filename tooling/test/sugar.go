@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
@@ -10,6 +11,7 @@ type RequestBuilder struct {
 	Method_  string
 	Url_     string
 	Headers_ map[string]string
+	Query_   url.Values
 }
 
 func Request() RequestBuilder {
@@ -18,6 +20,11 @@ func Request() RequestBuilder {
 
 func (r RequestBuilder) Url(url string, args ...any) RequestBuilder {
 	r.Url_ = fmt.Sprintf(url, args...)
+	return r
+}
+
+func (r RequestBuilder) Query(key, value string) RequestBuilder {
+	r.Query_.Add(key, value)
 	return r
 }
 
@@ -39,9 +46,14 @@ func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 }
 
 func (r RequestBuilder) Request() CRequest {
+	url := r.Url_
+	if r.Query_.Encode() != "" {
+		url += "?" + r.Query_.Encode()
+	}
+
 	return CRequest{
 		Method:  r.Method_,
-		Url:     r.Url_,
+		Url:     url,
 		Headers: r.Headers_,
 	}
 }

@@ -15,7 +15,8 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with format=raw param returns a raw block",
 			Request: Request().
-				Url("ipfs/%s/dir?format=raw", fixture.MustGetCid()),
+				Url("ipfs/%s/dir", fixture.MustGetCid()).
+				Query("format", "raw"),
 			Response: Expect().
 				Status(200).
 				Body(fixture.MustGetRawData("dir")),
