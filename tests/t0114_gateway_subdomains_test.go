@@ -67,8 +67,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					Context: https://github.com/ipfs/go-ipfs/issues/6975					
 				`,
 					IsEqual("hello\n"),
-				).
-				Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -84,7 +83,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					Header("Location").
 						Hint("request for example.com/ipfs/{DirCID} returns Location HTTP header for subdomain redirect in browsers").
 						Contains("%s://%s.ipfs.%s/", u.Scheme, DirCID, u.Host),
-				).Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -97,7 +96,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					Header("Location").
 						Hint("request for example.com/ipfs/{CIDv0to1} returns Location HTTP header for subdomain redirect in browsers").
 						Contains("%s://%s.ipfs.%s/", u.Scheme, CIDv0to1, u.Host),
-				).Response(),
+				),
 		))
 
 		// TODO: ipns
@@ -114,8 +113,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			URL("%s://%s.ipfs.%s", u.Scheme, CIDv1, u.Host),
 			Expect().
 				Status(200).
-				Body(Contains(CIDVal)).
-				Response(),
+				Body(Contains(CIDVal)),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -123,8 +121,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			"ensure /ipfs/ namespace is not mounted on subdomain",
 			URL("%s://%s.ipfs.%s/ipfs/%s", u.Scheme, CIDv1, u.Host, CIDv1),
 			Expect().
-				Status(404).
-				Response(),
+				Status(404),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -133,8 +130,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			URL("%s://%s.ipfs.%s/ipfs/file.txt", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
-				Body(Contains("I am a txt file")).
-				Response(),
+				Body(Contains("I am a txt file")),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -147,8 +143,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					// TODO: implement html expectations
 					Contains("<a href=\"/hello\">hello</a>"),
 					Contains("<a href=\"/ipfs\">ipfs</a>"),
-				)).
-				Response(),
+				)),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -161,8 +156,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					// TODO: implement html expectations
 					Contains("<a href=\"/ipfs/ipns/..\">..</a>"),
 					Contains("<a href=\"/ipfs/ipns/bar\">bar</a>"),
-				)).
-				Response(),
+				)),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -171,8 +165,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			URL("%s://%s.ipfs.%s/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
-				Body(Contains("text-file-content")).
-				Response(),
+				Body(Contains("text-file-content")),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -190,8 +183,7 @@ func TestGatewaySubdomains(t *testing.T) {
 						Contains("/ipfs/<a href=\"//%s/ipfs/%s\">%s</a>/<a href=\"//%s/ipfs/%s/ipfs\">ipfs</a>/<a href=\"//%s/ipfs/%s/ipfs/ipns\">ipns</a>",
 							u.Host, DirCID, DirCID, u.Host, DirCID, u.Host, DirCID),
 					),
-				).
-				Response(),
+				),
 		))
 
 		// TODO: # *.ipns.localhost
@@ -222,8 +214,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			Expect().
 				Headers(
 					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
-				).
-				Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -231,8 +222,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			"error message should include original CID (and it should be case-sensitive, as we can't assume everyone uses base32)",
 			URL("%s://%s/ipfs/QmInvalidCID", u.Scheme, u.Host),
 			Expect().
-				Body(Contains("invalid path \"/ipfs/QmInvalidCID\"")).
-				Response(),
+				Body(Contains("invalid path \"/ipfs/QmInvalidCID\"")),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -243,8 +233,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv0to1, u.Host),
-				).
-				Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -257,8 +246,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").Equals("https://%s.ipfs.%s/", CIDv1, u.Host),
-				).
-				Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -273,8 +261,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").Equals("/ipfs/%s/wiki/Diego_Maradona.html", CIDWikipedia),
-				).
-				Response(),
+				),
 		))
 
 		// # example.com/ipns/<libp2p-key>
@@ -318,8 +305,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			URL("%s/ipfs/%s", gatewayURL, CIDv1_TOO_LONG),
 			Expect().
 				Status(400).
-				Body(Contains("CID incompatible with DNS label length limit of 63")).
-				Response(),
+				Body(Contains("CID incompatible with DNS label length limit of 63")),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -328,8 +314,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			URL("%s://%s.ipfs.%s/", u.Scheme, CIDv1_TOO_LONG, u.Host),
 			Expect().
 				Status(400).
-				Body(Contains("CID incompatible with DNS label length limit of 63")).
-				Response(),
+				Body(Contains("CID incompatible with DNS label length limit of 63")),
 		))
 
 		// # public subdomain gateway: *.example.com
@@ -353,8 +338,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			"",
 			URL("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1),
 			Expect().
-				Status(200).
-				Response(),
+				Status(200),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -367,8 +351,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
-				).
-				Response(),
+				),
 		))
 
 		with(testGatewayWithManyProtocols(t,
@@ -382,8 +365,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").Equals("https://%s.ipfs.%s/", CIDv1, u.Host),
-				).
-				Response(),
+				),
 		))
 	}
 
@@ -392,7 +374,7 @@ func TestGatewaySubdomains(t *testing.T) {
 	}
 }
 
-func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqURL interface{}, expected CResponse) []CTest {
+func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqURL interface{}, expected ExpectBuilder) []CTest {
 	t.Helper()
 
 	baseURL := ""
@@ -427,7 +409,7 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 	u.Host = GatewayHost
 	rawURL := u.String()
 
-	return []CTest{
+	return SugarTests{
 		{
 			Name: fmt.Sprintf("%s (direct HTTP)", label),
 			Hint: fmt.Sprintf("%s\n%s", hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
@@ -436,8 +418,7 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 				DoNotFollowRedirects().
 				Headers(
 					Header("Host", host),
-				).
-				Request(),
+				),
 			Response: expected,
 		},
 		{
@@ -446,8 +427,7 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 			Request: baseReq.
 				URL(baseURL).
 				Proxy(GatewayURL).
-				DoNotFollowRedirects().
-				Request(),
+				DoNotFollowRedirects(),
 			Response: expected,
 		},
 		{
@@ -464,9 +444,8 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 				DoNotFollowRedirects().
 				Headers(
 					Header("Host", host),
-				).
-				Request(),
+				),
 			Response: expected,
 		},
-	}
+	}.Build()
 }
