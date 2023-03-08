@@ -49,7 +49,7 @@ func (r RequestBuilder) Request() CRequest {
 type ExpectBuilder struct {
 	StatusCode int
 	Headers_   []HeaderBuilder
-	Body_      []byte
+	Body_      interface{}
 }
 
 func Expect() ExpectBuilder {
@@ -112,7 +112,7 @@ func Header(key string, opts ...string) HeaderBuilder {
 		panic("too many options")
 	}
 	if len(opts) > 0 {
-		return HeaderBuilder{Key: key, Value: opts[0]}
+		return HeaderBuilder{Key: key, Value: opts[0], Check: check.IsEqual(opts[0])}
 	}
 
 	return HeaderBuilder{Key: key}
@@ -120,6 +120,11 @@ func Header(key string, opts ...string) HeaderBuilder {
 
 func (h HeaderBuilder) Contains(value string) HeaderBuilder {
 	h.Check = check.Contains(value)
+	return h
+}
+
+func (h HeaderBuilder) Matches(value string, rest ...any) HeaderBuilder {
+	h.Check = check.Matches(value, rest...)
 	return h
 }
 
@@ -135,5 +140,12 @@ func (h HeaderBuilder) Equals(value string, args ...any) HeaderBuilder {
 
 func (h HeaderBuilder) IsEmpty() HeaderBuilder {
 	h.Check = check.CheckIsEmpty{}
+	return h
+}
+
+func (h HeaderBuilder) Checks(f func(string) bool) HeaderBuilder {
+	h.Check = check.CheckFunc[string]{
+		Fn: f,
+	}
 	return h
 }

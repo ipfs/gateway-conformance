@@ -159,7 +159,7 @@ func Checks[T any](hint string, f func(T) bool) CheckWithHint[T] {
 	})
 }
 
-func (c *CheckFunc[T]) Check(v T) CheckOutput {
+func (c CheckFunc[T]) Check(v T) CheckOutput {
 	if c.Fn(v) {
 		return CheckOutput{
 			Success: true,
