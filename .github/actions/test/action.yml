@@ -1,0 +1,50 @@
+# action.yml
+name: 'Gateway Conformance Tests'
+description: 'Runs the Gateway Conformance Tests'
+inputs:
+  gateway-url:
+    description: 'The URL of the Gateway to test'
+    required: true
+  xml:
+    description: 'The path where the jUnit XML report will be saved'
+    required: true
+    default: 'report.xml'
+  html:
+    description: 'The path where the HTML report will be saved'
+    required: false
+  markdown:
+    description: 'The path where the Markdown report will be saved'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Run the test
+      uses: pl-strflt/docker-container-action@v1
+      env:
+        GATEWAY_URL: ${{ inputs.gateway-url }}
+        XML: ${{ inputs.xml }}
+      with:
+        # Do not use github.action_repository or github.action_ref here, because
+        # we want to use the repository and ref of the test action,
+        # not the repository and ref of the docker-container-action.
+        repository: ${{ env.GITHUB_ACTION_REPOSITORY || github.repository }}
+        ref: ${{ env.GITHUB_ACTION_REF || github.sha }}
+        dockerfile: Dockerfile
+        opts: --network=host
+        args: test "$GATEWAY_URL" "$XML"
+    - name: Create the HTML
+      if: inputs.html && (failure() || success())
+      uses: pl-strflt/junit-xml-to-html@v1
+      with:
+        input: ${{ inputs.xml }}
+        output: ${{ inputs.html }}
+    - name: Convert to Markdown
+      if: inputs.markdown && (failure() || success())
+      env:
+        XML: ${{ inputs.xml }}
+        MARKDOWN: ${{ inputs.markdown }}
+      run: |
+        go install github.com/alexec/junit2md@latest
+        mkdir -p "$( dirname $MARKDOWN )"
+        junit2md < "$XML" > "$MARKDOWN"
+      shell: bash

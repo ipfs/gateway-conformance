@@ -1,0 +1,23 @@
+# action.yml
+name: 'Gateway Conformance Tests: Extract Fixtures'
+description: 'Extracts the fixtures from the Gateway Conformance Tests'
+inputs:
+  output:
+    description: 'The path where the fixtures will be saved'
+    required: true
+    default: 'fixtures'
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract the fixtures
+      uses: pl-strflt/docker-container-action@v1
+      env:
+        OUTPUT: ${{ inputs.output }}
+      with:
+        # Do not use github.action_repository or github.action_ref here, because
+        # we want to use the repository and ref of the extract-fixtures action,
+        # not the repository and ref of the docker-container-action.
+        repository: ${{ env.GITHUB_ACTION_REPOSITORY || github.repository }}
+        ref: ${{ env.GITHUB_ACTION_REF || github.sha }}
+        dockerfile: Dockerfile
+        args: extract-fixtures "$OUTPUT"

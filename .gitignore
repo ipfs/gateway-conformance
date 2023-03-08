@@ -1,3 +1,8 @@
+/output.html
+/output.xml
+/fixtures.car
+/merge-fixtures
+
 # Logs
 logs
 *.log
