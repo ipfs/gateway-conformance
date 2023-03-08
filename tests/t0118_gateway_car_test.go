@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
-	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayCar(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0118-test-dag.car")
 
-	tests := []CTest{
+	tests := SugarTests{
 		{
 			Name: "GET response for application/vnd.ipld.car",
 			Hint: `
@@ -23,7 +22,7 @@ func TestGatewayCar(t *testing.T) {
 				Path("ipfs/%s/subdir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.car"),
-				).Request(),
+				),
 			Response: Expect().
 				Status(200).
 				Headers(
@@ -42,9 +41,9 @@ func TestGatewayCar(t *testing.T) {
 					Header("Accept-Ranges").
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to support range-requests. Partial downloads and resumes should be handled using IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769").
 						Equals("none"),
-				).Response(),
+				),
 		},
-	}
+	}.Build()
 
 	Run(t, tests)
 }
