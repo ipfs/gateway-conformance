@@ -13,6 +13,7 @@ import (
 
 func TestGatewaySubdomains(t *testing.T) {
 	// fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains")
+	// TODO: extract the CID correctly.
 	CIDv1 := "bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am"
 	DIR_CID := "bafybeiht6dtwk3les7vqm6ibpvz6qpohidvlshsfyr7l5mpysdw2vmbbhe"
 
@@ -34,6 +35,9 @@ func TestGatewaySubdomains(t *testing.T) {
 		{
 			Name: "request for {cid}.ipfs.localhost/api returns data if present on the content root",
 			Request: CRequest{
+				// TODO:
+				// Subdomain: fmt.Sprintf("%s.ipfs", CIDv1),
+				// URL: 	 "/api/file.txt",
 				RawURL: fmt.Sprintf("http://%s.ipfs.%s/api/file.txt", DIR_CID, SubdomainGatewayHost),
 			},
 			Response: CResponse{
