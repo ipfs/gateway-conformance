@@ -26,13 +26,13 @@ func TestGatewaySubdomains(t *testing.T) {
 	tests := []CTest{
 		{
 			Name: "request for 127.0.0.1/ipfs/{CID} stays on path",
-			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s", CIDv1),
-			},
-			Response: CResponse{
-				StatusCode: 200,
-				Body:       Contains(CID_VAL),
-			},
+			Request: Request().
+				Url("ipfs/%s", CIDv1).
+				Request(),
+			Response: Expect().
+				Status(200).
+				Body(Contains(CID_VAL)).
+				Response(),
 		},
 		{
 			Name: "request for localhost/ipfs/{CIDv1} returns HTTP 301 Moved Permanently",

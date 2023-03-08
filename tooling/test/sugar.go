@@ -49,7 +49,7 @@ func (r RequestBuilder) Request() CRequest {
 type ExpectBuilder struct {
 	StatusCode int
 	Headers_   []HeaderBuilder
-	Body       []byte
+	Body_      []byte
 }
 
 func Expect() ExpectBuilder {
@@ -63,6 +63,16 @@ func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
 
 func (e ExpectBuilder) Header(h HeaderBuilder) ExpectBuilder {
 	e.Headers_ = append(e.Headers_, h)
+	return e
+}
+
+func (e ExpectBuilder) Body(body []byte) ExpectBuilder {
+	e.Body_ = body
+	return e
+}
+
+func (e ExpectBuilder) Bytes(body string) ExpectBuilder {
+	e.Body_ = []byte(body)
 	return e
 }
 
@@ -86,7 +96,7 @@ func (e ExpectBuilder) Response() CResponse {
 	return CResponse{
 		StatusCode: e.StatusCode,
 		Headers:    headers,
-		Body:       e.Body,
+		Body:       e.Body_,
 	}
 }
 

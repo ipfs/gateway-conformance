@@ -40,6 +40,7 @@ type CResponse struct {
 
 type CTest struct {
 	Name     string
+	Hint     string
 	Request  CRequest
 	Response CResponse
 }
