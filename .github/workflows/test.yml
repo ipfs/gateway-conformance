@@ -34,8 +34,10 @@ jobs:
           html: output.html
           markdown: report.md
       - name: Set summary
-        if: (failure() || success())
-        run: cat ./report.md >> $GITHUB_STEP_SUMMARY
+        uses: dorny/test-reporter@v1
+        with:
+          path: output.xml
+          reporter: java-junit
       - name: Upload one-page HTML report
         if: (failure() || success())
         uses: actions/upload-artifact@v3
