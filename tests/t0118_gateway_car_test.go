@@ -1,3 +1,4 @@
+/* Skip until https://github.com/ipfs/kubo/issues/9651 is resolved
 package main
 
 import (
@@ -75,6 +76,6 @@ func TestGatewayCar(t *testing.T) {
 		},
 	}
 	
-	// Skip until https://github.com/ipfs/kubo/issues/9651 is resolved
-	// Run(t, tests)
+	Run(t, tests)
 }
+*/
