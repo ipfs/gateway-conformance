@@ -40,6 +40,7 @@ jobs:
           name: Gateway Conformance Tests Summary
           path: output.xml
           reporter: java-junit
+          only-summary: true
       - name: Upload one-page HTML report
         if: (failure() || success())
         uses: actions/upload-artifact@v3
