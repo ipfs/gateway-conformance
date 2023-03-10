@@ -9,22 +9,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - id: action
-      run: |
-        if [[ $GITHUB_ACTION_PATH == */_actions/* ]]; then
-          echo "repository=$(echo ${GITHUB_ACTION_PATH#*/_actions/} | cut -d/ -f1-2)" >> $GITHUB_OUTPUT
-          echo "ref=$(echo ${GITHUB_ACTION_PATH#*/_actions/} | cut -d/ -f3)" >> $GITHUB_OUTPUT
-        else
-          echo "repository=$GITHUB_REPOSITORY" >> $GITHUB_OUTPUT
-          echo "ref=$GITHUB_SHA" >> $GITHUB_OUTPUT
-        fi
-      shell: bash
+    - id: github
+      uses: pl-strflt/docker-container-action/.github/actions/github@v1
     - name: Extract the fixtures
       uses: pl-strflt/docker-container-action@v1
       env:
         OUTPUT: ${{ inputs.output }}
       with:
-        repository: ${{ steps.action.outputs.repository }}
-        ref: ${{ steps.action.outputs.ref }}
+        repository: ${{ steps.github.outputs.action_repository }}
+        ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         args: extract-fixtures "$OUTPUT"
