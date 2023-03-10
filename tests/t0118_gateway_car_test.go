@@ -1,6 +1,6 @@
-/* Skip until https://github.com/ipfs/kubo/issues/9651 is resolved
 package main
 
+/* Skip until https://github.com/ipfs/kubo/issues/9651 is resolved
 import (
 	"fmt"
 	"testing"
@@ -75,7 +75,7 @@ func TestGatewayCar(t *testing.T) {
 				).Response(),
 		},
 	}
-	
+
 	Run(t, tests)
 }
 */
