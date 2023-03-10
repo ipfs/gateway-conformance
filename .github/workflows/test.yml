@@ -34,6 +34,7 @@ jobs:
           html: output.html
           markdown: report.md
       - name: Set summary
+        if: (failure() || success())
         uses: dorny/test-reporter@v1
         with:
           path: output.xml
