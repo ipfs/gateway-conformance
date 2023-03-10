@@ -18,17 +18,24 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - id: action
+      run: |
+        if [[ $GITHUB_ACTION_PATH == */_actions/* ]]; then
+          echo "repository=$(echo ${GITHUB_ACTION_PATH#*/_actions/} | cut -d/ -f1-2)" >> $GITHUB_OUTPUT
+          echo "ref=$(echo ${GITHUB_ACTION_PATH#*/_actions/} | cut -d/ -f3)" >> $GITHUB_OUTPUT
+        else
+          echo "repository=$GITHUB_REPOSITORY" >> $GITHUB_OUTPUT
+          echo "ref=$GITHUB_SHA" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
       env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
         XML: ${{ inputs.xml }}
       with:
-        # Do not use github.action_repository or github.action_ref here, because
-        # we want to use the repository and ref of the test action,
-        # not the repository and ref of the docker-container-action.
-        repository: ${{ env.GITHUB_ACTION_REPOSITORY || github.repository }}
-        ref: ${{ env.GITHUB_ACTION_REF || github.sha }}
+        repository: ${{ steps.action.outputs.repository }}
+        ref: ${{ steps.action.outputs.ref }}
         dockerfile: Dockerfile
         opts: --network=host
         args: test "$GATEWAY_URL" "$XML"
