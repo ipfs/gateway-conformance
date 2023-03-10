@@ -37,6 +37,7 @@ jobs:
         if: (failure() || success())
         uses: dorny/test-reporter@v1
         with:
+          name: Gateway Conformance Tests Summary
           path: output.xml
           reporter: java-junit
       - name: Upload one-page HTML report
