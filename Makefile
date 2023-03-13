@@ -11,6 +11,16 @@ provision-kubo:
 test-kubo: provision-kubo
 	GATEWAY_URL=http://127.0.0.1:8080 make test
 
+test-kubo-subdomains: provision-kubo
+	ipfs config --json Gateway.PublicGateways '{	\
+	"example.com": {								\
+		"UseSubdomains": true,			 			\
+		"Paths": ["/ipfs", "/ipns", "/api"]			\
+	}												\
+	}'
+	SUBDOMAIN_GATEWAY_URL=http://example.com:8080 GOTAGS=test_subdomains make test-kubo
+
+
 merge-fixtures:
 	go build -o merge-fixtures ./tooling/cmd/merge_fixtures.go
 
@@ -20,7 +30,7 @@ fixtures.car: merge-fixtures
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest
-	- gotestsum --junitfile output.xml ./tests
+	- gotestsum --format testname --junitfile output.xml ./tests -tags "${GOTAGS}"
 
 output.xml: test-kubo
 

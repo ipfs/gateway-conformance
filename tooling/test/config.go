@@ -31,6 +31,7 @@ var SubdomainGatewayUrl = strings.TrimRight(
 
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
+var SubdomainGatewayScheme = ""
 
 func init() {
 	parse, err := url.Parse(GatewayUrl)
@@ -46,7 +47,10 @@ func init() {
 	}
 
 	SubdomainGatewayHost = parse.Host
+	SubdomainGatewayScheme = parse.Scheme
+
 	log.Debugf("SubdomainGatewayHost: %s", SubdomainGatewayHost)
+	log.Debugf("SubdomainGatewayScheme: %s", SubdomainGatewayScheme)
 }
 
 func NewDialer() *net.Dialer {

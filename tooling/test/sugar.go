@@ -7,17 +7,23 @@ import (
 )
 
 type RequestBuilder struct {
-	Method_  string
-	Url_     string
-	Headers_ map[string]string
+	Method_    string
+	Path_      string
+	Subdomain_ string
+	Headers_   map[string]string
 }
 
 func Request() RequestBuilder {
 	return RequestBuilder{Method_: "GET"}
 }
 
-func (r RequestBuilder) Url(url string, args ...any) RequestBuilder {
-	r.Url_ = fmt.Sprintf(url, args...)
+func (r RequestBuilder) Subdomain(base string, args ...any) RequestBuilder {
+	r.Subdomain_ = fmt.Sprintf(base, args...)
+	return r
+}
+
+func (r RequestBuilder) Path(url string, args ...any) RequestBuilder {
+	r.Path_ = fmt.Sprintf(url, args...)
 	return r
 }
 
@@ -39,9 +45,24 @@ func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 }
 
 func (r RequestBuilder) Request() CRequest {
+	var url = ""
+	if r.Subdomain_ != "" {
+		url = fmt.Sprintf("%s://%s.%s", SubdomainGatewayScheme, r.Subdomain_, SubdomainGatewayHost)
+
+		if r.Path_ != "" {
+			url = fmt.Sprintf("%s/%s", url, r.Path_)
+		}
+	}
+
+	var path = ""
+	if url == "" {
+		path = r.Path_
+	}
+
 	return CRequest{
 		Method:  r.Method_,
-		Url:     r.Url_,
+		Path:    path,
+		Url:     url,
 		Headers: r.Headers_,
 	}
 }
@@ -49,7 +70,7 @@ func (r RequestBuilder) Request() CRequest {
 type ExpectBuilder struct {
 	StatusCode int
 	Headers_   []HeaderBuilder
-	Body       []byte
+	Body_      []byte
 }
 
 func Expect() ExpectBuilder {
@@ -71,6 +92,19 @@ func (e ExpectBuilder) Headers(hs ...HeaderBuilder) ExpectBuilder {
 	return e
 }
 
+func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
+	switch body := body.(type) {
+	case string:
+		e.Body_ = []byte(body)
+	case []byte:
+		e.Body_ = body
+	default:
+		panic("body must be string or []byte")
+	}
+
+	return e
+}
+
 func (e ExpectBuilder) Response() CResponse {
 	headers := make(map[string]interface{})
 
@@ -86,7 +120,7 @@ func (e ExpectBuilder) Response() CResponse {
 	return CResponse{
 		StatusCode: e.StatusCode,
 		Headers:    headers,
-		Body:       e.Body,
+		Body:       e.Body_,
 	}
 }
 

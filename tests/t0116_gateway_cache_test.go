@@ -20,7 +20,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir listing succeeds",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -35,7 +35,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir with index.html succeeds",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -50,7 +50,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs file succeeds",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -65,7 +65,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir as DAG-JSON succeeds",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=dag-json", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=dag-json", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -77,7 +77,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir as JSON succeeds",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -89,7 +89,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "HEAD for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Cache-Control": "only-if-cached",
 				},
@@ -102,7 +102,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "HEAD for /ipfs/ with only-if-cached fails when not in local datastore",
 			Request: CRequest{
-				Url: "ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN",
+				Path: "ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN",
 				Headers: map[string]string{
 					"Cache-Control": "only-if-cached",
 				},
@@ -115,7 +115,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Cache-Control": "only-if-cached",
 				},
@@ -127,7 +127,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ with only-if-cached fails when not in local datastore",
 			Request: CRequest{
-				Url: "ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN",
+				Path: "ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN",
 				Headers: map[string]string{
 					"Cache-Control": "only-if-cached",
 				},
@@ -139,7 +139,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 				},
@@ -151,7 +151,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ dir with index.html file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4")),
 				},
@@ -163,7 +163,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching third Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": fmt.Sprintf("\"fakeEtag1\", \"fakeEtag2\", \"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 				},
@@ -175,7 +175,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching weak Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 				},
@@ -186,7 +186,7 @@ func TestGatewayCache(t *testing.T) {
 		}, {
 			Name: "GET for /ipfs/ file with wildcard Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": "*",
 				},
@@ -197,7 +197,7 @@ func TestGatewayCache(t *testing.T) {
 		}, {
 			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/root2/root3/", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/root2/root3/", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"If-None-Match": fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3")),
 				},
