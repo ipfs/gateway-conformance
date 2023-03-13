@@ -4,11 +4,11 @@ set -euo pipefail
 
 case "$1" in
   "test")
-    echo "Running tests against $2 and writing JUnit output to $3"
-    junitfile="$(realpath "$3")"
+    echo "Running tests against $2 and writing JSON output to $3"
+    jsonfile="$(realpath "$3")"
     export GATEWAY_URL="$2"
     pushd /app
-    gotestsum --junitfile "$junitfile"
+    gotestsum --jsonfile "$jsonfile"
     popd
     ;;
   "extract-fixtures")
@@ -21,7 +21,7 @@ case "$1" in
     /merge-fixtures "$2"
     ;;
   *)
-    echo "Usage: $0 test <gateway-url> <junit-file>"
+    echo "Usage: $0 test <gateway-url> <json-file>"
     echo "       $0 extract-fixtures <output-dir>"
     echo "       $0 merge-fixtures <output-car-file>"
     exit 1
