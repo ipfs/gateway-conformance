@@ -5,29 +5,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
-func GetEnv(key string, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
-var GatewayUrl = strings.TrimRight(
-	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
-	"/")
-
 type CRequest struct {
 	Method               string
-	RawURL               string
-	DoNotFollowRedirects bool
 	Url                  string
+	DoNotFollowRedirects bool
+	Path                 string
+	Subdomain            string
 	Headers              map[string]string
 	Body                 []byte
 }
@@ -45,6 +33,8 @@ type CTest struct {
 }
 
 func Run(t *testing.T, tests []CTest) {
+	NewDialer()
+
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
@@ -60,13 +50,17 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			var url string
-			if test.Request.RawURL != "" {
-				if test.Request.Url != "" {
-					t.Fatalf("Both 'RawURL' and 'Url' are set")
-				}
-				url = test.Request.RawURL
-			} else {
-				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Url)
+			if test.Request.Url != "" && test.Request.Path != "" {
+				t.Fatalf("Both 'Url' and 'Path' are set")
+			}
+			if test.Request.Url == "" && test.Request.Path == "" {
+				t.Fatalf("Neither 'Url' nor 'Path' are set")
+			}
+			if test.Request.Url != "" {
+				url = test.Request.Url
+			}
+			if test.Request.Path != "" {
+				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Path)
 			}
 
 			var body io.Reader
@@ -86,6 +80,7 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			// send request
+			log.Debugf("Querying %s", url)
 			res, err := client.Do(req)
 			if err != nil {
 				t.Fatalf("Querying %s failed: %s", url, err)
@@ -148,7 +143,6 @@ func Run(t *testing.T, tests []CTest) {
 					}
 				case []byte:
 					if !bytes.Equal(resBody, v) {
-
 						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
 							t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
 						} else {
