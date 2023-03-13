@@ -20,12 +20,15 @@ fixtures.car: merge-fixtures
 
 test: fixtures.car
 	# go install gotest.tools/gotestsum@latest
-	- gotestsum --junitfile output.xml ./tests
+	- gotestsum --jsonfile output.json ./tests
 
 output.xml: test-kubo
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --entrypoint "/bin/bash" ghcr.io/pl-strflt/saxon:v1 -c """
+		java -jar /opt/SaxonHE11-5J/saxon-he-11.5.jar -s:<(jq -s '.' output.json) -xsl:/etc/gotest.xsl -o:output.xml
+	"""
 
 output.html: output.xml
-	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/junit-xml-to-html:latest no-frames ./output.xml ./output.html
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:output.html
 	open ./output.html
 
 .PHONY: merge-fixtures

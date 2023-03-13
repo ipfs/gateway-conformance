@@ -15,19 +15,28 @@
 ### Retrieve fixtures
 
 ```bash
-docker run -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures /workspace/[output-dir]
+docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures [OUTPUT_DIR]
 ```
 
 ### Run tests
 
 ```bash
-docker run --network host -v "${PWD}:/workspace" ghcr.io/ipfs/gateway-conformance test [gateway-url] /workspace/[output-xml]
+docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance test [gateway-url] [OUTPUT_JSON]
 ```
 
-### Generate an html report
+### Generate a XML report
 
 ```bash
-docker run --rm -v "${PWD}:/workspace" ghcr.io/pl-strflt/junit-xml-to-html:latest no-frames /workspace/[output-xml] /workspace/[output-html]
+docker run --rm -v "${PWD}:/workspace" -w "/workspace" --entrypoint "/bin/bash" ghcr.io/pl-strflt/saxon:v1 -c """
+  java -jar /opt/SaxonHE11-5J/saxon-he-11.5.jar -s:<(jq -s '.' [OUTPUT_JSON]) -xsl:/etc/gotest.xsl -o:[OUTPUT_XML]
+"""
+
+```
+
+### Generate a HTML report
+
+```bash
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:[OUTPUT_XML] -xsl:/etc/junit-noframes-saxon.xsl -o:[OUTPUT_HTML]
 ```
 
 ### Generate a single car file for testing
