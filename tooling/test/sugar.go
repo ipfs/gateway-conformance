@@ -2,28 +2,63 @@ package test
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
+// When a test writer uses a URL that contains the example.com domain, we assume they
+// mean "the current subdomain URL". This means that "http://something.ipfs.example.com/path"
+// is rewritten to hit the current tested gateway, which might live under a different name, and
+// different port.
+func TestURLFromSpecURL(testURL string) string {
+	u, err := url.Parse(testURL)
+	if err != nil {
+		panic(err)
+	}
+
+	withoutExampleDomain := strings.TrimSuffix(u.Host, GATEWAY_EXAMPLE_DOMAIN)
+
+	if len(withoutExampleDomain) < len(u.Host) {
+		// we found and removed the example domain
+		// so this is a subdomain gateway
+		u.Scheme = SubdomainGatewayScheme
+		u.Host = fmt.Sprintf("%s%s", withoutExampleDomain, SubdomainGatewayHost)
+	}
+
+	return u.String()
+}
+
 type RequestBuilder struct {
-	Method_    string
-	Path_      string
-	Subdomain_ string
-	Headers_   map[string]string
+	Method_               string
+	Path_                 string
+	URL_                  string
+	Headers_              map[string]string
+	DoNotFollowRedirects_ bool
 }
 
 func Request() RequestBuilder {
 	return RequestBuilder{Method_: "GET"}
 }
 
-func (r RequestBuilder) Subdomain(base string, args ...any) RequestBuilder {
-	r.Subdomain_ = fmt.Sprintf(base, args...)
+func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
+	r.Path_ = fmt.Sprintf(path, args...)
 	return r
 }
 
-func (r RequestBuilder) Path(url string, args ...any) RequestBuilder {
-	r.Path_ = fmt.Sprintf(url, args...)
+func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
+	r.URL_ = fmt.Sprintf(path, args...)
+	return r
+}
+
+func (r RequestBuilder) DoNotFollowRedirects() RequestBuilder {
+	r.DoNotFollowRedirects_ = true
+	return r
+}
+
+func (r RequestBuilder) Method(method string) RequestBuilder {
+	r.Method_ = method
 	return r
 }
 
@@ -45,36 +80,37 @@ func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 }
 
 func (r RequestBuilder) Request() CRequest {
-	var url = ""
-	if r.Subdomain_ != "" {
-		url = fmt.Sprintf("%s://%s.%s", SubdomainGatewayScheme, r.Subdomain_, SubdomainGatewayHost)
+	if r.URL_ != "" && r.Path_ != "" {
+		panic("Both 'Url' and 'Path' are set")
+	}
 
-		if r.Path_ != "" {
-			url = fmt.Sprintf("%s/%s", url, r.Path_)
-		}
+	var myUrl = ""
+	if r.URL_ != "" {
+		myUrl = TestURLFromSpecURL(r.URL_)
 	}
 
 	var path = ""
-	if url == "" {
+	if myUrl == "" {
 		path = r.Path_
 	}
 
 	return CRequest{
-		Method:  r.Method_,
-		Path:    path,
-		Url:     url,
-		Headers: r.Headers_,
+		Method:               r.Method_,
+		Path:                 path,
+		Url:                  myUrl,
+		Headers:              r.Headers_,
+		DoNotFollowRedirects: r.DoNotFollowRedirects_,
 	}
 }
 
 type ExpectBuilder struct {
 	StatusCode int
 	Headers_   []HeaderBuilder
-	Body_      []byte
+	Body_      interface{}
 }
 
 func Expect() ExpectBuilder {
-	return ExpectBuilder{}
+	return ExpectBuilder{Body_: nil}
 }
 
 func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
@@ -142,8 +178,8 @@ func Header(key string, opts ...string) HeaderBuilder {
 	return HeaderBuilder{Key: key}
 }
 
-func (h HeaderBuilder) Contains(value string) HeaderBuilder {
-	h.Check = check.Contains(value)
+func (h HeaderBuilder) Contains(value string, rest ...any) HeaderBuilder {
+	h.Check = check.Contains(value, rest...)
 	return h
 }
 

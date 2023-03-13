@@ -31,6 +31,25 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 		},
 		{
+			Name: "request for {gateway}/ipfs/{CIDv1} returns HTTP 301 Moved Permanently (sugar)",
+			Request: Request().
+				URL("http://example.com/ipfs/%s", CIDv1).
+				DoNotFollowRedirects().
+				Request(),
+			Response: Expect().
+				Status(301).
+				Headers(
+					Header("Location").
+						// TODO: this works only because we use example.com in our tests.
+						// It should be:
+						// Contains("%s://%s.ipfs.%s", SubdomainGatewayScheme, CIDv1, SubdomainGatewayHost)
+						// I am trying to avoid this syntax.
+						// The other option is to force the tested gateway to use example.com.
+						Contains("http://%s.ipfs.example.com", CIDv1),
+				).
+				Response(),
+		},
+		{
 			Name: "request for {cid}.ipfs.localhost/api returns data if present on the content root",
 			Request: CRequest{
 				Url: fmt.Sprintf("%s://%s.ipfs.%s/api/file.txt", SubdomainGatewayScheme, DIR_CID, SubdomainGatewayHost),
@@ -42,10 +61,10 @@ func TestGatewaySubdomains(t *testing.T) {
 		{
 			Name: "request for {cid}.ipfs.localhost/api returns data if present on the content root (sugar)",
 			Request: Request().
-				Subdomain("%s.ipfs", DIR_CID).
-				Path("/api/file.txt").
+				URL("http://%s.ipfs.example.com/api/file.txt", DIR_CID).
 				Request(),
 			Response: Expect().
+				Status(200).
 				Body("I am a txt file\n").
 				Response(),
 		},
