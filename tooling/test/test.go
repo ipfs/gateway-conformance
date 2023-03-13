@@ -143,7 +143,6 @@ func Run(t *testing.T, tests []CTest) {
 					}
 				case []byte:
 					if !bytes.Equal(resBody, v) {
-
 						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
 							t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
 						} else {

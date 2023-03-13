@@ -29,6 +29,11 @@ var SubdomainGatewayUrl = strings.TrimRight(
 	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com:8080"),
 	"/")
 
+// This domain is used as a placeholder,
+// A test implementer would use `example.com` to write an explicit test.
+// At test time, we replace this with the actual domain configured by the test runner.
+const GATEWAY_EXAMPLE_DOMAIN = "example.com"
+
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""
