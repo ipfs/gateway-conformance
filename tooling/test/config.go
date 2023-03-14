@@ -69,7 +69,7 @@ func NewDialer() *net.Dialer {
 		Resolver: &net.Resolver{
 			PreferGo: true,
 			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-				log.Debugf("Custom Resolver dialing into network: %s, address: %s", network, address)
+				// log.Debugf("Custom Resolver dialing into network: %s, address: %s", network, address)
 
 				d := net.Dialer{
 					Timeout: 30 * time.Second,
@@ -81,22 +81,27 @@ func NewDialer() *net.Dialer {
 	}
 
 	http.DefaultTransport.(*http.Transport).DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		log.Debugf("Custom Dialer dialing into network: %s, address: %s", network, addr)
+		effectiveAddr := addr
 
 		// If we call into a subdomain `somethingsomething.example.com`,
 		// actually dial the gateway url on its base address (probably localhost:8080)
 		if strings.HasSuffix(addr, SubdomainGatewayHost) {
-			addr = GatewayHost
+			effectiveAddr = GatewayHost
 		}
 
 		// If we call into a subdomain `somethingsomething.localhost`,
 		// actually dial the gateway url on its base address (probably localhost:8080)
 		if strings.HasSuffix(addr, GATEWAY_LOCALHOST_DOMAIN) || strings.HasSuffix(addr, fmt.Sprintf("%s:80", GATEWAY_LOCALHOST_DOMAIN)) {
-			addr = GatewayHost
+			effectiveAddr = GatewayHost
 		}
 
-		log.Debugf("Custom Dialer dialing into (effective) network: %s, address: %s", network, addr)
-		conn, err := dialer.DialContext(ctx, network, addr)
+		if effectiveAddr != addr {
+			log.Debugf("Custom Dialer dialing and rewrote (network: %s) %s => %s", network, addr, effectiveAddr)
+		} else {
+			log.Debugf("Custom Dialer dialing (network: %s) %s", network, effectiveAddr)
+		}
+
+		conn, err := dialer.DialContext(ctx, network, effectiveAddr)
 		return conn, err
 	}
 

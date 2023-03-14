@@ -50,15 +50,24 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			return string(j)
 		},
 		"dump": func(v interface{}) string {
+			if v == nil {
+				return "nil"
+			}
+			
 			var b []byte
+			var err error
 			switch v := v.(type) {
 			case *http.Request:
-				b, _ = httputil.DumpRequestOut(v, true)
+				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
-				b, _ = httputil.DumpResponse(v, true)
+				b, err = httputil.DumpResponse(v, true)
 			default:
 				panic("unknown type")
 			}
+			if err != nil {
+				panic(err)
+			}
+			
 			return string(b)
 		},
 	}).Parse(TEMPLATE)

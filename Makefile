@@ -14,6 +14,11 @@ test-kubo-subdomains: provision-kubo gateway-conformance
 			"UseSubdomains": true,			 		\
 			"Paths": ["/ipfs", "/ipns", "/api"]		\
 		}											\
+		"localhost": {								\
+			"UseSubdomains": true,					\
+			"InlineDNSLink": true,					\
+			"Paths": ["/ipfs", "/ipns", "/api"]		\
+		}											\
 	}'
 	# todo: SUBDOMAIN_GATEWAY_URL should be a cmd parameter
 	./gateway-conformance test --json output.json --gateway-url ${GATEWAY_URL} --subdomain-url ${SUBDOMAIN_GATEWAY_URL} --specs +subdomain-gateway
