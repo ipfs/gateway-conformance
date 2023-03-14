@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -33,6 +34,8 @@ var SubdomainGatewayUrl = strings.TrimRight(
 // A test implementer would use `example.com` to write an explicit test.
 // At test time, we replace this with the actual domain configured by the test runner.
 const GATEWAY_EXAMPLE_DOMAIN = "example.com"
+
+const GATEWAY_LOCALHOST_DOMAIN = "localhost"
 
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
@@ -83,6 +86,12 @@ func NewDialer() *net.Dialer {
 		// If we call into a subdomain `somethingsomething.example.com`,
 		// actually dial the gateway url on its base address (probably localhost:8080)
 		if strings.HasSuffix(addr, SubdomainGatewayHost) {
+			addr = GatewayHost
+		}
+
+		// If we call into a subdomain `somethingsomething.localhost`,
+		// actually dial the gateway url on its base address (probably localhost:8080)
+		if strings.HasSuffix(addr, GATEWAY_LOCALHOST_DOMAIN) || strings.HasSuffix(addr, fmt.Sprintf("%s:80", GATEWAY_LOCALHOST_DOMAIN)) {
 			addr = GatewayHost
 		}
 

@@ -11,25 +11,26 @@ import (
 )
 
 type CRequest struct {
-	Method               string
-	Url                  string
-	DoNotFollowRedirects bool
-	Path                 string
-	Subdomain            string
-	Headers              map[string]string
-	Body                 []byte
+	Method               string            `json:"method,omitempty"`
+	Url                  string            `json:"url,omitempty"`
+	DoNotFollowRedirects bool              `json:"doNotFollowRedirects,omitempty"`
+	Path                 string            `json:"path,omitempty"`
+	Subdomain            string            `json:"subdomain,omitempty"`
+	Headers              map[string]string `json:"headers,omitempty"`
+	Body                 []byte            `json:"body,omitempty"`
 }
 
 type CResponse struct {
-	StatusCode int
-	Headers    map[string]interface{}
-	Body       interface{}
+	StatusCode int                    `json:"statusCode,omitempty"`
+	Headers    map[string]interface{} `json:"headers,omitempty"`
+	Body       interface{}            `json:"body,omitempty"`
 }
 
 type CTest struct {
-	Name     string
-	Request  CRequest
-	Response CResponse
+	Name     string    `json:"name,omitempty"`
+	Hint     string    `json:"hint,omitempty"`
+	Request  CRequest  `json:"request,omitempty"`
+	Response CResponse `json:"response,omitempty"`
 }
 
 func Run(t *testing.T, tests []CTest) {
@@ -49,12 +50,29 @@ func Run(t *testing.T, tests []CTest) {
 				}
 			}
 
+			var res *http.Response = nil
+			var req *http.Request = nil
+
+			localReport := func(msg interface{}, rest ...interface{}) {
+				var err error
+				switch msg := msg.(type) {
+				case string:
+					err = fmt.Errorf(msg, rest...)
+				case error:
+					err = msg
+				default:
+					panic("msg must be string or error")
+				}
+
+				report(t, test, req, res, err)
+			}
+
 			var url string
 			if test.Request.Url != "" && test.Request.Path != "" {
-				t.Fatalf("Both 'Url' and 'Path' are set")
+				localReport("Both 'Url' and 'Path' are set")
 			}
 			if test.Request.Url == "" && test.Request.Path == "" {
-				t.Fatalf("Neither 'Url' nor 'Path' are set")
+				localReport("Neither 'Url' nor 'Path' are set")
 			}
 			if test.Request.Url != "" {
 				url = test.Request.Url
@@ -77,18 +95,23 @@ func Run(t *testing.T, tests []CTest) {
 			// add headers
 			for key, value := range test.Request.Headers {
 				req.Header.Add(key, value)
+
+				// https://github.com/golang/go/issues/7682
+				if key == "Host" {
+					req.Host = value
+				}
 			}
 
 			// send request
 			log.Debugf("Querying %s", url)
-			res, err := client.Do(req)
+			res, err = client.Do(req)
 			if err != nil {
-				t.Fatalf("Querying %s failed: %s", url, err)
+				localReport("Querying %s failed: %s", url, err)
 			}
 
 			if test.Response.StatusCode != 0 {
 				if res.StatusCode != test.Response.StatusCode {
-					t.Fatalf("Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+					localReport("Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
 				}
 			}
 
@@ -107,14 +130,14 @@ func Run(t *testing.T, tests []CTest) {
 				case string:
 					output = check.IsEqual(v).Check(actual)
 				default:
-					t.Fatalf("Header check '%s' has an invalid type: %T", key, value)
+					localReport("Header check '%s' has an invalid type: %T", key, value)
 				}
 
 				if !output.Success {
 					if hint == "" {
-						t.Fatalf("Header '%s' %s", key, output.Reason)
+						localReport("Header '%s' %s", key, output.Reason)
 					} else {
-						t.Fatalf("Header '%s' %s (%s)", key, output.Reason, hint)
+						localReport("Header '%s' %s (%s)", key, output.Reason, hint)
 					}
 				}
 			}
@@ -123,34 +146,34 @@ func Run(t *testing.T, tests []CTest) {
 				defer res.Body.Close()
 				resBody, err := io.ReadAll(res.Body)
 				if err != nil {
-					t.Fatal(err)
+					localReport(err)
 				}
 
 				switch v := test.Response.Body.(type) {
 				case check.Check[string]:
 					output := v.Check(string(resBody))
 					if !output.Success {
-						t.Fatalf("Body %s", output.Reason)
+						localReport("Body %s", output.Reason)
 					}
 				case check.CheckWithHint[string]:
 					output := v.Check.Check(string(resBody))
 					if !output.Success {
-						t.Fatalf("Body %s (%s)", output.Reason, v.Hint)
+						localReport("Body %s (%s)", output.Reason, v.Hint)
 					}
 				case string:
 					if string(resBody) != v {
-						t.Fatalf("Body is not '%s'. It is: '%s'", v, resBody)
+						localReport("Body is not '%s'. It is: '%s'", v, resBody)
 					}
 				case []byte:
 					if !bytes.Equal(resBody, v) {
 						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
-							t.Fatalf("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
+							localReport("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
 						} else {
-							t.Fatalf("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
+							localReport("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
 						}
 					}
 				default:
-					t.Fatalf("Body check has an invalid type: %T", test.Response.Body)
+					localReport("Body check has an invalid type: %T", test.Response.Body)
 				}
 			}
 		})
