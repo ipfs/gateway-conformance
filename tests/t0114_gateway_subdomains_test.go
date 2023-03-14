@@ -4,17 +4,24 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewaySubdomains(t *testing.T) {
-	// fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains")
-	// TODO: extract the CID correctly.
-	// TODO: how to extract CIDv1, CIDv0, and DIR_CID from the fixture?
-	CIDv1 := "bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am"
-	DIR_CID := "bafybeiht6dtwk3les7vqm6ibpvz6qpohidvlshsfyr7l5mpysdw2vmbbhe"
+	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
+
+	DIR_CID := fixture.MustGetCid("testdirlisting")
+	CIDv1 := fixture.MustGetCid("hello-CIDv1")
+	CIDv0 := fixture.MustGetCid("hello-CIDv0")
+	CIDv0to1 := fixture.MustGetCid("hello-CIDv0to1")
+	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
+
+	fmt.Println("DIR_CID:", DIR_CID)
+	fmt.Println("CIDv1:", CIDv1, "CIDv0:", CIDv0)
+	fmt.Println("CIDv0to1:", CIDv0to1, "CIDv1_TOO_LONG:", CIDv1_TOO_LONG)
 
 	tests := []CTest{
 		{
