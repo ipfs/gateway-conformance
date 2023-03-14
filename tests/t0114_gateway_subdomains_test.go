@@ -56,6 +56,12 @@ func TestGatewaySubdomains(t *testing.T) {
 	)...)
 
 	tests = append(tests, []CTest{
+		// TODO: this works only because we use example.com in our tests.
+		// It should be:
+		// Contains("%s://%s.ipfs.%s", SubdomainGatewayScheme, CIDv1, SubdomainGatewayHost)
+		// I am trying to avoid this syntax.
+		// The other option is to force the tested gateway to use example.com.
+		// Version 1 (default the test writer & runner to use example.com)
 		{
 
 			Name: "request for {gateway}/ipfs/{CIDv1} returns HTTP 301 Moved Permanently (sugar)",
@@ -67,12 +73,39 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(301).
 				Headers(
 					Header("Location").
-						// TODO: this works only because we use example.com in our tests.
-						// It should be:
-						// Contains("%s://%s.ipfs.%s", SubdomainGatewayScheme, CIDv1, SubdomainGatewayHost)
-						// I am trying to avoid this syntax.
-						// The other option is to force the tested gateway to use example.com.
 						Contains("http://%s.ipfs.example.com", CIDv1),
+				).
+				Response(),
+		},
+		// Version 2 (no default)
+		{
+
+			Name: "request for {gateway}/ipfs/{CIDv1} returns HTTP 301 Moved Permanently (sugar)",
+			Request: Request().
+				URL("%s/ipfs/%s", SubdomainGatewayUrl, CIDv1).
+				DoNotFollowRedirects().
+				Request(),
+			Response: Expect().
+				Status(301).
+				Headers(
+					Header("Location").
+						Contains("%s://%s.ipfs.%s", SubdomainGatewayScheme, CIDv1, SubdomainGatewayHost),
+				).
+				Response(),
+		},
+		// Version 3 (rewrite example.com and provide transformation functions when needed)
+		{
+
+			Name: "request for {gateway}/ipfs/{CIDv1} returns HTTP 301 Moved Permanently (sugar)",
+			Request: Request().
+				URL("http://example.com/ipfs/%s", CIDv1).
+				DoNotFollowRedirects().
+				Request(),
+			Response: Expect().
+				Status(301).
+				Headers(
+					Header("Location").
+						Contains(ReplaceExampleDomain("http://%s.ipfs.example.com", CIDv1)),
 				).
 				Response(),
 		},

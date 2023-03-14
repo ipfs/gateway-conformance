@@ -30,6 +30,10 @@ func TestURLFromSpecURL(testURL string) string {
 	return u.String()
 }
 
+func ReplaceExampleDomain(s string, args ...any) string {
+	return TestURLFromSpecURL(fmt.Sprintf(s, args...))
+}
+
 type RequestBuilder struct {
 	Method_               string
 	Path_                 string
