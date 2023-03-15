@@ -1,40 +1,55 @@
 # action.yml
-name: 'Gateway Conformance Tests'
-description: 'Runs the Gateway Conformance Tests'
+name: "Gateway Conformance Tests"
+description: "Runs the Gateway Conformance Tests"
 inputs:
   gateway-url:
-    description: 'The URL of the Gateway to test'
+    description: "The URL of the Gateway to test"
     required: true
   json:
-    description: 'The path where the JSON report will be saved'
+    description: "The path where the JSON report will be saved"
     required: true
-    default: 'report.json'
+    default: "report.json"
   xml:
-    description: 'The path where the jUnit XML report will be saved'
+    description: "The path where the jUnit XML report will be saved"
     required: false
   html:
-    description: 'The path where the HTML report will be saved'
+    description: "The path where the HTML report will be saved"
     required: false
   markdown:
-    description: 'The path where the Markdown report will be saved'
+    description: "The path where the Markdown report will be saved"
+    required: false
+  is-subdomain:
+    description: "Enable the test suite for subdomain gateways"
     required: false
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - id: github
       uses: pl-strflt/docker-container-action/.github/actions/github@v1
+    - id: generate-args
+      name: Generate additional arguments
+      shell: bash
+      env:
+        IS_SUBDOMAIN: ${{ inputs.is-subdomain }}
+      run: |
+        ARGS=""
+        if [ "$IS_SUBDOMAIN" = "true" ]; then
+          ARGS="$ARGS --is-subdomain"
+        fi
+
+        echo "args=${ARGS}" >> "$GITHUB_OUTPUT"
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
       env:
         GATEWAY_URL: ${{ inputs.gateway-url }}
         JSON: ${{ inputs.json }}
+        ADDITIONAL_ARGS: ${{ steps.generate-args.outputs.args }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        # TODO: add subdomain parameters
-        args: test --gateway-url "$GATEWAY_URL" --json-output "$JSON"
+        args: test --gateway-url "$GATEWAY_URL" --json-output "$JSON" ${ADDITIONAL_ARGS}
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1
