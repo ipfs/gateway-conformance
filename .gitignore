@@ -2,6 +2,7 @@
 /output.xml
 /fixtures.car
 /merge-fixtures
+/entrypoint
 
 # Logs
 logs

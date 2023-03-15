@@ -33,7 +33,8 @@ runs:
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test "$GATEWAY_URL" "$JSON"
+        # TODO: add subdomain parameters
+        args: test --gateway-url "$GATEWAY_URL" --json-output "$JSON"
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1

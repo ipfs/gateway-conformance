@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -39,10 +39,7 @@ func listAllCarFile(basePath string) []string {
 	return carFiles
 }
 
-func main() {
-	// First parameter is the output path:
-	outputPath := os.Args[1]
-
+func MergeFixtures(outputPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -57,12 +54,12 @@ func main() {
 			blockstore.UseWholeCIDs(true),
 		)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		r, err := robs.Roots()
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		roots = append(roots, r...)
@@ -72,7 +69,7 @@ func main() {
 	fmt.Printf("Opening the %s file, with roots: %v\n", outputPath, roots)
 	rout, err := blockstore.OpenReadWrite(outputPath, roots)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Then aggregate all our blocks.
@@ -81,21 +78,20 @@ func main() {
 		robs, err := blockstore.OpenReadOnly(f,
 			blockstore.UseWholeCIDs(true),
 		)
-
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		cids, err := robs.AllKeysChan(ctx)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		for c := range cids {
 			fmt.Printf("Adding %s\n", c.String())
 			block, err := robs.Get(ctx, c)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			rout.Put(ctx, block)
@@ -104,7 +100,5 @@ func main() {
 
 	fmt.Printf("Finalizing...\n")
 	err = rout.Finalize()
-	if err != nil {
-		panic(err)
-	}
+	return err
 }
