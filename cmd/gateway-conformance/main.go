@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/ipfs/gateway-conformance/tooling"
-	"github.com/ipfs/gateway-conformance/tooling/cmd"
+	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/urfave/cli/v2"
 )
@@ -173,7 +173,7 @@ func main() {
 
 					merged := cCtx.Bool("merged")
 					if merged {
-						err = cmd.Merge(filepath.Join(directory, "fixtures.car"))
+						err = car.Merge(files, filepath.Join(directory, "fixtures.car"))
 						if err != nil {
 							return err
 						}

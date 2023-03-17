@@ -11,15 +11,12 @@ provision-kubo:
 test-kubo: provision-kubo
 	GATEWAY_URL=http://127.0.0.1:8080 make _test
 
-merge-fixtures:
-	go build -o merge-fixtures ./tooling/cmd/merge_fixtures.go
-
 # tools
 fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.
 
 gateway-conformance:
-	go build -o ./gateway-conformance ./entrypoint.go
+	go build -o ./gateway-conformance ./cmd/gateway-conformance
 
 _test: fixtures.car gateway-conformance
 	./gateway-conformance test --json output.json --gateway-url ${GATEWAY_URL}

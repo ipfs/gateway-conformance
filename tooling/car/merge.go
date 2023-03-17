@@ -1,20 +1,14 @@
-package cmd
+package car
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-car/v2/blockstore"
 )
 
-func Merge(outputPath string) error {
-	inputPaths, err := fixtures.List()
-	if err != nil {
-		return err
-	}
-
+func Merge(inputPaths []string, outputPath string) error {
 	// First list all the roots in our fixtures
 	roots := make([]cid.Cid, 0)
 

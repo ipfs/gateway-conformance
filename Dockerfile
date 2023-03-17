@@ -6,6 +6,6 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o ./gateway-conformance ./entrypoint.go
+RUN go build -o ./gateway-conformance ./cmd/gateway-conformance
 
 ENTRYPOINT ["/app/gateway-conformance"]
