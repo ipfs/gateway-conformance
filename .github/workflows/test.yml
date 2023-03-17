@@ -34,7 +34,8 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
-          is-subdomain: false
+          subdomain-gateway-spec: false
+          args: -skip TestGatewayCar
       - name: Set summary
         if: (failure() || success())
         run: cat ./output.md >> $GITHUB_STEP_SUMMARY

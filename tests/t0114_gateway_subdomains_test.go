@@ -1,7 +1,7 @@
-//go:build test_subdomains
-// +build test_subdomains
+//go:build !no_subdomain_gateway_spec
+// +build !no_subdomain_gateway_spec
 
-package main
+package tests
 
 import (
 	"fmt"

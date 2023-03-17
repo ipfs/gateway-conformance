@@ -6,6 +6,10 @@ inputs:
     description: 'The path where the fixtures will be saved'
     required: true
     default: 'fixtures'
+  merged:
+    description: 'Whether the fixtures should be merged into a single file'
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
@@ -15,8 +19,9 @@ runs:
       uses: pl-strflt/docker-container-action@v1
       env:
         OUTPUT: ${{ inputs.output }}
+        MERGED: ${{ inputs.merged }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
-        args: extract-fixtures "$OUTPUT"
+        args: extract-fixtures --directory="$OUTPUT" --merged="$MERGED"

@@ -15,18 +15,18 @@ merge-fixtures:
 	go build -o merge-fixtures ./tooling/cmd/merge_fixtures.go
 
 # tools
-fixtures.car: entrypoint
-	./entrypoint merge-fixtures ./fixtures.car
+fixtures.car: gateway-conformance
+	./gateway-conformance extract-fixtures --merged=true --dir=.
 
-entrypoint:
-	go build -o ./entrypoint ./entrypoint.go
+gateway-conformance:
+	go build -o ./gateway-conformance ./entrypoint.go
 
-_test: fixtures.car entrypoint
-	./entrypoint test --json-output output.json --gateway-url ${GATEWAY_URL} --is-subdomain
+_test: fixtures.car gateway-conformance
+	./gateway-conformance test --json output.json --gateway-url ${GATEWAY_URL}
 
-test-docker: fixtures.car entrypoint
-	docker build -t gway-test .
-	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --network=host gway-test test
+test-docker: fixtures.car gateway-conformance
+	docker build -t gateway-conformance .
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --network=host gateway-conformance test
 
 output.xml: test-kubo
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --entrypoint "/bin/bash" ghcr.io/pl-strflt/saxon:v1 -c """
@@ -37,4 +37,4 @@ output.html: output.xml
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:output.html
 	open ./output.html
 
-.PHONY: entrypoint
+.PHONY: gateway-conformance

@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
-	"runtime"
 	"strings"
 
+	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
@@ -94,9 +93,7 @@ func (d *UnixfsDag) MustGetRawData(names ...string) []byte {
 }
 
 func MustOpenUnixfsCar(file string) *UnixfsDag {
-	_, filename, _, _ := runtime.Caller(0)
-	basePath := filepath.Dir(filename)
-	fixturePath := path.Join(basePath, "..", "..", "fixtures", file)
+	fixturePath := path.Join(fixtures.Dir(), file)
 
 	dag, err := newUnixfsDagFromCar(fixturePath)
 	if err != nil {

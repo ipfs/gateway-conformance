@@ -3,54 +3,24 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
-	"time"
 
+	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-car/v2/blockstore"
 )
 
-/**
- * list all `*.car` file in the basePath directory, recursively
- */
-func listAllCarFile(basePath string) []string {
-	var carFiles []string
-
-	filepath.WalkDir(basePath, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if filepath.Ext(path) == ".car" {
-			path, err := filepath.Abs(path)
-			if err != nil {
-				return err
-			}
-
-			carFiles = append(carFiles, path)
-		}
-
-		return nil
-	})
-
-	return carFiles
-}
-
-func MergeFixtures(outputPath string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	carFiles := listAllCarFile("./fixtures")
+func Merge(outputPath string) error {
+	inputPaths, err := fixtures.List()
+	if err != nil {
+		return err
+	}
 
 	// First list all the roots in our fixtures
 	roots := make([]cid.Cid, 0)
 
-	for _, f := range carFiles {
-		fmt.Printf("processing %s\n", f)
-		robs, err := blockstore.OpenReadOnly(f,
+	for _, path := range inputPaths {
+		fmt.Printf("processing %s\n", path)
+		robs, err := blockstore.OpenReadOnly(path,
 			blockstore.UseWholeCIDs(true),
 		)
 		if err != nil {
@@ -73,28 +43,28 @@ func MergeFixtures(outputPath string) error {
 	}
 
 	// Then aggregate all our blocks.
-	for _, f := range carFiles {
-		fmt.Printf("processing %s\n", f)
-		robs, err := blockstore.OpenReadOnly(f,
+	for _, path := range inputPaths {
+		fmt.Printf("processing %s\n", path)
+		robs, err := blockstore.OpenReadOnly(path,
 			blockstore.UseWholeCIDs(true),
 		)
 		if err != nil {
 			return err
 		}
 
-		cids, err := robs.AllKeysChan(ctx)
+		cids, err := robs.AllKeysChan(context.Background())
 		if err != nil {
 			return err
 		}
 
 		for c := range cids {
 			fmt.Printf("Adding %s\n", c.String())
-			block, err := robs.Get(ctx, c)
+			block, err := robs.Get(context.Background(), c)
 			if err != nil {
 				return err
 			}
 
-			rout.Put(ctx, block)
+			rout.Put(context.Background(), block)
 		}
 	}
 

@@ -1,119 +1,190 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/cmd"
-
+	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/urfave/cli/v2"
 )
 
+type event struct {
+	Action string
+	Test   string `json:",omitempty"`
+}
+
+type out struct {
+	Writer io.Writer
+}
+
+func (o out) Write(p []byte) (n int, err error) {
+	os.Stdout.Write(p)
+	return o.Writer.Write(p)
+}
+
+func copyFiles(inputPaths []string, outputDirectoryPath string) error {
+	err := os.MkdirAll(outputDirectoryPath, 0755)
+	if err != nil {
+		return err
+	}
+	for _, inputPath := range inputPaths {
+		outputPath := filepath.Join(outputDirectoryPath, filepath.Base(inputPath))
+		src, err := os.Open(inputPath)
+		if err != nil {
+			return err
+		}
+		defer src.Close()
+		dst, err := os.Create(outputPath)
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+		_, err = io.Copy(dst, src)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func main() {
-	var subdomain bool
 	var gatewayURL string
 	var jsonOutput string
+	var subdomainGatewaySpec bool
+	var directory string
+	var merged bool
 
 	app := &cli.App{
-		Name:  "entrypoint",
+		Name:  "gateway-conformance",
 		Usage: "Tooling for the gateway test suite",
 		Commands: []*cli.Command{
 			{
-				Name:    "test",
+				Name:  "test",
 				Aliases: []string{"t"},
-				Usage:   "Run the conformance test suite against your gateway",
+				Usage: "Run the conformance test suite against your gateway",
 				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:        "is-subdomain",
-						Aliases:     []string{"s"},
-						Usage:       "Run the testsuite for subdomain gateways",
-						Value:       false,
-						Destination: &subdomain,
-					},
 					&cli.StringFlag{
 						Name:        "gateway-url",
-						Aliases:     []string{"g"},
+						Aliases:     []string{"url", "g"},
 						Usage:       "The URL of the gateway to test",
 						Value:       "http://localhost:8080",
 						Destination: &gatewayURL,
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
-						Aliases:     []string{"j"},
+						Aliases:     []string{"json", "j"},
 						Usage:       "The path to the JSON output file",
-						Value:       "results.json",
+						Value:       "",
 						Destination: &jsonOutput,
+					},
+					&cli.BoolFlag{
+						Name:        "subdomain-gateway-spec",
+						Aliases:     []string{"subdomain-gateway", "subdomain"},
+						Usage:       "Whether the gateway implements the subdomain gateway spec",
+						Value:       true,
+						Destination: &subdomainGatewaySpec,
 					},
 				},
 				Action: func(cCtx *cli.Context) error {
-					// Capture the output path, we run the tests in a different folder.
-					jsonOutputAbs, err := filepath.Abs(jsonOutput)
-					if err != nil {
-						panic(err)
+					args := []string{"test", "./tests", "-test.v=test2json"}
+
+					tags := []string{}
+					if !subdomainGatewaySpec {
+						tags = append(tags, "no_subdomain_gateway_spec")
+					}
+					if len(tags) > 0 {
+						args = append(args, "-tags", strings.Join(tags, ","))
 					}
 
-					testTagsList := []string{}
-					if subdomain {
-						testTagsList = append(testTagsList, "test_subdomains")
-					}
-					testTags := strings.Join(testTagsList, ",")
+					args = append(args, cCtx.Args().Slice()...)
 
-					// run gotestsum --jsonfile ${...} ./tests -tags="${testTags}"
-					cmd := exec.Command("gotestsum", "--jsonfile", jsonOutputAbs, "./tests", "-tags="+testTags)
-					cmd.Env = append(os.Environ(), "GATEWAY_URL="+gatewayURL)
-					
-					// if environ containts "TEST_PATH" then use its value in cmd.Dir
-					if testPath, ok := os.LookupEnv("TEST_PATH"); ok {
-						cmd.Dir = testPath
+					fmt.Println("go " + strings.Join(args, " "))
+
+					output := &bytes.Buffer{}
+					cmd := exec.Command("go", args...)
+					cmd.Dir = tooling.Home()
+					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
+					cmd.Stdout = out{output}
+					cmd.Stderr = os.Stderr
+					testErr := cmd.Run()
+
+					if jsonOutput != "" {
+						json := &bytes.Buffer{}
+						cmd = exec.Command("go", "tool", "test2json", "-p", "Gateway Tests", "-t")
+						cmd.Stdin = output
+						cmd.Stdout = json
+						cmd.Stderr = os.Stderr
+						err := cmd.Run()
+						if err != nil {
+							return err
+						}
+						// write jsonOutput to json file
+						f, err := os.Create(jsonOutput)
+						if err != nil {
+							return err
+						}
+						defer f.Close()
+						_, err = f.Write(json.Bytes())
+						if err != nil {
+							return err
+						}
 					}
-					cmd.Stdout = os.Stdout
-					
-					fmt.Printf("running: %s\n", cmd.String())
-					err = cmd.Run()
-					return err
+
+					return testErr
 				},
 			},
 			{
-				Name:    "extract-fixtures",
+				Name:  "extract-fixtures",
 				Aliases: []string{"e"},
-				Usage:   "Extract gateway testing fixture that is used by the conformance test suite",
+				Usage: "Extract gateway testing fixtures that are used by the conformance test suite",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "directory",
+						Aliases:     []string{"dir"},
+						Usage:       "The directory to extract the fixtures to",
+						Required:    true,
+						Destination: &directory,
+					},
+					&cli.BoolFlag{
+						Name:        "merged",
+						Usage:       "Merge the fixtures into a single CAR file",
+						Value:       false,
+						Destination: &merged,
+					},
+				},
 				Action: func(cCtx *cli.Context) error {
-					output := cCtx.Args().First()
-					if output == "" {
-						return fmt.Errorf("output path is required")
-					}
-
-					// mkdir -p output:
-					err := os.MkdirAll(output, 0755)
+					err := os.MkdirAll(directory, 0755)
 					if err != nil {
 						return err
 					}
 
-					// run shell command: `find /app/fixtures -name '*.car' -exec cp {} "${2}/" \;`
-					cmd := exec.Command("find", "/app/fixtures", "-name", "*.car", "-exec", "cp", "{}", output+"/", ";")
-					err = cmd.Run()
-
-					cmd.Stderr = os.Stderr
-					cmd.Stdout = os.Stdout
-
-					return err
-				},
-			},
-			{
-				Name:    "merge-fixtures",
-				Aliases: []string{"m"},
-				Usage:   "Merge all the fixtures into a single CAR file",
-				Action: func(cCtx *cli.Context) error {
-					output := cCtx.Args().First()
-					if output == "" {
-						return fmt.Errorf("output path is required")
+					files, err := fixtures.List()
+					if err != nil {
+						return err
 					}
 
-					return cmd.MergeFixtures(output)
+					merged := cCtx.Bool("merged")
+					if merged {
+						err = cmd.Merge(filepath.Join(directory, "fixtures.car"))
+						if err != nil {
+							return err
+						}
+					} else {
+						err = copyFiles(files, directory)
+						if err != nil {
+							return err
+						}
+					}
+
+					return nil
 				},
 			},
 		},
