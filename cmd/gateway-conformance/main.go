@@ -58,7 +58,7 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 func main() {
 	var gatewayURL string
 	var jsonOutput string
-	var subdomainGatewaySpec bool
+	var specs string
 	var directory string
 	var merged bool
 
@@ -67,9 +67,9 @@ func main() {
 		Usage: "Tooling for the gateway test suite",
 		Commands: []*cli.Command{
 			{
-				Name:  "test",
+				Name:    "test",
 				Aliases: []string{"t"},
-				Usage: "Run the conformance test suite against your gateway",
+				Usage:   "Run the conformance test suite against your gateway",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "gateway-url",
@@ -85,23 +85,18 @@ func main() {
 						Value:       "",
 						Destination: &jsonOutput,
 					},
-					&cli.BoolFlag{
-						Name:        "subdomain-gateway-spec",
-						Aliases:     []string{"subdomain-gateway", "subdomain"},
-						Usage:       "Whether the gateway implements the subdomain gateway spec",
-						Value:       true,
-						Destination: &subdomainGatewaySpec,
+					&cli.StringFlag{
+						Name:        "specs",
+						Usage:       "A comma-separated list of specs to test",
+						Value:       "",
+						Destination: &specs,
 					},
 				},
 				Action: func(cCtx *cli.Context) error {
 					args := []string{"test", "./tests", "-test.v=test2json"}
 
-					tags := []string{}
-					if !subdomainGatewaySpec {
-						tags = append(tags, "no_subdomain_gateway_spec")
-					}
-					if len(tags) > 0 {
-						args = append(args, "-tags", strings.Join(tags, ","))
+					if specs != "" {
+						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
 
 					args = append(args, cCtx.Args().Slice()...)
@@ -142,9 +137,9 @@ func main() {
 				},
 			},
 			{
-				Name:  "extract-fixtures",
+				Name:    "extract-fixtures",
 				Aliases: []string{"e"},
-				Usage: "Extract gateway testing fixtures that are used by the conformance test suite",
+				Usage:   "Extract gateway testing fixtures that are used by the conformance test suite",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "directory",

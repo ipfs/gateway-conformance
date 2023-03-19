@@ -1,6 +1,3 @@
-//go:build !no_subdomain_gateway_spec
-// +build !no_subdomain_gateway_spec
-
 package tests
 
 import (
@@ -8,6 +5,7 @@ import (
 	"testing"
 
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	. "github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -58,5 +56,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		},
 	}
 
-	Run(t, tests)
+	if SubdomainGateway.IsEnabled() {
+		Run(t, tests)
+	}
 }

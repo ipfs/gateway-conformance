@@ -18,10 +18,10 @@ inputs:
   markdown:
     description: "The path where the Markdown report will be saved"
     required: false
-  subdomain-gateway-spec:
-    description: "Whether the gateway implements the subdomain gateway spec"
+  specs:
+    description: "A comma-separated list of specs to test"
     required: false
-    default: "true"
+    default: ""
   args:
     description: "The arguments to pass to the test command"
     required: false
@@ -35,13 +35,13 @@ runs:
       env:
         URL: ${{ inputs.gateway-url }}
         JSON: ${{ inputs.json }}
-        SUBDOMAIN: ${{ inputs.subdomain-gateway-spec }}
+        SPECS: ${{ inputs.specs }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test --url="$URL" --json="$JSON" --subdomain="$SUBDOMAIN" -- ${{ inputs.args }}
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" -- ${{ inputs.args }}
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1

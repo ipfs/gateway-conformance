@@ -34,7 +34,7 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
-          subdomain-gateway-spec: false
+          specs: -subdomain-gateway
           args: -skip TestGatewayCar
       - name: Set summary
         if: (failure() || success())
