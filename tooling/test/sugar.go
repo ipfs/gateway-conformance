@@ -58,6 +58,14 @@ func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
 	return r
 }
 
+func (r RequestBuilder) GetURL() string {
+	if r.Path_ != "" {
+		panic("not implemented")
+	}
+
+	return r.URL_
+}
+
 func (r RequestBuilder) Proxy(path string, args ...any) RequestBuilder {
 	r.Proxy_ = fmt.Sprintf(path, args...)
 	return r
