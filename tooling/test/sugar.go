@@ -78,18 +78,22 @@ func (r RequestBuilder) Method(method string) RequestBuilder {
 	return r
 }
 
-func (r RequestBuilder) Header(h HeaderBuilder) RequestBuilder {
+func (r RequestBuilder) Header(k, v string) RequestBuilder {
 	if r.Headers_ == nil {
 		r.Headers_ = make(map[string]string)
 	}
 
-	r.Headers_[h.Key] = h.Value
+	r.Headers_[k] = v
 	return r
 }
 
 func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
+	if r.Headers_ == nil {
+		r.Headers_ = make(map[string]string)
+	}
+
 	for _, h := range hs {
-		r = r.Header(h)
+		r.Headers_[h.Key] = h.Value
 	}
 
 	return r
@@ -100,21 +104,10 @@ func (r RequestBuilder) Request() CRequest {
 		panic("Both 'Url' and 'Path' are set")
 	}
 
-	// TODO: remove rewrites.
-	var myUrl = ""
-	if r.URL_ != "" {
-		myUrl = TestURLFromSpecURL(r.URL_)
-	}
-
-	var path = ""
-	if myUrl == "" {
-		path = r.Path_
-	}
-
 	return CRequest{
 		Method:               r.Method_,
-		Path:                 path,
-		Url:                  myUrl,
+		Path:                 r.Path_,
+		Url:                  r.URL_,
 		Proxy:                r.Proxy_,
 		UseProxyTunnel:       r.UseProxyTunnel,
 		Headers:              r.Headers_,
@@ -152,6 +145,10 @@ func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
 	case string:
 		e.Body_ = []byte(body)
 	case []byte:
+		e.Body_ = body
+	case check.Check[string]:
+		e.Body_ = body
+	case check.CheckWithHint[string]:
 		e.Body_ = body
 	default:
 		panic("body must be string or []byte")
