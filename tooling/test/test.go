@@ -13,6 +13,8 @@ import (
 type CRequest struct {
 	Method               string            `json:"method,omitempty"`
 	Url                  string            `json:"url,omitempty"`
+	Proxy                string            `json:"proxy,omitempty"`
+	UseProxyTunnel       bool              `json:"useProxyTunnel,omitempty"`
 	DoNotFollowRedirects bool              `json:"doNotFollowRedirects,omitempty"`
 	Path                 string            `json:"path,omitempty"`
 	Subdomain            string            `json:"subdomain,omitempty"`
@@ -34,7 +36,7 @@ type CTest struct {
 }
 
 func Run(t *testing.T, tests []CTest) {
-	NewDialer()
+	// NewDialer()
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
@@ -43,7 +45,19 @@ func Run(t *testing.T, tests []CTest) {
 				method = "GET"
 			}
 
+			// Prepare a client,
+			// use proxy, deal with redirects, etc.
 			client := &http.Client{}
+			if test.Request.UseProxyTunnel {
+				if test.Request.Proxy == "" {
+					t.Fatal("ProxyTunnel requires a proxy")
+				}
+
+				client = NewProxyTunnelClient(test.Request.Proxy)
+			} else if test.Request.Proxy != "" {
+				client = NewProxyClient(test.Request.Proxy)
+			}
+
 			if test.Request.DoNotFollowRedirects {
 				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse

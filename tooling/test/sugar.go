@@ -18,7 +18,7 @@ func TestURLFromSpecURL(testURL string) string {
 		panic(err)
 	}
 
-	withoutExampleDomain := strings.TrimSuffix(u.Host, GATEWAY_EXAMPLE_DOMAIN)
+	withoutExampleDomain := strings.TrimSuffix(u.Host, GATEWAY_LOCALHOST_DOMAIN)
 
 	if len(withoutExampleDomain) < len(u.Host) {
 		// we found and removed the example domain
@@ -38,6 +38,8 @@ type RequestBuilder struct {
 	Method_               string
 	Path_                 string
 	URL_                  string
+	Proxy_                string
+	UseProxyTunnel        bool
 	Headers_              map[string]string
 	DoNotFollowRedirects_ bool
 }
@@ -53,6 +55,16 @@ func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
 
 func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
 	r.URL_ = fmt.Sprintf(path, args...)
+	return r
+}
+
+func (r RequestBuilder) Proxy(path string, args ...any) RequestBuilder {
+	r.Proxy_ = fmt.Sprintf(path, args...)
+	return r
+}
+
+func (r RequestBuilder) WithProxyTunnel() RequestBuilder {
+	r.UseProxyTunnel = true
 	return r
 }
 
@@ -88,6 +100,7 @@ func (r RequestBuilder) Request() CRequest {
 		panic("Both 'Url' and 'Path' are set")
 	}
 
+	// TODO: remove rewrites.
 	var myUrl = ""
 	if r.URL_ != "" {
 		myUrl = TestURLFromSpecURL(r.URL_)
@@ -102,6 +115,8 @@ func (r RequestBuilder) Request() CRequest {
 		Method:               r.Method_,
 		Path:                 path,
 		Url:                  myUrl,
+		Proxy:                r.Proxy_,
+		UseProxyTunnel:       r.UseProxyTunnel,
 		Headers:              r.Headers_,
 		DoNotFollowRedirects: r.DoNotFollowRedirects_,
 	}

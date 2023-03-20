@@ -64,6 +64,7 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			default:
 				panic("unknown type")
 			}
+			
 			if err != nil {
 				panic(err)
 			}

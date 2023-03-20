@@ -27,7 +27,7 @@ var GatewayUrl = strings.TrimRight(
 	"/")
 
 var SubdomainGatewayUrl = strings.TrimRight(
-	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com:8080"),
+	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com"),
 	"/")
 
 
