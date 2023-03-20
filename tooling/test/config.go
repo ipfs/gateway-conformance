@@ -23,7 +23,7 @@ func GetEnv(key string, fallback string) string {
 }
 
 var GatewayUrl = strings.TrimRight(
-	GetEnv("GATEWAY_URL", "http://localhost:8080"),
+	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
 	"/")
 
 var SubdomainGatewayUrl = strings.TrimRight(
@@ -54,6 +54,9 @@ func init() {
 	SubdomainGatewayHost = parsed.Host
 	SubdomainGatewayScheme = parsed.Scheme
 
+	log.Debugf("GatewayUrl: %s", GatewayUrl)
+
+	log.Debugf("SubdomainGatewayUrl: %s", SubdomainGatewayUrl)
 	log.Debugf("SubdomainGatewayHost: %s", SubdomainGatewayHost)
 	log.Debugf("SubdomainGatewayScheme: %s", SubdomainGatewayScheme)
 

@@ -60,11 +60,14 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			case *http.Request:
 				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
-				b, err = httputil.DumpResponse(v, true)
+				// TODO: we have to disable the body dump because
+				// it triggers an error:
+				// "http: ContentLength=6 with Body length 0"
+				b, err = httputil.DumpResponse(v, false)
 			default:
 				panic("unknown type")
 			}
-			
+
 			if err != nil {
 				panic(err)
 			}

@@ -25,10 +25,25 @@ func TestGatewaySubdomains(t *testing.T) {
 
 	tests := []CTest{}
 
+	withTests := func(moreTests []CTest) {
+		tests = append(tests, moreTests...)
+	}
+
 	gatewayURLs := []string{
 		SubdomainGatewayUrl,
 		SubdomainLocalhostGatewayUrl,
 	}
+
+	withTests(testLocalhostGatewayResponseShouldContain(t,
+		"request for 127.0.0.1/ipfs/{CID} stays on path",
+		// TODO: this feature should get disabled if we're not taling with an IP gateway.
+		`IP remains old school path-based gateway`,
+		fmt.Sprintf("%s/ipfs/%s/", GatewayUrl, CIDv1),
+		Expect().
+			Status(200).
+			Body("hello\n").
+			Response(),
+	))
 
 	for _, gatewayURL := range gatewayURLs {
 		u, err := url.Parse(gatewayURL)
@@ -36,21 +51,21 @@ func TestGatewaySubdomains(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// skipped: # IP remains old school path-based gateway
-
-		// 'localhost' hostname is used for subdomains, and should not return
-		//  payload directly, but redirect to URL with proper origin isolation
-		tests = append(tests, testLocalhostGatewayResponseShouldContain(t,
-			"request for localhost/ipfs/{cid} redirects to subdomain",
+		withTests(testLocalhostGatewayResponseShouldContain(t,
+			"request for example.com/ipfs/{cid} redirects to subdomain",
+			`
+			subdomains should not return payload directly,
+			but redirect to URL with proper origin isolation
+			`,
 			fmt.Sprintf("%s/ipfs/%s/", gatewayURL, CIDv1),
 			Expect().
 				Status(301).
 				Headers(
 					Header("Location").
-						Hint("request for localhost/ipfs/{CIDv1} returns Location HTTP header for subdomain redirect in browsers").
+						Hint("request for example.com/ipfs/{CIDv1} returns Location HTTP header for subdomain redirect in browsers").
 						Contains("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
 				).Response(),
-		)...)
+		))
 
 	}
 
@@ -100,7 +115,7 @@ func TestGatewaySubdomains(t *testing.T) {
 	}
 }
 
-func testLocalhostGatewayResponseShouldContain(t *testing.T, label string, myUrl string, expected CResponse) []CTest {
+func testLocalhostGatewayResponseShouldContain(t *testing.T, label string, hint string, myUrl string, expected CResponse) []CTest {
 	t.Helper()
 
 	u, err := url.Parse(myUrl)
@@ -121,7 +136,7 @@ func testLocalhostGatewayResponseShouldContain(t *testing.T, label string, myUrl
 	return []CTest{
 		{
 			Name: fmt.Sprintf("%s (direct HTTP)", label),
-			Hint: "regular HTTP request (hostname in Host header, raw IP in URL)",
+			Hint: fmt.Sprintf("%s\n%s", hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
 			Request: Request().
 				URL(rawUrl).
 				DoNotFollowRedirects().
@@ -133,7 +148,7 @@ func testLocalhostGatewayResponseShouldContain(t *testing.T, label string, myUrl
 		},
 		{
 			Name: fmt.Sprintf("%s (HTTP proxy)", label),
-			Hint: "HTTP proxy (hostname is passed via URL)",
+			Hint: fmt.Sprintf("%s\n%s", hint, "HTTP proxy (hostname is passed via URL)"),
 			Request: Request().
 				URL(myUrl).
 				Proxy(GatewayUrl).
@@ -144,11 +159,11 @@ func testLocalhostGatewayResponseShouldContain(t *testing.T, label string, myUrl
 		// TODO: port the proxy1.0 as well (use http 1) but also http2?
 		{
 			Name: fmt.Sprintf("%s (HTTP proxy tunneling via CONNECT)", label),
-			Hint: `HTTP proxy
+			Hint: fmt.Sprintf("%s\n%s", hint, `HTTP proxy
 				In HTTP/1.x, the pseudo-method CONNECT,
 				can be used to convert an HTTP connection into a tunnel to a remote host
 				https://tools.ietf.org/html/rfc7231#section-4.3.6
-			`,
+			`),
 			Request: Request().
 				URL(myUrl).
 				Proxy(GatewayUrl).
