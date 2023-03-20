@@ -30,35 +30,41 @@ var SubdomainGatewayUrl = strings.TrimRight(
 	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com:8080"),
 	"/")
 
-// This domain is used as a placeholder,
-// A test implementer would use `example.com` to write an explicit test.
-// At test time, we replace this with the actual domain configured by the test runner.
-const GATEWAY_EXAMPLE_DOMAIN = "example.com"
-
-const GATEWAY_LOCALHOST_DOMAIN = "localhost"
 
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""
 
+const GATEWAY_LOCALHOST_DOMAIN = "localhost"
+var SubdomainLocalhostGatewayUrl = ""
+
 func init() {
-	parse, err := url.Parse(GatewayUrl)
+	parsed, err := url.Parse(GatewayUrl)
 	if err != nil {
 		panic(err)
 	}
 
-	GatewayHost = parse.Host
+	GatewayHost = parsed.Host
 
-	parse, err = url.Parse(SubdomainGatewayUrl)
+	parsed, err = url.Parse(SubdomainGatewayUrl)
 	if err != nil {
 		panic(err)
 	}
 
-	SubdomainGatewayHost = parse.Host
-	SubdomainGatewayScheme = parse.Scheme
+	SubdomainGatewayHost = parsed.Host
+	SubdomainGatewayScheme = parsed.Scheme
 
 	log.Debugf("SubdomainGatewayHost: %s", SubdomainGatewayHost)
 	log.Debugf("SubdomainGatewayScheme: %s", SubdomainGatewayScheme)
+
+	// Generate the localhost subdomain gateway url
+	parsed.Scheme = "http"
+	if parsed.Port() == "" {
+		parsed.Host = "localhost"
+	} else {
+		parsed.Host = fmt.Sprintf("localhost:%s", parsed.Port())
+	}
+	SubdomainLocalhostGatewayUrl = parsed.String()
 }
 
 func NewDialer() *net.Dialer {
