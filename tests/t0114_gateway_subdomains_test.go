@@ -67,11 +67,14 @@ func TestGatewaySubdomains(t *testing.T) {
 						Hint("request for example.com/ipfs/{CIDv1} returns Location HTTP header for subdomain redirect in browsers").
 						Contains("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
 				).
-				// We return body with HTTP 301 so existing cli scripts that use path-based
-				// gateway do not break (curl doesn't auto-redirect without passing -L; wget
-				// does not span across hostnames by default)
-				// Context: https://github.com/ipfs/go-ipfs/issues/6975
-				Body("hello\n").
+				BodyWithHint(`
+					We return body with HTTP 301 so existing cli scripts that use path-based
+					gateway do not break (curl doesn't auto-redirect without passing -L; wget
+					does not span across hostnames by default)
+					Context: https://github.com/ipfs/go-ipfs/issues/6975					
+				`,
+					IsEqual("hello\n"),
+				).
 				Response(),
 		))
 
@@ -253,7 +256,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			"path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
 			fmt.Sprintf("%s://%s/ipfs/%s/", u.Scheme, u.Host, CIDv1),
 			Expect().
-			Headers(
+				Headers(
 					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
 				).
 				Response(),
