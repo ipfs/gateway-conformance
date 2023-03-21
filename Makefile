@@ -20,8 +20,7 @@ test-kubo-subdomains: provision-kubo gateway-conformance
 			"Paths": ["/ipfs", "/ipns", "/api"]		\
 		}											\
 	}'
-	# todo: SUBDOMAIN_GATEWAY_URL should be a cmd parameter
-	./gateway-conformance test --json output.json --gateway-url ${GATEWAY_URL} --subdomain-url ${SUBDOMAIN_GATEWAY_URL} --specs +subdomain-gateway
+	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080 --specs +subdomain-gateway
 
 test-kubo: provision-kubo
 	GATEWAY_URL=http://127.0.0.1:8080 make _test

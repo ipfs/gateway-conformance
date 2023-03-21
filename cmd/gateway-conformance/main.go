@@ -57,6 +57,7 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 
 func main() {
 	var gatewayURL string
+	var subdomainGatewayURL string
 	var jsonOutput string
 	var specs string
 	var directory string
@@ -77,6 +78,12 @@ func main() {
 						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
 						Value:       "http://localhost:8080",
 						Destination: &gatewayURL,
+					},
+					&cli.StringFlag{
+						Name:        "subdomain-url",
+						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
+						Value:       "http://example.com:8080",
+						Destination: &subdomainGatewayURL,
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
@@ -107,6 +114,11 @@ func main() {
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
 					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
+
+					if subdomainGatewayURL != "" {
+						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
+					}
+
 					cmd.Stdout = out{output}
 					cmd.Stderr = os.Stderr
 					testErr := cmd.Run()
