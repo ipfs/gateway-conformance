@@ -276,7 +276,8 @@ func TestGatewaySubdomains(t *testing.T) {
 
 		// TODO(lidel): for some reason in 114, we only test the simple case, with Host, no proxy or tunnel.
 		// Do we need to port `test_hostname_gateway_response_should_contain` or can we
-		// reuse the same "larger" test.
+		// reuse the same "larger" test?
+		
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 			"path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
@@ -354,10 +355,10 @@ func TestGatewaySubdomains(t *testing.T) {
 
 		// # *.ipfs.example.com: subdomain requests made with custom FQDN in Host header
 		// request for {CID}.ipfs.example.com should return expected payload
-		// TODO(lidel): Skipped, this test exists above.
+		// TODO(lidel): Note: skipped, this test exists above thanks to the for loop.
 
 		// request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404
-		// TODO(lidel): Skipped, this test exists above.
+		// TODO(lidel): Note: skipped, this test exists above thanks to the for loop.
 
 		// # *.ipns.example.com
 		// # ============================================================================
@@ -369,9 +370,7 @@ func TestGatewaySubdomains(t *testing.T) {
 
 		// # disable /api on example.com
 		// TODO(lidel): in this part of the test suite, we disable example.com then
-		// we test that the endpoints returns 404.
-		// should we keep this test? We have to find a solution to make this testable.
-		// maybe a custom domain without-api-example.com, but it does mean one more parameter.
+		// we test that the endpoints returns 404. This is more Kubo than conformance-related.
 
 		// # DNSLink: <dnslink-fqdn>.ipns.example.com
 		// # (not really useful outside of localhost, as setting TLS for more than one
@@ -416,7 +415,9 @@ func TestGatewaySubdomains(t *testing.T) {
 		// # disable /ipns for the hostname by not whitelisting it
 
 		// # refuse requests to Paths that were not explicitly whitelisted for the hostname
-		// TODO(lidel): Same as above, how do we want to interact with these?
+
+		// TODO(lidel): Same as above, we don't want to test things like
+		// "we are able to disable the ipns endpoint" on subdomains.
 
 		// MANY TODOs here
 
@@ -465,12 +466,14 @@ func TestGatewaySubdomains(t *testing.T) {
 		// ## ============================================================================
 		// ## Test support for wildcards in gateway config
 		// ## ============================================================================
-		// TODO: how to test these? Do we want to force this option?
+		// TODO(lidel): We won't implement this in conformance testing.
+		// we can use `SUBDOMAIN_GATEWAY_URL=http://foo.bar.example.com` and run
+		// the test suite twice.
 
 		// ## ============================================================================
 		// ## Test support for overriding implicit defaults
 		// ## ============================================================================
-		// TODO: I don't think we want to check these.
+		// TODO(lidel): We won't implement this in conformance testing.
 	}
 
 	if SubdomainGateway.IsEnabled() {
