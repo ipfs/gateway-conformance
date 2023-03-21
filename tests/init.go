@@ -23,28 +23,34 @@ func (s *specsFlag) Set(value string) error {
 			return err
 		}
 		if strings.HasPrefix(name, "+") {
+			// If a spec from the input is prefixed with a +,
+			// it will be explicitly enabled.
 			enable = append(enable, spec)
 		} else if strings.HasPrefix(name, "-") {
+			// If a spec from the input is prefixed with a -,
+			// it will be explicitly disabled.
 			disable = append(disable, spec)
 		} else {
+			// If a spec from the input is not prefixed with a + or -,
+			// only the specified specs will be enabled.
 			only = append(only, spec)
 		}
 	}
 	if len(only) > 0 {
-		// disable all specs
+		// If any specs from the input are unprefixed,
+		// disable all specs and then enable only the specified specs.
 		for _, spec := range specs.All() {
 			spec.Disable()
 		}
-		// enable only the specified specs
 		for _, spec := range only {
 			spec.Enable()
 		}
 	} else {
-		// enable the specified specs
+		// If all specs from the input are prefixed with a + or -,
+		// enable the specs prefixed with + and then disable the specs prefixed with -.
 		for _, spec := range enable {
 			spec.Enable()
 		}
-		// disable the specified specs
 		for _, spec := range disable {
 			spec.Disable()
 		}
@@ -56,5 +62,5 @@ func (s *specsFlag) Set(value string) error {
 var specsFlagValue specsFlag
 
 func init() {
-	flag.Var(&specsFlagValue, "specs", "comma-separated list of specs to test")
+	flag.Var(&specsFlagValue, "specs", "A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). Defaults to all mature specs.")
 }

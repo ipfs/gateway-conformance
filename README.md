@@ -28,10 +28,10 @@ The `test` command is the main command of the tool. It is used to test a given I
 | gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
-| markdown | GitHub Action | The path where the summary Markdown test report should be generated. | `./report.md` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
-| specs | Both | A comma-separated list of specs to be tested. | Mature specs only |
-| args | Both | The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
+| markdown | GitHub Action | The path where the summary Markdown test report should be generated. | `./report.md` |
+| specs | Both | A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). | Mature specs only |
+| args | Both | [DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
 
 ##### Specs
 

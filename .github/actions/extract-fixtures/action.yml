@@ -3,11 +3,11 @@ name: 'Gateway Conformance Tests: Extract Fixtures'
 description: 'Extracts the fixtures from the Gateway Conformance Tests'
 inputs:
   output:
-    description: 'The path where the fixtures will be saved'
+    description: 'The path where the test fixtures should be extracted.'
     required: true
     default: 'fixtures'
   merged:
-    description: 'Whether the fixtures should be merged into a single file'
+    description: 'Whether the fixtures should be merged into a single CAR file.'
     required: false
     default: 'false'
 runs:

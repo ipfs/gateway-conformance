@@ -74,20 +74,20 @@ func main() {
 					&cli.StringFlag{
 						Name:        "gateway-url",
 						Aliases:     []string{"url", "g"},
-						Usage:       "The URL of the gateway to test",
+						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
 						Value:       "http://localhost:8080",
 						Destination: &gatewayURL,
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
 						Aliases:     []string{"json", "j"},
-						Usage:       "The path to the JSON output file",
+						Usage:       "The path where the JSON test report should be generated.",
 						Value:       "",
 						Destination: &jsonOutput,
 					},
 					&cli.StringFlag{
 						Name:        "specs",
-						Usage:       "A comma-separated list of specs to test",
+						Usage:       "Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec).",
 						Value:       "",
 						Destination: &specs,
 					},

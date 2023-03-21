@@ -28,6 +28,7 @@ const (
 	SubdomainGateway Spec = "subdomain-gateway"
 )
 
+// All specs should be listed here.
 var specMaturity = map[Spec]maturity{
 	SubdomainGateway: stable,
 }
@@ -39,6 +40,8 @@ func (s Spec) IsMature() bool {
 var specEnabled = map[Spec]bool{}
 
 func (s Spec) IsEnabled() bool {
+	// If the spec was explicitly enabled or disabled, use that.
+	// Otherwise, use the maturity level.
 	if enabled, ok := specEnabled[s]; ok {
 		return enabled
 	} else {
