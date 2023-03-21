@@ -11,8 +11,6 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: ipfs/download-ipfs-distribution-action@v1
-      - uses: ipfs/start-ipfs-daemon-action@v1
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
@@ -24,10 +22,15 @@ jobs:
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
           output: fixtures
+      - uses: ipfs/download-ipfs-distribution-action@v1
+      - name: Configure Kubo Gateway
+        run: |
+          ipfs init;
+          ./gateway-conformance/ipfs-config.example.sh;
+      - uses: ipfs/start-ipfs-daemon-action@v1
       - name: Provision Kubo Gateway
         run: |
           find ./fixtures -name '*.car' -exec ipfs dag import {} \;
-          ./gateway-conformance/ipfs-config.example.sh;
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:
