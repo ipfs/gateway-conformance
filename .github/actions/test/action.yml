@@ -1,39 +1,46 @@
-# action.yml
-name: 'Gateway Conformance Tests'
-description: 'Runs the Gateway Conformance Tests'
+name: "Gateway Conformance Tests"
+description: "Runs the Gateway Conformance Tests"
 inputs:
   gateway-url:
-    description: 'The URL of the Gateway to test'
+    description: "The URL of the IPFS Gateway implementation to be tested."
     required: true
   json:
-    description: 'The path where the JSON report will be saved'
+    description: "The path where the JSON test report should be generated."
     required: true
-    default: 'report.json'
+    default: "report.json"
   xml:
-    description: 'The path where the jUnit XML report will be saved'
+    description: "The path where the JUnit XML test report should be generated."
     required: false
   html:
-    description: 'The path where the HTML report will be saved'
+    description: "The path where the one-page HTML test report should be generated."
     required: false
   markdown:
-    description: 'The path where the Markdown report will be saved'
+    description: "The path where the summary Markdown test report should be generated."
+    required: false
+  specs:
+    description: "A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec)."
+    required: false
+    default: ""
+  args:
+    description: "[DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests."
     required: false
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - id: github
       uses: pl-strflt/docker-container-action/.github/actions/github@v1
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
       env:
-        GATEWAY_URL: ${{ inputs.gateway-url }}
+        URL: ${{ inputs.gateway-url }}
         JSON: ${{ inputs.json }}
+        SPECS: ${{ inputs.specs }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test "$GATEWAY_URL" "$JSON"
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" -- ${{ inputs.args }}
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1

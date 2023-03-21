@@ -2,6 +2,8 @@
 /output.xml
 /fixtures.car
 /merge-fixtures
+/entrypoint
+/gateway-conformance
 
 # Logs
 logs

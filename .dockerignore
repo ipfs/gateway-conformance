@@ -1,3 +1,6 @@
 Dockerfile
 .git/
 /output.*
+/entrypoint
+/fixtures.car
+/output.*

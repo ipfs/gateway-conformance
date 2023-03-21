@@ -1,13 +1,11 @@
-FROM golang:1.19.1-buster
+FROM golang:1.20-alpine
 WORKDIR /app
-
-RUN go install gotest.tools/gotestsum@v1.9.0
+ENV GATEWAY_CONFORMANCE_HOME=/app
 
 COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o /merge-fixtures ./tooling/cmd/merge_fixtures.go
+RUN go build -o ./gateway-conformance ./cmd/gateway-conformance
 
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/gateway-conformance"]
