@@ -25,11 +25,14 @@ jobs:
         with:
           output: fixtures
       - name: Provision Kubo Gateway
-        run: find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+        run: |
+          find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+          ./gateway-conformance/ipfs-config.example.sh;
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:
           gateway-url: http://127.0.0.1:8080
+          subdomain-url: http://example.com:8080
           json: output.json
           xml: output.xml
           html: output.html

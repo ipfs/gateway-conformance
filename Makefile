@@ -9,17 +9,7 @@ provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
 test-kubo-subdomains: provision-kubo gateway-conformance
-	ipfs config --json Gateway.PublicGateways '{	\
-		"example.com": {							\
-			"UseSubdomains": true,			 		\
-			"Paths": ["/ipfs", "/ipns", "/api"]		\
-		},											\
-		"localhost": {								\
-			"UseSubdomains": true,					\
-			"InlineDNSLink": true,					\
-			"Paths": ["/ipfs", "/ipns", "/api"]		\
-		}											\
-	}'
+	./ipfs-config.example.sh
 	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080 --specs +subdomain-gateway
 
 test-kubo: provision-kubo
