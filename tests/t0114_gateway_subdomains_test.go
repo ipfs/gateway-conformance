@@ -45,7 +45,8 @@ func TestGatewaySubdomains(t *testing.T) {
 
 	with(testGatewayWithManyProtocols(t,
 		"request for 127.0.0.1/ipfs/{CID} stays on path",
-		// TODO: if the gateway url is not an IP, this test should be skipped.
+		// TODO(lidel): can we remove this test from the subdomain gateway?
+		// if the gateway url is not an IP, this test should be skipped.
 		// There is no way to reach out the "path" gateway
 		// if you're testing the domain name dweb.link for example.
 		`IP remains old school path-based gateway`,

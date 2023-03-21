@@ -13,7 +13,7 @@ test-kubo-subdomains: provision-kubo gateway-conformance
 		"example.com": {							\
 			"UseSubdomains": true,			 		\
 			"Paths": ["/ipfs", "/ipns", "/api"]		\
-		}											\
+		},											\
 		"localhost": {								\
 			"UseSubdomains": true,					\
 			"InlineDNSLink": true,					\
