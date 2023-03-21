@@ -20,6 +20,7 @@ func TestGatewaySubdomains(t *testing.T) {
 	CIDv0 := fixture.MustGetCid("hello-CIDv0")
 	CIDv0to1 := fixture.MustGetCid("hello-CIDv0to1")
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
+	CIDMaradona := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
 
 	fmt.Println("DIR_CID:", DirCID)
 	fmt.Println("CIDv1:", CIDv1, "CIDv0:", CIDv0)
@@ -188,7 +189,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		))
 
 		with(testGatewayWithManyProtocols(t,
-			"valid file and subdirectory paths in directory listing at {cid}.ipfs.localhost",
+			"valid file and subdirectory paths in directory listing at {cid}.ipfs.example.com",
 			"{CID}.ipfs.example.com/sub/dir (Directory Listing)",
 			Url("%s://%s.ipfs.%s/", u.Scheme, DirCID, u.Host),
 			Expect().
@@ -202,7 +203,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		))
 
 		with(testGatewayWithManyProtocols(t,
-			"valid parent directory path in directory listing at {cid}.ipfs.localhost/sub/dir",
+			"valid parent directory path in directory listing at {cid}.ipfs.example.com/sub/dir",
 			"",
 			Url("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
 			Expect().
@@ -222,6 +223,25 @@ func TestGatewaySubdomains(t *testing.T) {
 			Expect().
 				Status(200).
 				Body(Contains("text-file-content")).
+				Response(),
+		))
+
+		with(testGatewayWithManyProtocols(t,
+			"valid breadcrumb links in the header of directory listing at {cid}.ipfs.example.com/sub/dir",
+			`
+			Note 1: we test for sneaky subdir names  {cid}.ipfs.example.com/ipfs/ipns/ :^)
+			Note 2: example.com/ipfs/.. present in HTML will be redirected to subdomain, so this is expected behavior
+			`,
+			Url("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
+			Expect().
+				Status(200).
+				Body(
+					And(
+						Contains("Index of"),
+						Contains("/ipfs/<a href=\"//%s/ipfs/%s\">%s</a>/<a href=\"//%s/ipfs/%s/ipfs\">ipfs</a>/<a href=\"//%s/ipfs/%s/ipfs/ipns\">ipns</a>",
+							u.Host, DirCID, DirCID, u.Host, DirCID, u.Host, DirCID),
+					),
+				).
 				Response(),
 		))
 
@@ -307,8 +327,154 @@ func TestGatewaySubdomains(t *testing.T) {
 				Response(),
 		))
 
-		// # Support ipfs:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
+		with(testGatewayWithManyProtocols(t,
+			"request for example.com/ipfs/?uri=ipfs%3A%2F%2F.. produces redirect to /ipfs/.. content path",
+			"Support ipfs:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
+			Request().
+				URL("%s://%s/ipfs/", u.Scheme, u.Host).
+				Query(
+					"uri", "ipfs://%s/wiki/Diego_Maradona.html", CIDMaradona,
+				),
+			Expect().
+				Status(301).
+				Headers(
+					Header("Location").Equals("/ipfs/%s/wiki/Diego_Maradona.html", CIDMaradona),
+				).
+				Response(),
+		))
+
+		// # example.com/ipns/<libp2p-key>
 		// TODO
+
+		// # example.com/ipns/<dnslink-fqdn>
+		// TODO
+
+		// # DNSLink on Public gateway with a single-level wildcard TLS cert
+		// # "Option C" from  https://github.com/ipfs/in-web-browsers/issues/169
+		// TODO
+
+		// # Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
+		// TODO
+
+		// # *.ipfs.example.com: subdomain requests made with custom FQDN in Host header
+		// request for {CID}.ipfs.example.com should return expected payload
+		// TODO(lidel): Skipped, this test exists above.
+
+		// request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404
+		// TODO(lidel): Skipped, this test exists above.
+
+		// # *.ipns.example.com
+		// # ============================================================================
+
+		// # <libp2p-key>.ipns.example.com
+
+		// # API on subdomain gateway example.com
+		// # ============================================================================
+
+		// # disable /api on example.com
+		// TODO(lidel): in this part of the test suite, we disable example.com then
+		// we test that the endpoints returns 404.
+		// should we keep this test? We have to find a solution to make this testable.
+		// maybe a custom domain without-api-example.com, but it does mean one more parameter.
+
+		// # DNSLink: <dnslink-fqdn>.ipns.example.com
+		// # (not really useful outside of localhost, as setting TLS for more than one
+		// # level of wildcard is a pain, but we support it if someone really wants it)
+		// # ============================================================================
+		// TODO
+
+		// # DNSLink on Public gateway with a single-level wildcard TLS cert
+		// # "Option C" from  https://github.com/ipfs/in-web-browsers/issues/169
+
+		// ## Test subdomain handling of CIDs that do not fit in a single DNS Label (>63chars)
+		// ## https://github.com/ipfs/go-ipfs/issues/7318
+		// ## ============================================================================
+		// TODO
+
+		with(testGatewayWithManyProtocols(t,
+			"request for a too long CID at localhost/ipfs/{CIDv1} returns human readable error",
+			"router should not redirect to hostnames that could fail due to DNS limits",
+			Url("%s/ipfs/%s", gatewayURL, CIDv1_TOO_LONG),
+			Expect().
+				Status(400).
+				Body(Contains("CID incompatible with DNS label length limit of 63")).
+				Response(),
+		))
+
+		with(testGatewayWithManyProtocols(t,
+			"request for a too long CID at {CIDv1}.ipfs.localhost returns expected payload",
+			"direct request should also fail (provides the same UX as router and avoids confusion)",
+			Url("%s://%s.ipfs.%s/", u.Scheme, CIDv1_TOO_LONG, u.Host),
+			Expect().
+				Status(400).
+				Body(Contains("CID incompatible with DNS label length limit of 63")).
+				Response(),
+		))
+
+		// # public subdomain gateway: *.example.com
+		// TODO: IPNS
+
+		// # Disable selected Paths for the subdomain gateway hostname
+		// # =============================================================================
+
+		// # disable /ipns for the hostname by not whitelisting it
+
+		// # refuse requests to Paths that were not explicitly whitelisted for the hostname
+		// TODO(lidel): Same as above, how do we want to interact with these?
+
+		// MANY TODOs here
+
+		// ## ============================================================================
+		// ## Test support for X-Forwarded-Host
+		// ## ============================================================================
+
+		with(testGatewayWithManyProtocols(t,
+			"request for http://fake.domain.com/ipfs/{CID} doesn't match the example.com gateway",
+			"",
+			Url("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1),
+			Expect().
+				Status(200).
+				Response(),
+		))
+
+		with(testGatewayWithManyProtocols(t,
+			"request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com match the example.com gateway",
+			"",
+			Request().
+				URL("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1).
+				Header("X-Forwarded-Host", u.Host),
+			Expect().
+				Status(301).
+				Headers(
+					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
+				).
+				Response(),
+		))
+
+		with(testGatewayWithManyProtocols(t,
+			"request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com and X-Forwarded-Proto: https match the example.com gateway, redirect with https",
+			"",
+			Request().
+				URL("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1).
+				Header("X-Forwarded-Host", u.Host).
+				Header("X-Forwarded-Proto", "https"),
+			Expect().
+				Status(301).
+				Headers(
+					Header("Location").Equals("https://%s.ipfs.%s/", CIDv1, u.Host),
+				).
+				Response(),
+		))
+
+		// ## ============================================================================
+		// ## Test support for wildcards in gateway config
+		// ## ============================================================================
+		// TODO: how to test these? Do we want to force this option?
+
+		// ## ============================================================================
+		// ## Test support for overriding implicit defaults
+		// ## ============================================================================
+		// TODO: I don't think we want to check these.
 	}
 
 	if SubdomainGateway.IsEnabled() {

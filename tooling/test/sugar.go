@@ -42,10 +42,12 @@ type RequestBuilder struct {
 	UseProxyTunnel        bool
 	Headers_              map[string]string
 	DoNotFollowRedirects_ bool
+	Query_                url.Values
 }
 
 func Request() RequestBuilder {
-	return RequestBuilder{Method_: "GET"}
+	return RequestBuilder{Method_: "GET",
+		Query_: make(url.Values)}
 }
 
 func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
@@ -58,9 +60,14 @@ func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
 	return r
 }
 
+func (r RequestBuilder) Query(key, value string, args ...any) RequestBuilder {
+	r.Query_.Add(key, fmt.Sprintf(value, args...))
+	return r
+}
+
 func (r RequestBuilder) GetURL() string {
 	if r.Path_ != "" {
-		panic("not implemented")
+		panic("not supported")
 	}
 
 	return r.URL_
@@ -116,6 +123,7 @@ func (r RequestBuilder) Request() CRequest {
 		Method:               r.Method_,
 		Path:                 r.Path_,
 		Url:                  r.URL_,
+		Query:                r.Query_,
 		Proxy:                r.Proxy_,
 		UseProxyTunnel:       r.UseProxyTunnel,
 		Headers:              r.Headers_,

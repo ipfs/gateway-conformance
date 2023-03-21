@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -13,6 +14,7 @@ import (
 type CRequest struct {
 	Method               string            `json:"method,omitempty"`
 	Url                  string            `json:"url,omitempty"`
+	Query                url.Values        `json:"query,omitempty"`
 	Proxy                string            `json:"proxy,omitempty"`
 	UseProxyTunnel       bool              `json:"useProxyTunnel,omitempty"`
 	DoNotFollowRedirects bool              `json:"doNotFollowRedirects,omitempty"`
@@ -93,6 +95,11 @@ func Run(t *testing.T, tests []CTest) {
 			}
 			if test.Request.Path != "" {
 				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Path)
+			}
+
+			query := test.Request.Query.Encode()
+			if query != "" {
+				url = fmt.Sprintf("%s?%s", url, query)
 			}
 
 			var body io.Reader
