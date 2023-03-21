@@ -32,12 +32,12 @@ jobs:
         uses: ./gateway-conformance/.github/actions/test
         with:
           gateway-url: http://127.0.0.1:8080
-          subdomain-url: http://example.com:8080
+          subdomain-url: http://example.com
           json: output.json
           xml: output.xml
           html: output.html
           markdown: output.md
-          specs: -subdomain-gateway
+          specs: +subdomain-gateway
           args: -skip TestGatewayCar
       - name: Set summary
         if: (failure() || success())
