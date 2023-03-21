@@ -1,6 +1,5 @@
-package main
+package tests
 
-/* Skip until https://github.com/ipfs/kubo/issues/9651 is resolved
 import (
 	"fmt"
 	"testing"
@@ -78,4 +77,3 @@ func TestGatewayCar(t *testing.T) {
 
 	Run(t, tests)
 }
-*/
