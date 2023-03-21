@@ -14,17 +14,13 @@ import (
 func TestGatewaySubdomains(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
 
-	CIDVal := "hello" // TODO
+	CIDVal := string(fixture.MustGetRawData("hello-CIDv1")) // hello
 	DirCID := fixture.MustGetCid("testdirlisting")
 	CIDv1 := fixture.MustGetCid("hello-CIDv1")
 	CIDv0 := fixture.MustGetCid("hello-CIDv0")
 	CIDv0to1 := fixture.MustGetCid("hello-CIDv0to1")
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
 	CIDMaradona := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
-
-	fmt.Println("DIR_CID:", DirCID)
-	fmt.Println("CIDv1:", CIDv1, "CIDv0:", CIDv0)
-	fmt.Println("CIDv0to1:", CIDv0to1, "CIDv1_TOO_LONG:", CIDv1_TOO_LONG)
 
 	tests := []CTest{}
 
