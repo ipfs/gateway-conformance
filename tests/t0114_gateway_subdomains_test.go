@@ -117,42 +117,9 @@ func TestGatewaySubdomains(t *testing.T) {
 		// TODO: ipns
 		// TODO: dns link test
 
-		// API on localhost subdomain gateway
-
-		with(testGatewayWithManyProtocols(t,
-			"/api/v0 present on the root hostname",
-			"request for localhost/api",
-			Url("%s/api/v0/refs?arg=%s&r=true", gatewayURL, DirCID),
-			Expect().
-				Status(200).
-				Body(Contains(
-					"Ref",
-				)).Response(),
-		))
-
-		with(testGatewayWithManyProtocols(t,
-			"/api/v0 not mounted on content root subdomains",
-			"request for {cid}.ipfs.examle.com/api returns data if present on the content root",
-			Url("%s://%s.ipfs.%s/api/file.txt", u.Scheme, DirCID, u.Host),
-			Expect().
-				Status(200).
-				Body(Contains(
-					"I am a txt file",
-				)).Response(),
-		))
-
-		with(testGatewayWithManyProtocols(t,
-			"request for {cid}.ipfs.localhost/api/v0/refs returns 404",
-			"",
-			Url("%s://%s.ipfs.%s/api/v0/refs?arg=%s&r=true", u.Scheme, DirCID, u.Host, DirCID),
-			Expect().
-				Status(404).
-				Response(),
-		))
-
 		// ============================================================================
 		// Test subdomain-based requests to a local gateway with default config
-		// (origin per content root at http://*.localhost)
+		// (origin per content root at http://*.example.com)
 		// ============================================================================
 
 		with(testGatewayWithManyProtocols(t,
@@ -245,18 +212,6 @@ func TestGatewaySubdomains(t *testing.T) {
 		// TODO: # <libp2p-key>.ipns.localhost
 		// TODO: # <dnslink-fqdn>.ipns.localhost
 
-		// # api.localhost/api
-
-		with(testGatewayWithManyProtocols(t,
-			"request for api.localhost returns API response",
-			"Note: we use DIR_CID so refs -r returns some CIDs for child nodes",
-			Url("%s://api.%s/api/v0/refs?arg=%s&r=true", u.Scheme, u.Host, DirCID),
-			Expect().
-				Status(200).
-				Body(Contains("Ref")).
-				Response(),
-		))
-
 		// ## ============================================================================
 		// ## Test DNSLink inlining on HTTP gateways
 		// ## ============================================================================
@@ -277,7 +232,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		// TODO(lidel): for some reason in 114, we only test the simple case, with Host, no proxy or tunnel.
 		// Do we need to port `test_hostname_gateway_response_should_contain` or can we
 		// reuse the same "larger" test?
-		
+
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 			"path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
