@@ -40,20 +40,6 @@ func TestGatewaySubdomains(t *testing.T) {
 		SubdomainLocalhostGatewayUrl,
 	}
 
-	with(testGatewayWithManyProtocols(t,
-		"request for 127.0.0.1/ipfs/{CID} stays on path",
-		// TODO(lidel): can we remove this test from the subdomain gateway?
-		// if the gateway url is not an IP, this test should be skipped.
-		// There is no way to reach out the "path" gateway
-		// if you're testing the domain name dweb.link for example.
-		`IP remains old school path-based gateway`,
-		Url("%s/ipfs/%s/", GatewayUrl, CIDv1),
-		Expect().
-			Status(200).
-			Body("hello\n").
-			Response(),
-	))
-
 	for _, gatewayURL := range gatewayURLs {
 		u, err := url.Parse(gatewayURL)
 		if err != nil {
@@ -399,18 +385,6 @@ func TestGatewaySubdomains(t *testing.T) {
 				).
 				Response(),
 		))
-
-		// ## ============================================================================
-		// ## Test support for wildcards in gateway config
-		// ## ============================================================================
-		// TODO(lidel): We won't implement this in conformance testing.
-		// we can use `SUBDOMAIN_GATEWAY_URL=http://foo.bar.example.com` and run
-		// the test suite twice.
-
-		// ## ============================================================================
-		// ## Test support for overriding implicit defaults
-		// ## ============================================================================
-		// TODO(lidel): We won't implement this in conformance testing.
 	}
 
 	if SubdomainGateway.IsEnabled() {
