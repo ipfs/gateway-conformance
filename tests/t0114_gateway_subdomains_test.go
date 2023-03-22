@@ -229,10 +229,6 @@ func TestGatewaySubdomains(t *testing.T) {
 		// # path requests to the root hostname should redirect
 		// # to a subdomain URL with proper origin isolation
 
-		// TODO(lidel): for some reason in 114, we only test the simple case, with Host, no proxy or tunnel.
-		// Do we need to port `test_hostname_gateway_response_should_contain` or can we
-		// reuse the same "larger" test?
-
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 			"path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
@@ -308,13 +304,6 @@ func TestGatewaySubdomains(t *testing.T) {
 		// # Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
 		// TODO
 
-		// # *.ipfs.example.com: subdomain requests made with custom FQDN in Host header
-		// request for {CID}.ipfs.example.com should return expected payload
-		// TODO(lidel): Note: skipped, this test exists above thanks to the for loop.
-
-		// request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404
-		// TODO(lidel): Note: skipped, this test exists above thanks to the for loop.
-
 		// # *.ipns.example.com
 		// # ============================================================================
 
@@ -322,10 +311,6 @@ func TestGatewaySubdomains(t *testing.T) {
 
 		// # API on subdomain gateway example.com
 		// # ============================================================================
-
-		// # disable /api on example.com
-		// TODO(lidel): in this part of the test suite, we disable example.com then
-		// we test that the endpoints returns 404. This is more Kubo than conformance-related.
 
 		// # DNSLink: <dnslink-fqdn>.ipns.example.com
 		// # (not really useful outside of localhost, as setting TLS for more than one
@@ -370,9 +355,6 @@ func TestGatewaySubdomains(t *testing.T) {
 		// # disable /ipns for the hostname by not whitelisting it
 
 		// # refuse requests to Paths that were not explicitly whitelisted for the hostname
-
-		// TODO(lidel): Same as above, we don't want to test things like
-		// "we are able to disable the ipns endpoint" on subdomains.
 
 		// MANY TODOs here
 
@@ -493,8 +475,6 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUr
 				DoNotFollowRedirects().
 				Request(),
 			Response: expected,
-			// TODO(lidel): do we need to test different http behavior ?
-			// The previous test was using 2 proxy (--proxy and --proxy1.0)
 		},
 		{
 			Name: fmt.Sprintf("%s (HTTP proxy tunneling via CONNECT)", label),

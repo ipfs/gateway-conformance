@@ -70,9 +70,7 @@ func NewProxyClient(proxyURL string) *http.Client {
 
 	transport := &http.Transport{
 		Proxy:             http.ProxyURL(proxy),
-		// TODO: maybe use this, we have to test http2, http1.0, etc.
-		// ForceAttemptHTTP2: false,
-		// Maybe we we need `req.Header.Set("User-Agent", "Go-http-client/1.0")` as well.
+		ForceAttemptHTTP2: false,
 	}
 
 	client := &http.Client{
