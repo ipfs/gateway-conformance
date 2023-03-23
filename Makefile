@@ -1,12 +1,7 @@
-provision-cargateway: ./fixtures.car
-	# cd go-libipfs/examples/car && go install
-	car -c ./fixtures.car &
+all: test-kubo
 
 test-cargateway: provision-cargateway fixtures.car gateway-conformance
 	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8040
-
-provision-kubo:
-	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
 test-kubo-subdomains: provision-kubo gateway-conformance
 	./ipfs-config.example.sh
@@ -14,6 +9,13 @@ test-kubo-subdomains: provision-kubo gateway-conformance
 
 test-kubo: provision-kubo fixtures.car gateway-conformance
 	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080
+
+provision-cargateway: ./fixtures.car
+	# cd go-libipfs/examples/car && go install
+	car -c ./fixtures.car &
+
+provision-kubo:
+	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
 # tools
 fixtures.car: gateway-conformance
