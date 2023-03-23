@@ -34,6 +34,18 @@ The `test` command is the main command of the tool. It is used to test a given I
 | specs | Both | A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). | Mature specs only |
 | args | Both | [DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
 
+##### Specs
+
+By default, only mature specs (reliable, stable, or permanent) will be tested if this input is not provided. You can specify particular specs without any prefixes (e.g., subdomain-gateway, trustless-gateway, path-gateway) to test exclusively those, irrespective of their maturity status.
+
+To selectively enable or disable specs based on their maturity, use the "+" and "-" prefixes. Adding a "+" prefix (e.g., +subdomain-gateway) means that the spec should be included in the test, in addition to the mature specs. Conversely, using a "-" prefix (e.g., -subdomain-gateway) means that the spec should be excluded from the test, even if it is mature.
+
+If you provide a list containing both prefixed and unprefixed specs, the prefixed specs will be ignored. It is advisable to use either prefixed or unprefixed specs, but not both. However, you can include specs with both "+" and "-" prefixes in the same list.
+
+##### Args
+
+This input should be used sparingly and with caution, as it involves interacting with the underlying internal processes, which may be subject to changes. It is recommended to use the `args` input only when you have a deep understanding of the tool's inner workings and need to fine-tune the testing process. Users should be mindful of the potential risks associated with using this input.
+
 #### Subdomain Testing and `subdomain-url`
 
 The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway permits.
@@ -46,18 +58,6 @@ A few examples:
 |----------|-------------|---------------|
 | CI & Dev   | http://127.0.0.1:8080 | http://example.com |
 | Production | https://dweb.link     | https://dweb.link  |
-
-##### Specs
-
-By default, only mature specs (reliable, stable, or permanent) will be tested if this input is not provided. You can specify particular specs without any prefixes (e.g., subdomain-gateway, trustless-gateway, path-gateway) to test exclusively those, irrespective of their maturity status.
-
-To selectively enable or disable specs based on their maturity, use the "+" and "-" prefixes. Adding a "+" prefix (e.g., +subdomain-gateway) means that the spec should be included in the test, in addition to the mature specs. Conversely, using a "-" prefix (e.g., -subdomain-gateway) means that the spec should be excluded from the test, even if it is mature.
-
-If you provide a list containing both prefixed and unprefixed specs, the prefixed specs will be ignored. It is advisable to use either prefixed or unprefixed specs, but not both. However, you can include specs with both "+" and "-" prefixes in the same list.
-
-##### Args
-
-This input should be used sparingly and with caution, as it involves interacting with the underlying internal processes, which may be subject to changes. It is recommended to use the `args` input only when you have a deep understanding of the tool's inner workings and need to fine-tune the testing process. Users should be mindful of the potential risks associated with using this input.
 
 #### Usage
 
