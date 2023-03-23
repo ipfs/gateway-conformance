@@ -82,7 +82,7 @@ func main() {
 					&cli.StringFlag{
 						Name:        "subdomain-url",
 						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://example.com:8080",
+						Value:       "http://example.com",
 						Destination: &subdomainGatewayURL,
 					},
 					&cli.StringFlag{
