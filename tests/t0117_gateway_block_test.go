@@ -17,7 +17,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with format=raw param returns a raw block",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/dir?format=raw", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/dir?format=raw", fixture.MustGetCid()),
 			},
 			Response: CResponse{
 				StatusCode: 200,
@@ -27,7 +27,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns a raw block",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/dir", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/dir", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -40,7 +40,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -59,7 +59,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},
@@ -74,7 +74,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected caching headers",
 			Request: CRequest{
-				Url: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
+				Path: fmt.Sprintf("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 				Headers: map[string]string{
 					"Accept": "application/vnd.ipld.raw",
 				},

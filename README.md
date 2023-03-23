@@ -26,6 +26,7 @@ The `test` command is the main command of the tool. It is used to test a given I
 | Input | Availability | Description | Default |
 |---|---|---|---|
 | gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
+| subdomain-url | Both | The Subdomain URL of the IPFS Gateway implementation to be tested. | http://example.com |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
@@ -44,6 +45,19 @@ If you provide a list containing both prefixed and unprefixed specs, the prefixe
 ##### Args
 
 This input should be used sparingly and with caution, as it involves interacting with the underlying internal processes, which may be subject to changes. It is recommended to use the `args` input only when you have a deep understanding of the tool's inner workings and need to fine-tune the testing process. Users should be mindful of the potential risks associated with using this input.
+
+#### Subdomain Testing and `subdomain-url`
+
+The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway permits.
+During testing, the suite keeps connecting to the `gateway-url` while employing HTTP techniques to simulate requests as if they were sent to the subdomain.
+This approach enables testing of local gateways during development or continuous integration (CI) scenarios.
+
+A few examples:
+
+| Use Case | gateway-url | subdomain-url |
+|----------|-------------|---------------|
+| CI & Dev   | http://127.0.0.1:8080 | http://example.com |
+| Production | https://dweb.link     | https://dweb.link  |
 
 #### Usage
 
@@ -148,4 +162,6 @@ Please let us know if you would like to see this feature implemented directly in
 ## In Development
 
 - How to deal with subdomains & configuration (t0114 for example)?
- - Some test relies on querying URLs like `http://$CIDv1.ipfs.example.com/`. While `http://$CIDv1.ipfs.localhost/` works by default, do we need / want to test with `.example.com`?
+  - Some test relies on querying URLs like `http://$CIDv1.ipfs.example.com/`. While `http://$CIDv1.ipfs.localhost/` works by default, do we need / want to test with `.example.com`?
+- Debug logging
+  - Set the environment variable `GOLOG_LOG_LEVEL="conformance=debug"` to toggle debug logging.

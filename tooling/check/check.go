@@ -64,6 +64,29 @@ func IsEmpty(hint ...string) interface{} {
 	return CheckIsEmpty{}
 }
 
+type CheckAnd[T any] struct {
+	Checks []Check[T]
+}
+
+func And[T any](checks ...Check[T]) Check[T] {
+	return &CheckAnd[T]{
+		Checks: checks,
+	}
+}
+
+func (c *CheckAnd[T]) Check(v T) CheckOutput {
+	for _, check := range c.Checks {
+		output := check.Check(v)
+		if !output.Success {
+			return output
+		}
+	}
+
+	return CheckOutput{
+		Success: true,
+	}
+}
+
 type CheckIsEqual struct {
 	Value string
 }
