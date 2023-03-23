@@ -26,12 +26,26 @@ The `test` command is the main command of the tool. It is used to test a given I
 | Input | Availability | Description | Default |
 |---|---|---|---|
 | gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
+| subdomain-url | Both | The Subdomain URL of the IPFS Gateway implementation to be tested. | http://example.com |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
 | markdown | GitHub Action | The path where the summary Markdown test report should be generated. | `./report.md` |
 | specs | Both | A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). | Mature specs only |
 | args | Both | [DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
+
+#### Subdomain Testing and `subdomain-url`
+
+The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway permits.
+During testing, the suite keeps connecting to the `gateway-url` while employing HTTP techniques to simulate requests as if they were sent to the subdomain.
+This approach enables testing of local gateways during development or continuous integration (CI) scenarios.
+
+A few examples:
+
+| Use Case | gateway-url | subdomain-url |
+|----------|-------------|---------------|
+| CI & Dev   | http://127.0.0.1:8080 | http://example.com |
+| Production | https://dweb.link     | https://dweb.link  |
 
 ##### Specs
 
