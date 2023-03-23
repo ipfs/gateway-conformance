@@ -17,11 +17,11 @@ func GetEnv(key string, fallback string) string {
 	return fallback
 }
 
-var GatewayUrl = strings.TrimRight(
+var GatewayURL = strings.TrimRight(
 	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
 	"/")
 
-var SubdomainGatewayUrl = strings.TrimRight(
+var SubdomainGatewayURL = strings.TrimRight(
 	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com"),
 	"/")
 
@@ -30,17 +30,17 @@ var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""
 
-var SubdomainLocalhostGatewayUrl = "http://localhost"
+var SubdomainLocalhostGatewayURL = "http://localhost"
 
 func init() {
-	parsed, err := url.Parse(GatewayUrl)
+	parsed, err := url.Parse(GatewayURL)
 	if err != nil {
 		panic(err)
 	}
 
 	GatewayHost = parsed.Host
 
-	parsed, err = url.Parse(SubdomainGatewayUrl)
+	parsed, err = url.Parse(SubdomainGatewayURL)
 	if err != nil {
 		panic(err)
 	}
@@ -48,9 +48,9 @@ func init() {
 	SubdomainGatewayHost = parsed.Host
 	SubdomainGatewayScheme = parsed.Scheme
 
-	log.Debugf("GatewayUrl: %s", GatewayUrl)
+	log.Debugf("GatewayURL: %s", GatewayURL)
 
-	log.Debugf("SubdomainGatewayUrl: %s", SubdomainGatewayUrl)
+	log.Debugf("SubdomainGatewayURL: %s", SubdomainGatewayURL)
 	log.Debugf("SubdomainGatewayHost: %s", SubdomainGatewayHost)
 	log.Debugf("SubdomainGatewayScheme: %s", SubdomainGatewayScheme)
 }

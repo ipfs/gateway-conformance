@@ -13,7 +13,7 @@ import (
 
 type CRequest struct {
 	Method               string            `json:"method,omitempty"`
-	Url                  string            `json:"url,omitempty"`
+	URL                  string            `json:"url,omitempty"`
 	Query                url.Values        `json:"query,omitempty"`
 	Proxy                string            `json:"proxy,omitempty"`
 	UseProxyTunnel       bool              `json:"useProxyTunnel,omitempty"`
@@ -84,17 +84,17 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			var url string
-			if test.Request.Url != "" && test.Request.Path != "" {
-				localReport("Both 'Url' and 'Path' are set")
+			if test.Request.URL != "" && test.Request.Path != "" {
+				localReport("Both 'URL' and 'Path' are set")
 			}
-			if test.Request.Url == "" && test.Request.Path == "" {
-				localReport("Neither 'Url' nor 'Path' are set")
+			if test.Request.URL == "" && test.Request.Path == "" {
+				localReport("Neither 'URL' nor 'Path' are set")
 			}
-			if test.Request.Url != "" {
-				url = test.Request.Url
+			if test.Request.URL != "" {
+				url = test.Request.URL
 			}
 			if test.Request.Path != "" {
-				url = fmt.Sprintf("%s/%s", GatewayUrl, test.Request.Path)
+				url = fmt.Sprintf("%s/%s", GatewayURL, test.Request.Path)
 			}
 
 			query := test.Request.Query.Encode()

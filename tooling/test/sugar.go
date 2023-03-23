@@ -89,13 +89,13 @@ func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 
 func (r RequestBuilder) Request() CRequest {
 	if r.URL_ != "" && r.Path_ != "" {
-		panic("Both 'Url' and 'Path' are set")
+		panic("Both 'URL' and 'Path' are set")
 	}
 
 	return CRequest{
 		Method:               r.Method_,
 		Path:                 r.Path_,
-		Url:                  r.URL_,
+		URL:                  r.URL_,
 		Query:                r.Query_,
 		Proxy:                r.Proxy_,
 		UseProxyTunnel:       r.UseProxyTunnel,

@@ -30,14 +30,14 @@ func TestGatewaySubdomains(t *testing.T) {
 	}
 
 	// sugar: nicer looking sprintf call
-	Url := func(path string, args ...interface{}) string {
+	URL := func(path string, args ...interface{}) string {
 		return fmt.Sprintf(path, args...)
 	}
 
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
-		SubdomainGatewayUrl,
-		SubdomainLocalhostGatewayUrl,
+		SubdomainGatewayURL,
+		SubdomainLocalhostGatewayURL,
 	}
 
 	for _, gatewayURL := range gatewayURLs {
@@ -52,7 +52,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			subdomains should not return payload directly,
 			but redirect to URL with proper origin isolation
 			`,
-			Url("%s/ipfs/%s/", gatewayURL, CIDv1),
+			URL("%s/ipfs/%s/", gatewayURL, CIDv1),
 			Expect().
 				Status(301).
 				Headers(
@@ -77,7 +77,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			subdomains should not return payload directly,
 			but redirect to URL with proper origin isolation
 			`,
-			Url("%s/ipfs/%s/", gatewayURL, DirCID),
+			URL("%s/ipfs/%s/", gatewayURL, DirCID),
 			Expect().
 				Status(301).
 				Headers(
@@ -90,7 +90,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv0} redirects to CIDv1 representation in subdomain",
 			"",
-			Url("%s/ipfs/%s/", gatewayURL, CIDv0),
+			URL("%s/ipfs/%s/", gatewayURL, CIDv0),
 			Expect().
 				Status(301).
 				Headers(
@@ -111,7 +111,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for {CID}.ipfs.example.com should return expected payload",
 			"",
-			Url("%s://%s.ipfs.%s", u.Scheme, CIDv1, u.Host),
+			URL("%s://%s.ipfs.%s", u.Scheme, CIDv1, u.Host),
 			Expect().
 				Status(200).
 				Body(Contains(CIDVal)).
@@ -121,7 +121,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404",
 			"ensure /ipfs/ namespace is not mounted on subdomain",
-			Url("%s://%s.ipfs.%s/ipfs/%s", u.Scheme, CIDv1, u.Host, CIDv1),
+			URL("%s://%s.ipfs.%s/ipfs/%s", u.Scheme, CIDv1, u.Host, CIDv1),
 			Expect().
 				Status(404).
 				Response(),
@@ -130,7 +130,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for {CID}.ipfs.example.com/ipfs/file.txt should return data from a file in CID content root",
 			"ensure requests to /ipfs/* are not blocked, if content root has such subdirectory",
-			Url("%s://%s.ipfs.%s/ipfs/file.txt", u.Scheme, DirCID, u.Host),
+			URL("%s://%s.ipfs.%s/ipfs/file.txt", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
 				Body(Contains("I am a txt file")).
@@ -140,7 +140,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"valid file and subdirectory paths in directory listing at {cid}.ipfs.example.com",
 			"{CID}.ipfs.example.com/sub/dir (Directory Listing)",
-			Url("%s://%s.ipfs.%s/", u.Scheme, DirCID, u.Host),
+			URL("%s://%s.ipfs.%s/", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
 				Body(And(
@@ -154,7 +154,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"valid parent directory path in directory listing at {cid}.ipfs.example.com/sub/dir",
 			"",
-			Url("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
+			URL("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
 				Body(And(
@@ -168,7 +168,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for deep path resource at {cid}.ipfs.localhost/sub/dir/file",
 			"",
-			Url("%s://%s.ipfs.%s/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
+			URL("%s://%s.ipfs.%s/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
 				Body(Contains("text-file-content")).
@@ -181,7 +181,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			Note 1: we test for sneaky subdir names  {cid}.ipfs.example.com/ipfs/ipns/ :^)
 			Note 2: example.com/ipfs/.. present in HTML will be redirected to subdomain, so this is expected behavior
 			`,
-			Url("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
+			URL("%s://%s.ipfs.%s/ipfs/ipns/", u.Scheme, DirCID, u.Host),
 			Expect().
 				Status(200).
 				Body(
@@ -218,7 +218,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 			"path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
-			Url("%s://%s/ipfs/%s/", u.Scheme, u.Host, CIDv1),
+			URL("%s://%s/ipfs/%s/", u.Scheme, u.Host, CIDv1),
 			Expect().
 				Headers(
 					Header("Location").Equals("%s://%s.ipfs.%s/", u.Scheme, CIDv1, u.Host),
@@ -229,7 +229,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{InvalidCID} produces useful error before redirect",
 			"error message should include original CID (and it should be case-sensitive, as we can't assume everyone uses base32)",
-			Url("%s://%s/ipfs/QmInvalidCID", u.Scheme, u.Host),
+			URL("%s://%s/ipfs/QmInvalidCID", u.Scheme, u.Host),
 			Expect().
 				Body(Contains("invalid path \"/ipfs/QmInvalidCID\"")).
 				Response(),
@@ -238,7 +238,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for example.com/ipfs/{CIDv0} produces redirect to {CIDv1}.ipfs.example.com",
 			"",
-			Url("%s://%s/ipfs/%s/", u.Scheme, u.Host, CIDv0),
+			URL("%s://%s/ipfs/%s/", u.Scheme, u.Host, CIDv0),
 			Expect().
 				Status(301).
 				Headers(
@@ -315,7 +315,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for a too long CID at localhost/ipfs/{CIDv1} returns human readable error",
 			"router should not redirect to hostnames that could fail due to DNS limits",
-			Url("%s/ipfs/%s", gatewayURL, CIDv1_TOO_LONG),
+			URL("%s/ipfs/%s", gatewayURL, CIDv1_TOO_LONG),
 			Expect().
 				Status(400).
 				Body(Contains("CID incompatible with DNS label length limit of 63")).
@@ -325,7 +325,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for a too long CID at {CIDv1}.ipfs.localhost returns expected payload",
 			"direct request should also fail (provides the same UX as router and avoids confusion)",
-			Url("%s://%s.ipfs.%s/", u.Scheme, CIDv1_TOO_LONG, u.Host),
+			URL("%s://%s.ipfs.%s/", u.Scheme, CIDv1_TOO_LONG, u.Host),
 			Expect().
 				Status(400).
 				Body(Contains("CID incompatible with DNS label length limit of 63")).
@@ -351,7 +351,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for http://fake.domain.com/ipfs/{CID} doesn't match the example.com gateway",
 			"",
-			Url("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1),
+			URL("%s://%s/ipfs/%s", u.Scheme, "fake.domain.com", CIDv1),
 			Expect().
 				Status(200).
 				Response(),
@@ -392,23 +392,23 @@ func TestGatewaySubdomains(t *testing.T) {
 	}
 }
 
-func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUrl interface{}, expected CResponse) []CTest {
+func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqURL interface{}, expected CResponse) []CTest {
 	t.Helper()
 
-	baseUrl := ""
+	baseURL := ""
 	baseReq := Request()
 
-	switch req := reqUrl.(type) {
+	switch req := reqURL.(type) {
 	case string:
-		baseUrl = reqUrl.(string)
+		baseURL = reqURL.(string)
 	case RequestBuilder:
 		baseReq = req
-		baseUrl = req.GetURL()
+		baseURL = req.GetURL()
 	default:
-		t.Fatalf("invalid type for reqUrl: %T", reqUrl)
+		t.Fatalf("invalid type for reqURL: %T", reqURL)
 	}
 
-	u, err := url.Parse(baseUrl)
+	u, err := url.Parse(baseURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -417,22 +417,22 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUr
 	// actually living on http://127.0.0.1:8080 or somewhere else.
 	//
 	// The test knows two addresses:
-	// 		- GatewayUrl: the url we connect to, it might be "dweb.link", "127.0.0.1:8080", etc.
-	// 		- SubdomainGatewayUrl: the url we test for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
+	// 		- GatewayURL: the URL we connect to, it might be "dweb.link", "127.0.0.1:8080", etc.
+	// 		- SubdomainGatewayURL: the URL we test for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
 
 	// host is the hostname of the gateway we are testing, it might be `localhost` or `example.com`
 	host := u.Host
 
 	// raw url is the url but we replace the host with our local url, it might be `http://127.0.0.1/ipfs/something`
 	u.Host = GatewayHost
-	rawUrl := u.String()
+	rawURL := u.String()
 
 	return []CTest{
 		{
 			Name: fmt.Sprintf("%s (direct HTTP)", label),
 			Hint: fmt.Sprintf("%s\n%s", hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
 			Request: baseReq.
-				URL(rawUrl).
+				URL(rawURL).
 				DoNotFollowRedirects().
 				Headers(
 					Header("Host", host),
@@ -444,8 +444,8 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUr
 			Name: fmt.Sprintf("%s (HTTP proxy)", label),
 			Hint: fmt.Sprintf("%s\n%s", hint, "HTTP proxy (hostname is passed via URL)"),
 			Request: baseReq.
-				URL(baseUrl).
-				Proxy(GatewayUrl).
+				URL(baseURL).
+				Proxy(GatewayURL).
 				DoNotFollowRedirects().
 				Request(),
 			Response: expected,
@@ -458,8 +458,8 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUr
 				https://tools.ietf.org/html/rfc7231#section-4.3.6
 			`),
 			Request: baseReq.
-				URL(baseUrl).
-				Proxy(GatewayUrl).
+				URL(baseURL).
+				Proxy(GatewayURL).
 				WithProxyTunnel().
 				DoNotFollowRedirects().
 				Headers(
