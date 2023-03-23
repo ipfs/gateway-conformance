@@ -3,36 +3,9 @@ package test
 import (
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
-
-// When a test writer uses a URL that contains the example.com domain, we assume they
-// mean "the current subdomain URL". This means that "http://something.ipfs.example.com/path"
-// is rewritten to hit the current tested gateway, which might live under a different name, and
-// different port.
-func TestURLFromSpecURL(testURL string) string {
-	u, err := url.Parse(testURL)
-	if err != nil {
-		panic(err)
-	}
-
-	withoutExampleDomain := strings.TrimSuffix(u.Host, GATEWAY_LOCALHOST_DOMAIN)
-
-	if len(withoutExampleDomain) < len(u.Host) {
-		// we found and removed the example domain
-		// so this is a subdomain gateway
-		u.Scheme = SubdomainGatewayScheme
-		u.Host = fmt.Sprintf("%s%s", withoutExampleDomain, SubdomainGatewayHost)
-	}
-
-	return u.String()
-}
-
-func ReplaceExampleDomain(s string, args ...any) string {
-	return TestURLFromSpecURL(fmt.Sprintf(s, args...))
-}
 
 type RequestBuilder struct {
 	Method_               string
