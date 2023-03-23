@@ -20,7 +20,7 @@ func TestGatewaySubdomains(t *testing.T) {
 	CIDv0 := fixture.MustGetCid("hello-CIDv0")
 	CIDv0to1 := fixture.MustGetCid("hello-CIDv0to1")
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
-	CIDMaradona := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
+	CIDWikipedia := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
 
 	tests := []CTest{}
 
@@ -267,12 +267,12 @@ func TestGatewaySubdomains(t *testing.T) {
 			Request().
 				URL("%s://%s/ipfs/", u.Scheme, u.Host).
 				Query(
-					"uri", "ipfs://%s/wiki/Diego_Maradona.html", CIDMaradona,
+					"uri", "ipfs://%s/wiki/Diego_Maradona.html", CIDWikipedia,
 				),
 			Expect().
 				Status(301).
 				Headers(
-					Header("Location").Equals("/ipfs/%s/wiki/Diego_Maradona.html", CIDMaradona),
+					Header("Location").Equals("/ipfs/%s/wiki/Diego_Maradona.html", CIDWikipedia),
 				).
 				Response(),
 		))
