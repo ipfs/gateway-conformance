@@ -37,6 +37,28 @@ type CTest struct {
 	Response CResponse `json:"response,omitempty"`
 }
 
+type SugarTest struct {
+	Name     string
+	Hint     string
+	Request  RequestBuilder
+	Response ExpectBuilder
+}
+
+type SugarTests []SugarTest
+
+func (s SugarTests) Build() []CTest {
+	var tests []CTest
+	for _, test := range s {
+		tests = append(tests, CTest{
+			Name:     test.Name,
+			Hint:     test.Hint,
+			Request:  test.Request.Request(),
+			Response: test.Response.Response(),
+		})
+	}
+	return tests
+}
+
 func Run(t *testing.T, tests []CTest) {
 	// NewDialer()
 
