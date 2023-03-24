@@ -2,11 +2,10 @@ name: "Gateway Conformance Tests"
 description: "Runs the Gateway Conformance Tests"
 inputs:
   gateway-url:
-    description: "The URL of the IPFS Gateway implementation to be tested."
+    description: "The URL of the IPFS Gateway implementation to be tested. (e.g. http://example.com)"
     required: true
-  subdomain-url:
-    description: "The Subdomain URL of the IPFS Gateway implementation to be tested."
-    default: "http://example.com"
+  gateway-host:
+    description: "The Host the requests to the Gateway URL should be directed at. (e.g. 127.0.0.1:8080)"
     required: false
   json:
     description: "The path where the JSON test report should be generated."
@@ -37,7 +36,7 @@ runs:
       uses: pl-strflt/docker-container-action@v1
       env:
         URL: ${{ inputs.gateway-url }}
-        SUBDOMAIN: ${{ inputs.subdomain-url }}
+        HOST: ${{ inputs.gateway-host }}
         JSON: ${{ inputs.json }}
         SPECS: ${{ inputs.specs }}
       with:
@@ -45,7 +44,7 @@ runs:
         ref: ${{ steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --gateway-host="$HOST" -- ${{ inputs.args }}
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1

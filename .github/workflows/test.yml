@@ -34,8 +34,8 @@ jobs:
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:
-          gateway-url: http://127.0.0.1:8080
-          subdomain-url: http://example.com
+          gateway-url: http://example.com
+          gateway-host: 127.0.0.1:8080
           json: output.json
           xml: output.xml
           html: output.html

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -57,7 +58,7 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 
 func main() {
 	var gatewayURL string
-	var subdomainGatewayURL string
+	var gatewayHost string
 	var jsonOutput string
 	var specs string
 	var directory string
@@ -75,15 +76,14 @@ func main() {
 					&cli.StringFlag{
 						Name:        "gateway-url",
 						Aliases:     []string{"url", "g"},
-						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://localhost:8080",
+						Usage:       "The URL of the IPFS Gateway implementation to be tested. (e.g. http://example.com)",
+						Required:    true,
 						Destination: &gatewayURL,
 					},
 					&cli.StringFlag{
-						Name:        "subdomain-url",
-						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://example.com",
-						Destination: &subdomainGatewayURL,
+						Name:        "gateway-host",
+						Usage:       "The Host the requests to the Gateway URL should be directed at. (e.g. 127.0.0.1:8080)",
+						Destination: &gatewayHost,
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
@@ -113,11 +113,18 @@ func main() {
 					output := &bytes.Buffer{}
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
-					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
 
-					if subdomainGatewayURL != "" {
-						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
+					if gatewayHost != "" {
+						u, err := url.Parse(gatewayURL)
+						if err != nil {
+							return err
+						}
+						u.Host = gatewayHost
+						cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", u.String()))
+					} else {
+						cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
 					}
+					cmd.Env = append(os.Environ(), fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", gatewayURL))
 
 					cmd.Stdout = out{output}
 					cmd.Stderr = os.Stderr
