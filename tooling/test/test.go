@@ -159,30 +159,32 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			for key, value := range test.Response.Headers {
-				actual := res.Header.Get(key)
+				t.Run(fmt.Sprintf("Header %s", key), func(t *testing.T) {
+					actual := res.Header.Get(key)
 
-				var output check.CheckOutput
-				var hint string
+					var output check.CheckOutput
+					var hint string
 
-				switch v := value.(type) {
-				case check.Check[string]:
-					output = v.Check(actual)
-				case check.CheckWithHint[string]:
-					output = v.Check.Check(actual)
-					hint = v.Hint
-				case string:
-					output = check.IsEqual(v).Check(actual)
-				default:
-					localReport("Header check '%s' has an invalid type: %T", key, value)
-				}
-
-				if !output.Success {
-					if hint == "" {
-						localReport("Header '%s' %s", key, output.Reason)
-					} else {
-						localReport("Header '%s' %s (%s)", key, output.Reason, hint)
+					switch v := value.(type) {
+					case check.Check[string]:
+						output = v.Check(actual)
+					case check.CheckWithHint[string]:
+						output = v.Check.Check(actual)
+						hint = v.Hint
+					case string:
+						output = check.IsEqual(v).Check(actual)
+					default:
+						localReport("Header check '%s' has an invalid type: %T", key, value)
 					}
-				}
+
+					if !output.Success {
+						if hint == "" {
+							localReport("Header '%s' %s", key, output.Reason)
+						} else {
+							localReport("Header '%s' %s (%s)", key, output.Reason, hint)
+						}
+					}
+				})
 			}
 
 			if test.Response.Body != nil {
