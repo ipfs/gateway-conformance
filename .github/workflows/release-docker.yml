@@ -10,10 +10,15 @@ on:
           The URL of the artifacts to download.
           If provided, we'll try to retrieve the tags from the release.json file of the release artifact.
         required: false
-  workflow_call:
+  workflow_run:
+    workflows: [Release]
+    types:
+      - completed
+    
 
 jobs:
   tags:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       tags: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].tags || github.event.inputs.tags }}
