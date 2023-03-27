@@ -91,7 +91,7 @@ func Run(t *testing.T, tests []CTest) {
 			var res *http.Response = nil
 			var req *http.Request = nil
 
-			localReport := func(msg interface{}, rest ...interface{}) {
+			localReport := func(t *testing.T, msg interface{}, rest ...interface{}) {
 				var err error
 				switch msg := msg.(type) {
 				case string:
@@ -107,10 +107,10 @@ func Run(t *testing.T, tests []CTest) {
 
 			var url string
 			if test.Request.URL != "" && test.Request.Path != "" {
-				localReport("Both 'URL' and 'Path' are set")
+				localReport(t, "Both 'URL' and 'Path' are set")
 			}
 			if test.Request.URL == "" && test.Request.Path == "" {
-				localReport("Neither 'URL' nor 'Path' are set")
+				localReport(t, "Neither 'URL' nor 'Path' are set")
 			}
 			if test.Request.URL != "" {
 				url = test.Request.URL
@@ -149,12 +149,12 @@ func Run(t *testing.T, tests []CTest) {
 			log.Debugf("Querying %s", url)
 			res, err = client.Do(req)
 			if err != nil {
-				localReport("Querying %s failed: %s", url, err)
+				localReport(t, "Querying %s failed: %s", url, err)
 			}
 
 			if test.Response.StatusCode != 0 {
 				if res.StatusCode != test.Response.StatusCode {
-					localReport("Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+					localReport(t, "Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
 				}
 			}
 
@@ -174,14 +174,14 @@ func Run(t *testing.T, tests []CTest) {
 					case string:
 						output = check.IsEqual(v).Check(actual)
 					default:
-						localReport("Header check '%s' has an invalid type: %T", key, value)
+						localReport(t, "Header check '%s' has an invalid type: %T", key, value)
 					}
 
 					if !output.Success {
 						if hint == "" {
-							localReport("Header '%s' %s", key, output.Reason)
+							localReport(t, "Header '%s' %s", key, output.Reason)
 						} else {
-							localReport("Header '%s' %s (%s)", key, output.Reason, hint)
+							localReport(t, "Header '%s' %s (%s)", key, output.Reason, hint)
 						}
 					}
 				})
@@ -191,34 +191,34 @@ func Run(t *testing.T, tests []CTest) {
 				defer res.Body.Close()
 				resBody, err := io.ReadAll(res.Body)
 				if err != nil {
-					localReport(err)
+					localReport(t, err)
 				}
 
 				switch v := test.Response.Body.(type) {
 				case check.Check[string]:
 					output := v.Check(string(resBody))
 					if !output.Success {
-						localReport("Body %s", output.Reason)
+						localReport(t, "Body %s", output.Reason)
 					}
 				case check.CheckWithHint[string]:
 					output := v.Check.Check(string(resBody))
 					if !output.Success {
-						localReport("Body %s (%s)", output.Reason, v.Hint)
+						localReport(t, "Body %s (%s)", output.Reason, v.Hint)
 					}
 				case string:
 					if string(resBody) != v {
-						localReport("Body is not '%s'. It is: '%s'", v, resBody)
+						localReport(t, "Body is not '%s'. It is: '%s'", v, resBody)
 					}
 				case []byte:
 					if !bytes.Equal(resBody, v) {
 						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
-							localReport("Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
+							localReport(t, "Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
 						} else {
-							localReport("Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
+							localReport(t, "Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
 						}
 					}
 				default:
-					localReport("Body check has an invalid type: %T", test.Response.Body)
+					localReport(t, "Body check has an invalid type: %T", test.Response.Body)
 				}
 			}
 		})
