@@ -14,6 +14,9 @@ import (
 	"github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-unixfs/io"
 	"github.com/ipld/go-car/v2/blockstore"
+	"github.com/ipld/go-ipld-prime/codec/dagjson"
+	"github.com/ipld/go-ipld-prime/codec/json"
+	"github.com/multiformats/go-multicodec"
 )
 
 type UnixfsDag struct {
@@ -22,6 +25,16 @@ type UnixfsDag struct {
 	node  format.Node
 	links map[string]*UnixfsDag
 }
+
+func init() {
+	format.Register(uint64(multicodec.Json), json.Decode)
+	format.Register(uint64(multicodec.DagJson), dagjson.Decode)
+
+	// TODO: register the json codec (0x200) so that merkleDAG nodes can be decoded
+		// legacy.RegisterCodec(uint64(multicodec.Json), basicnode.Prototype.Any, )
+		// legacy.RegisterCodec(uint64(multicodec.DagJson), basicnode.Prototype.Any, )
+}
+
 
 func newUnixfsDagFromCar(file string) (*UnixfsDag, error) {
 	bs, err := blockstore.OpenReadOnly(file)
