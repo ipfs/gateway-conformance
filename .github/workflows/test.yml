@@ -40,7 +40,7 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
-          args: -skip TestGatewayCar
+          args: -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
       - name: Set summary
         if: (failure() || success())
         run: cat ./output.md >> $GITHUB_STEP_SUMMARY
