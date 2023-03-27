@@ -176,10 +176,16 @@ func (e ExpectBuilder) Response() CResponse {
 
 	// TODO: detect collision in keys
 	for _, h := range e.Headers_ {
+		c := h.Check
+
+		if h.Not_ {
+			c = check.Not(h.Check)
+		}
+
 		if h.Hint_ != "" {
-			headers[h.Key] = check.WithHint(h.Hint_, h.Check)
+			headers[h.Key] = check.WithHint(h.Hint_, c)
 		} else {
-			headers[h.Key] = h.Check
+			headers[h.Key] = c
 		}
 	}
 
@@ -195,14 +201,19 @@ type HeaderBuilder struct {
 	Value string
 	Check check.Check[string]
 	Hint_ string
+	Not_  bool
 }
 
-func Header(key string, opts ...string) HeaderBuilder {
-	if len(opts) > 1 {
-		panic("too many options")
-	}
-	if len(opts) > 0 {
-		return HeaderBuilder{Key: key, Value: opts[0], Check: check.IsEqual(opts[0])}
+func Header(key string, rest ...any) HeaderBuilder {
+	if len(rest) > 0 {
+		// check if rest[0] is a string
+		if value, ok := rest[0].(string); ok {
+			value := fmt.Sprintf(value, rest[1:]...)
+			return HeaderBuilder{Key: key, Value: value, Check: check.IsEqual(value)}
+
+		} else {
+			panic("rest[0] must be a string")
+		}
 	}
 
 	return HeaderBuilder{Key: key}
@@ -237,5 +248,10 @@ func (h HeaderBuilder) Checks(f func(string) bool) HeaderBuilder {
 	h.Check = check.CheckFunc[string]{
 		Fn: f,
 	}
+	return h
+}
+
+func (h HeaderBuilder) Not() HeaderBuilder {
+	h.Not_ = !h.Not_
 	return h
 }

@@ -196,3 +196,30 @@ func (c CheckFunc[T]) Check(v T) CheckOutput {
 }
 
 var _ Check[string] = &CheckFunc[string]{}
+
+type CheckNot struct {
+	check Check[string]
+}
+
+func Not(check Check[string]) Check[string] {
+	return CheckNot{
+		check: check,
+	}
+}
+
+func (c CheckNot) Check(v string) CheckOutput {
+	result := c.check.Check(v)
+
+	if result.Success {
+		return CheckOutput{
+			Success: false,
+			Reason:  fmt.Sprintf("expected %v to fail, but it succeeded", c.check),
+		}
+	}
+
+	return CheckOutput{
+		Success: true,
+	}
+}
+
+var _ Check[string] = CheckNot{}
