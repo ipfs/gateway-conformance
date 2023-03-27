@@ -17,10 +17,11 @@ on:
     
 
 jobs:
-  tags:
+  release:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
+      draft: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].draft || false }}
       tags: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].tags || github.event.inputs.tags }}
     steps:
       # This step will download the release artifact either from the workflow
@@ -33,8 +34,8 @@ jobs:
           artifacts-url: ${{ github.event.workflow_run.artifacts_url || github.event.inputs.artifacts-url }}
           artifact-names: release
   docker:
-    needs: [tags]
-    if: needs.tags.outputs.tags != ''
+    needs: [release]
+    if: needs.release.outputs.tags != '' && needs.release.outputs.draft == 'false'
     name: Docker
     runs-on: ubuntu-latest
     permissions:
@@ -45,7 +46,7 @@ jobs:
       - id: tags
         env:
           REPOSITORY: ${{ github.repository }}
-          TAGS: ${{ needs.tags.outputs.tags }}
+          TAGS: ${{ needs.release.outputs.tags }}
         run: jq -Rr 'split(",") | map(gsub("^\\s+|\\s+$";"") | "ghcr.io/\(env.REPOSITORY):\(.)") | join(",") | "tags=\(.)"' <<< "$TAGS" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
