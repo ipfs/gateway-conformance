@@ -253,3 +253,152 @@ func TestDAgPbConversion(t *testing.T) {
 	}
 
 }
+
+// # Requesting CID with plain json (0x0200) and cbor (0x51) codecs
+// # (note these are not UnixFS, not DAG-* variants, just raw block identified by a CID with a special codec)
+func TestPlainCodec(t *testing.T) {
+	table := []struct {
+		Name        string
+		Format      string
+		Disposition string
+	}{
+		{"plain JSON codec", "json", "inline"},
+		{"plain CBOR codec", "cbor", "attachment"},
+	}
+
+	for _, row := range table {
+		plainFixture := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain.%s.car", row.Format))
+		plainOrDagFixture := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format))
+
+		plainCID := plainFixture.MustGetCid()
+		plainOrDagCID := plainOrDagFixture.MustGetCid()
+
+		tests := SugarTests{
+			/**
+			# no explicit format, just codec in CID
+			test_expect_success "GET $name without Accept or format= has expected $format Content-Type and body as-is" '
+			CID=$(echo "{ \"test\": \"plain json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
+			curl -sD headers "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" > curl_output 2>&1 &&
+			ipfs block get $CID > ipfs_block_output 2>&1 &&
+			test_cmp ipfs_block_output curl_output &&
+			test_should_contain "Content-Disposition: ${disposition}\; filename=\"${CID}.${format}\"" headers &&
+			test_should_contain "Content-Type: application/$format" headers
+			'
+			*/
+			{
+				Name: fmt.Sprintf("GET %s without Accept or format= has expected %s Content-Type and body as-is", row.Name, row.Format),
+				Hint: `
+				No explicit format, just codec in CID
+				`,
+				Request: Request().
+					Path("ipfs/%s", plainCID),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Content-Disposition").
+							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+						Header("Content-Type").
+							Equals(fmt.Sprintf("application/%s", row.Format)),
+					).Body(
+					plainFixture.MustGetRawData(),
+				),
+			},
+			/**
+			# explicit format still gives correct output, just codec in CID
+			test_expect_success "GET $name with ?format= has expected $format Content-Type and body as-is" '
+			CID=$(echo "{ \"test\": \"plain json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
+			curl -sD headers "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=$format" > curl_output 2>&1 &&
+			ipfs block get $CID > ipfs_block_output 2>&1 &&
+			test_cmp ipfs_block_output curl_output &&
+			test_should_contain "Content-Disposition: ${disposition}\; filename=\"${CID}.${format}\"" headers &&
+			test_should_contain "Content-Type: application/$format" headers
+			'
+			*/
+			{
+				Name: fmt.Sprintf("GET %s with ?format= has expected %s Content-Type and body as-is", row.Name, row.Format),
+				Hint: `
+				Explicit format still gives correct output, just codec in CID
+				`,
+				Request: Request().
+					Path("ipfs/%s", plainCID).
+					Query("format", row.Format),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Content-Disposition").
+							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+						Header("Content-Type").
+							Equals(fmt.Sprintf("application/%s", row.Format)),
+					).Body(
+					plainFixture.MustGetRawData(),
+				),
+			},
+			/**
+			# explicit format still gives correct output, just codec in CID
+			test_expect_success "GET $name with Accept has expected $format Content-Type and body as-is" '
+			CID=$(echo "{ \"test\": \"plain json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
+			curl -sD headers -H "Accept: application/$format" "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" > curl_output 2>&1 &&
+			ipfs block get $CID > ipfs_block_output 2>&1 &&
+			test_cmp ipfs_block_output curl_output &&
+			test_should_contain "Content-Disposition: ${disposition}\; filename=\"${CID}.${format}\"" headers &&
+			test_should_contain "Content-Type: application/$format" headers
+			'
+			*/
+			{
+				Name: fmt.Sprintf("GET %s with Accept has expected %s Content-Type and body as-is", row.Name, row.Format),
+				Hint: `
+				Explicit format still gives correct output, just codec in CID
+				`,
+				Request: Request().
+					Path("ipfs/%s", plainCID).
+					Header("Accept", fmt.Sprintf("application/%s", row.Format)),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Content-Disposition").
+							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+						Header("Content-Type").
+							Equals(fmt.Sprintf("application/%s", row.Format)),
+					).Body(
+					plainFixture.MustGetRawData(),
+				),
+			},
+			/**
+			# explicit dag-* format passed, attempt to parse as dag* variant
+			## Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
+			test_expect_success "GET $name with format=dag-$format interprets $format as dag-* variant and produces expected Content-Type and body" '
+			CID=$(echo "{ \"test\": \"plain-json-that-can-also-be-dag-json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
+			curl -sD headers "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=dag-$format" > curl_output_param 2>&1 &&
+			ipfs dag get --output-codec dag-$format $CID > ipfs_dag_get_output 2>&1 &&
+			test_cmp ipfs_dag_get_output curl_output_param &&
+			test_should_contain "Content-Disposition: ${disposition}\; filename=\"${CID}.${format}\"" headers &&
+			test_should_contain "Content-Type: application/vnd.ipld.dag-$format" headers &&
+			curl -s -H "Accept: application/vnd.ipld.dag-$format" "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" > curl_output_accept 2>&1 &&
+			test_cmp curl_output_param curl_output_accept
+			'
+			*/
+			{
+				Name: fmt.Sprintf("GET %s with format=dag-%s interprets %s as dag-* variant and produces expected Content-Type and body", row.Name, row.Format, row.Format),
+				Hint: `
+				Explicit dag-* format passed, attempt to parse as dag* variant
+				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
+				`,
+				Request: Request().
+					Path("ipfs/%s", plainOrDagCID).
+					Query("format", fmt.Sprintf("dag-%s", row.Format)),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Content-Disposition").
+							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainOrDagCID, row.Format)),
+						Header("Content-Type").
+							Equals(fmt.Sprintf("application/vnd.ipld.dag-%s", row.Format)),
+					).Body(
+					plainFixture.MustGetRawData(),
+				),
+			},
+		}
+
+		test.Run(t, tests.Build())
+	}
+}
