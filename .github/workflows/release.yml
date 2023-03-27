@@ -1,31 +1,43 @@
-name: Docker
+name: Release
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag'
-        required: true
-        default: 'latest'
+  push:
+    paths: [CHANGELOG.md]
+    branches: [main]
+  pull_request:
+    paths: [CHANGELOG.md]
+    branches: [main]
 jobs:
-  docker:
-    name: Docker
+  release:
+    name: Release
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
-      - uses: docker/login-action@v2
+      - id: release
+        uses: pl-strflt/changelog-driven-release@v1
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-      - uses: docker/build-push-action@v4
+          path: CHANGELOG.md
+          draft: ${{ github.event_name == 'pull_request' }}
+      - if: github.event_name == 'pull_request' && steps.release.outputs.tag != ''
+        uses: marocchino/sticky-pull-request-comment@3d60a5b2dae89d44e0c6ddc69dd7536aec2071cd # v2.5.0
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag || 'latest' }}
+          header: release
+          recreate: true
+          message: |
+            ## [${{ steps.release.outputs.tag }}](${{ steps.release.outputs.url }})
+
+            ${{ steps.release.outputs.body }}
+      - if: github.event_name != 'pull_request' && steps.release.outputs.tag != ''
+        env:
+          RELEASE: |
+            {
+              "tag": "${{ steps.release.outputs.tag }}",
+              "tags": "${{ steps.release.outputs.tags }}",
+              "body": "${{ steps.release.outputs.body }}",
+              "url": "${{ steps.release.outputs.url }}",
+              "draft": false
+            }
+        run: jq -n "$RELEASE" > release.json
+      - if: github.event_name != 'pull_request' && steps.release.outputs.tag != ''
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: release.json
