@@ -1,7 +1,9 @@
 package check
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -223,3 +225,42 @@ func (c CheckNot) Check(v string) CheckOutput {
 }
 
 var _ Check[string] = CheckNot{}
+
+type CheckIsJSONEqual struct {
+	Value []byte
+}
+
+func IsJSONEqual(value []byte) Check[[]byte] {
+	return &CheckIsJSONEqual{
+		Value: value,
+	}
+}
+
+func areJSONEqual(b1, b2 []byte) bool {
+	var o1, o2 interface{}
+	err := json.Unmarshal(b1, &o1)
+	if err != nil {
+		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
+	}
+	err = json.Unmarshal(b2, &o2)
+	if err != nil {
+		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
+	}
+
+	return reflect.DeepEqual(o1, o2)
+}
+
+func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
+	if areJSONEqual(v, c.Value) {
+		return CheckOutput{
+			Success: true,
+		}
+	}
+
+	return CheckOutput{
+		Success: false,
+		Reason:  fmt.Sprintf("expected '%s', got '%s'", string(c.Value), string(v)),
+	}
+}
+
+var _ Check[[]byte] = &CheckIsJSONEqual{}

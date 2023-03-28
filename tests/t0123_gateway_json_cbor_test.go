@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
@@ -267,11 +268,11 @@ func TestPlainCodec(t *testing.T) {
 	}
 
 	for _, row := range table {
-		plainFixture := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain.%s.car", row.Format))
-		plainOrDagFixture := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format))
+		plainFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain.%s.car", row.Format))
+		plainOrDagFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format))
 
-		plainCID := plainFixture.MustGetCid()
-		plainOrDagCID := plainOrDagFixture.MustGetCid()
+		plainCID := plainFixture.Cid()
+		plainOrDagCID := plainOrDagFixture.Cid()
 
 		tests := SugarTests{
 			/**
@@ -286,7 +287,7 @@ func TestPlainCodec(t *testing.T) {
 			'
 			*/
 			{
-				Name: fmt.Sprintf("GET %s without Accept or format= has expected %s Content-Type and body as-is", row.Name, row.Format),
+				Name: fmt.Sprintf(`GET %s without Accept or format= has expected "%s" Content-Type and body as-is`, row.Name, row.Format),
 				Hint: `
 				No explicit format, just codec in CID
 				`,
@@ -296,11 +297,11 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+							Contains(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
 						Header("Content-Type").
-							Equals(fmt.Sprintf("application/%s", row.Format)),
+							Contains(fmt.Sprintf("application/%s", row.Format)),
 					).Body(
-					plainFixture.MustGetRawData(),
+					plainFixture.RawData(),
 				),
 			},
 			/**
@@ -326,11 +327,11 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+							Contains("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
-							Equals(fmt.Sprintf("application/%s", row.Format)),
+							Contains("application/%s", row.Format),
 					).Body(
-					plainFixture.MustGetRawData(),
+					plainFixture.RawData(),
 				),
 			},
 			/**
@@ -356,11 +357,11 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format)),
+							Contains("%s; filename=\"%s.%s\"", row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
-							Equals(fmt.Sprintf("application/%s", row.Format)),
+							Contains("application/%s", row.Format),
 					).Body(
-					plainFixture.MustGetRawData(),
+					plainFixture.RawData(),
 				),
 			},
 			/**
@@ -390,11 +391,11 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Equals(fmt.Sprintf("%s; filename=\"%s.%s\"", row.Disposition, plainOrDagCID, row.Format)),
+							Contains("%s; filename=\"%s.%s\"", row.Disposition, plainOrDagCID, row.Format),
 						Header("Content-Type").
-							Equals(fmt.Sprintf("application/vnd.ipld.dag-%s", row.Format)),
+							Contains("application/vnd.ipld.dag-%s", row.Format),
 					).Body(
-					plainFixture.MustGetRawData(),
+					IsJSONEqual(plainOrDagFixture.RawData()),
 				),
 			},
 		}

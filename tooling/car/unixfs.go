@@ -103,3 +103,29 @@ func MustOpenUnixfsCar(file string) *UnixfsDag {
 	}
 	return dag
 }
+
+func newBlockFromCar(file string) (blocks.Block, error) {
+	bs, err := blockstore.OpenReadOnly(file)
+	if err != nil {
+		return nil, err
+	}
+	root, err := bs.Roots()
+	if err != nil {
+		return nil, err
+	}
+	if len(root) != 1 {
+		return nil, fmt.Errorf("expected 1 root, got %d", len(root))
+	}
+	return bs.Get(context.Background(), root[0])
+}
+
+func MustOpenRawBlockFromCar(file string) blocks.Block {
+	fixturePath := path.Join(fixtures.Dir(), file)
+
+	block, err := newBlockFromCar(fixturePath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return block
+}
