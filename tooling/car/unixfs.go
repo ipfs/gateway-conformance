@@ -7,16 +7,14 @@ import (
 	"path"
 	"strings"
 
+	"github.com/ipfs/boxo/blockservice"
+	"github.com/ipfs/boxo/ipld/car/v2/blockstore"
+	"github.com/ipfs/boxo/ipld/merkledag"
+	"github.com/ipfs/boxo/ipld/unixfs/io"
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
-	"github.com/ipfs/go-blockservice"
+	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
-	"github.com/ipfs/go-merkledag"
-	"github.com/ipfs/go-unixfs/io"
-	"github.com/ipld/go-car/v2/blockstore"
-	"github.com/ipld/go-ipld-prime/codec/dagjson"
-	"github.com/ipld/go-ipld-prime/codec/json"
-	"github.com/multiformats/go-multicodec"
 )
 
 type UnixfsDag struct {
@@ -25,16 +23,6 @@ type UnixfsDag struct {
 	node  format.Node
 	links map[string]*UnixfsDag
 }
-
-func init() {
-	format.Register(uint64(multicodec.Json), json.Decode)
-	format.Register(uint64(multicodec.DagJson), dagjson.Decode)
-
-	// TODO: register the json codec (0x200) so that merkleDAG nodes can be decoded
-		// legacy.RegisterCodec(uint64(multicodec.Json), basicnode.Prototype.Any, )
-		// legacy.RegisterCodec(uint64(multicodec.DagJson), basicnode.Prototype.Any, )
-}
-
 
 func newUnixfsDagFromCar(file string) (*UnixfsDag, error) {
 	bs, err := blockstore.OpenReadOnly(file)
