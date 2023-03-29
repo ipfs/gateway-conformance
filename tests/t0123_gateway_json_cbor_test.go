@@ -577,10 +577,9 @@ func TestNativeDag(t *testing.T) {
 				Request: Request().
 					Path("ipfs/%s", dagTraversalCID).
 					Query("format", row.Format),
-				// TODO: implement two requests.
 				Response: Expect().
 					Status(200),
-				// TODO: equalities between requests.
+				// TODO: equalities between requests => REPLACE WITH AN ACTUAL EXPECTED RESPONSES.
 			},
 			/**
 			  test_expect_success "GET $name from /ipfs with application/vnd.ipld.dag-$format returns the same payload as the raw block" '
