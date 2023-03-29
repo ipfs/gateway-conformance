@@ -413,24 +413,12 @@ func TestPlainCodec(t *testing.T) {
 
 // ## Pathing, traversal over DAG-JSON and DAG-CBOR
 func TestPathing(t *testing.T) {
-	/**
-	  DAG_CBOR_TRAVERSAL_CID="bafyreibs4utpgbn7uqegmd2goqz4bkyflre2ek2iwv743fhvylwi4zeeim"
-	  DAG_JSON_TRAVERSAL_CID="baguqeeram5ujjqrwheyaty3w5gdsmoz6vittchvhk723jjqxk7hakxkd47xq"
-	  DAG_PB_CID="bafybeiegxwlgmoh2cny7qlolykdf7aq7g6dlommarldrbm7c4hbckhfcke"
-	*/
-	dagJSONTraversalCID := "baguqeeram5ujjqrwheyaty3w5gdsmoz6vittchvhk723jjqxk7hakxkd47xq" // TODO: load from fixture
-	dagCBORTraversalCID := "bafyreibs4utpgbn7uqegmd2goqz4bkyflre2ek2iwv743fhvylwi4zeeim"   // TODO: load from fixture
+	dagJSONTraversal := car.MustOpenRawBlockFromCar("t0123/dag-json-traversal.car")
+	dagCBORTraversal := car.MustOpenRawBlockFromCar("t0123/dag-cbor-traversal.car")
 
-	/**
-	  test_expect_success "Add CARs for path traversal and DAG-PB representation tests" '
-	  ipfs dag import ../t0123-gateway-json-cbor/dag-cbor-traversal.car > import_output &&
-	  test_should_contain $DAG_CBOR_TRAVERSAL_CID import_output &&
-	  ipfs dag import ../t0123-gateway-json-cbor/dag-json-traversal.car > import_output &&
-	  test_should_contain $DAG_JSON_TRAVERSAL_CID import_output &&
-	  ipfs dag import ../t0123-gateway-json-cbor/dag-pb.car > import_output &&
-	  test_should_contain $DAG_PB_CID import_output
-	  '
-	*/
+	dagJSONTraversalCID := dagJSONTraversal.Cid()
+	dagCBORTraversalCID := dagCBORTraversal.Cid()
+
 	tests := SugarTests{
 		/**
 		  test_expect_success "GET DAG-JSON traversal returns 501 if there is path remainder" '
