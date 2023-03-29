@@ -80,8 +80,7 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 func (d *UnixfsDag) mustGetNode(names ...string) format.Node {
 	node, err := d.getNode(names...)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 	return node
 }
