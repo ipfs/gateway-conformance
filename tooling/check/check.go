@@ -227,10 +227,15 @@ func (c CheckNot) Check(v string) CheckOutput {
 var _ Check[string] = CheckNot{}
 
 type CheckIsJSONEqual struct {
-	Value []byte
+	Value interface{}
 }
 
-func IsJSONEqual(value []byte) Check[[]byte] {
+func IsJSONEqual(value interface{}) Check[[]byte] {
+	value, err := json.Marshal(value)
+	if err != nil {
+		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
+	}
+
 	return &CheckIsJSONEqual{
 		Value: value,
 	}
@@ -251,15 +256,27 @@ func areJSONEqual(b1, b2 []byte) bool {
 }
 
 func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
-	if areJSONEqual(v, c.Value) {
+	var o interface{}
+	err := json.Unmarshal(v, &o)
+	if err != nil {
+		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case
+	}
+
+
+	if reflect.DeepEqual(o, c.Value) {
 		return CheckOutput{
 			Success: true,
 		}
 	}
 
+	b, err := json.Marshal(c.Value)
+	if err != nil {
+		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case
+	}
+
 	return CheckOutput{
 		Success: false,
-		Reason:  fmt.Sprintf("expected '%s', got '%s'", string(c.Value), string(v)),
+		Reason:  fmt.Sprintf("expected '%s', got '%s'", string(b), string(v)),
 	}
 }
 

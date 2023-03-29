@@ -205,6 +205,16 @@ func Run(t *testing.T, tests []CTest) {
 					if !output.Success {
 						localReport(t, "Body %s (%s)", output.Reason, v.Hint)
 					}
+				case check.Check[[]byte]:
+					output := v.Check(resBody)
+					if !output.Success {
+						localReport(t, "Body %s", output.Reason)
+					}
+				case check.CheckWithHint[[]byte]:
+					output := v.Check.Check(resBody)
+					if !output.Success {
+						localReport(t, "Body %s (%s)", output.Reason, v.Hint)
+					}
 				case string:
 					if string(resBody) != v {
 						localReport(t, "Body is not '%s'. It is: '%s'", v, resBody)

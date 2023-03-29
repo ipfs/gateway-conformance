@@ -61,6 +61,7 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 				d.links[l.Name] = &UnixfsDag{dsvc: d.dsvc, cid: l.Cid}
 			}
 		}
+
 		d = d.links[name]
 		if d == nil {
 			return nil, fmt.Errorf("no link named %s", strings.Join(names, "/"))

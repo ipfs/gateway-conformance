@@ -66,12 +66,12 @@ func (r RequestBuilder) Method(method string) RequestBuilder {
 	return r
 }
 
-func (r RequestBuilder) Header(k, v string) RequestBuilder {
+func (r RequestBuilder) Header(k, v string, rest ...any) RequestBuilder {
 	if r.Headers_ == nil {
 		r.Headers_ = make(map[string]string)
 	}
 
-	r.Headers_[k] = v
+	r.Headers_[k] = fmt.Sprintf(v, rest...)
 	return r
 }
 
@@ -258,4 +258,8 @@ func (h HeaderBuilder) Checks(f func(string) bool) HeaderBuilder {
 func (h HeaderBuilder) Not() HeaderBuilder {
 	h.Not_ = !h.Not_
 	return h
+}
+
+func (h HeaderBuilder) Exists() HeaderBuilder {
+	return h.Not().IsEmpty()
 }
