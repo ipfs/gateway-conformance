@@ -92,6 +92,10 @@ func TestDAgPbConversion(t *testing.T) {
 	}
 
 	for _, row := range table {
+		// ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output
+		formatedFile := fixture.MustGetFormattedDagNode("dag-"+row.Format, "ą", "ę", "file-źł.txt")
+		formatedDir := fixture.MustGetFormattedDagNode("dag-"+row.Format)
+
 		tests := SugarTests{
 			/**
 				test_expect_success "GET UnixFS file as $name with format=dag-$format converts to the expected Content-Type" '
@@ -116,8 +120,9 @@ func TestDAgPbConversion(t *testing.T) {
 							Contains("%s; filename=\"%s.%s\"", row.Disposition, fileCID, row.Format),
 						Header("Content-Type").
 							Not().Contains("application/%s", row.Format),
-					),
-				// TODO: test body `ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output`
+					).Body(
+					formatedFile,
+				),
 			},
 			/**
 			test_expect_success "GET UnixFS directory as $name with format=dag-$format converts to the expected Content-Type" '
@@ -142,8 +147,9 @@ func TestDAgPbConversion(t *testing.T) {
 							Contains("%s; filename=\"%s.%s\"", row.Disposition, dirCID, row.Format),
 						Header("Content-Type").
 							Not().Contains("application/%s", row.Format),
-					),
-				// TODO: test body `ipfs dag get --output-codec dag-$format $DIR_CID > ipfs_dag_get_output`
+					).Body(
+					formatedDir,
+				),
 			},
 			/**
 			test_expect_success "GET UnixFS as $name with 'Accept: application/vnd.ipld.dag-$format' converts to the expected Content-Type" '

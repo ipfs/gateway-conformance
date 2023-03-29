@@ -1,6 +1,7 @@
 package car
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -15,7 +16,18 @@ import (
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
+	"github.com/ipld/go-ipld-prime"
+	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
+	_ "github.com/ipld/go-ipld-prime/codec/dagjson"
+	"github.com/ipld/go-ipld-prime/multicodec"
+	mc "github.com/multiformats/go-multicodec"
 )
+
+func init() {
+	// Note we force imports of dagcbor and dagjson above.
+	// They are registering themselves with the multicodec package
+	// during their `init()`.
+}
 
 type UnixfsDag struct {
 	dsvc  format.DAGService
@@ -91,6 +103,29 @@ func (d *UnixfsDag) MustGetCid(names ...string) string {
 
 func (d *UnixfsDag) MustGetRawData(names ...string) []byte {
 	return d.mustGetNode(names...).RawData()
+}
+
+func (d *UnixfsDag) MustGetFormattedDagNode(codecStr string, names ...string) []byte {
+	var codec mc.Code
+	if err := codec.Set(codecStr); err != nil {
+		panic(err)
+	}
+
+	encoder, err := multicodec.LookupEncoder(uint64(codec))
+	if err != nil {
+		panic(fmt.Errorf("invalid encoding: %s - %s", codec, err))
+	}
+
+	output := new(bytes.Buffer)
+	node := d.mustGetNode(names...).(ipld.Node)
+
+	err = encoder(node, output)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return output.Bytes()
 }
 
 func MustOpenUnixfsCar(file string) *UnixfsDag {
