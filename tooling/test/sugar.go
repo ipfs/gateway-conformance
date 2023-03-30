@@ -158,16 +158,16 @@ func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
 func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder {
 	switch body := body.(type) {
 	case string:
-		e.Body_ = check.WithHint(
+		e.Body_ = check.WithHint[string](
 			hint,
 			check.IsEqual(body),
 		)
 	case []byte:
 		panic("body with hint for bytes is not implemented yet")
-	case check.Check[string]:
-		e.Body_ = check.WithHint(hint, body)
 	case check.CheckWithHint[string]:
 		panic("this check already has a hint")
+	case check.Check[string]:
+		e.Body_ = check.WithHint(hint, body)
 	default:
 		panic("body must be string, []byte, or a regular check")
 	}

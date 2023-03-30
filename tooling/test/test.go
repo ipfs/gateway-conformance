@@ -163,25 +163,24 @@ func Run(t *testing.T, tests []CTest) {
 					actual := res.Header.Get(key)
 
 					var output check.CheckOutput
-					var hint string
 
 					switch v := value.(type) {
 					case check.Check[string]:
 						output = v.Check(actual)
-					case check.CheckWithHint[string]:
-						output = v.Check.Check(actual)
-						hint = v.Hint
 					case string:
 						output = check.IsEqual(v).Check(actual)
 					default:
-						localReport(t, "Header check '%s' has an invalid type: %T", key, value)
+						output = check.CheckOutput{
+							Success: false,
+							Reason: fmt.Sprintf("Header check '%s' has an invalid type: %T", key, value),
+						}
 					}
 
 					if !output.Success {
-						if hint == "" {
+						if output.Hint == "" {
 							localReport(t, "Header '%s' %s", key, output.Reason)
 						} else {
-							localReport(t, "Header '%s' %s (%s)", key, output.Reason, hint)
+							localReport(t, "Header '%s' %s (%s)", key, output.Reason, output.Hint)
 						}
 					}
 				})
@@ -194,41 +193,30 @@ func Run(t *testing.T, tests []CTest) {
 					localReport(t, err)
 				}
 
+				var output check.CheckOutput
+
 				switch v := test.Response.Body.(type) {
 				case check.Check[string]:
-					output := v.Check(string(resBody))
-					if !output.Success {
-						localReport(t, "Body %s", output.Reason)
-					}
-				case check.CheckWithHint[string]:
-					output := v.Check.Check(string(resBody))
-					if !output.Success {
-						localReport(t, "Body %s (%s)", output.Reason, v.Hint)
-					}
+					output = v.Check(string(resBody))
 				case check.Check[[]byte]:
-					output := v.Check(resBody)
-					if !output.Success {
-						localReport(t, "Body %s", output.Reason)
-					}
-				case check.CheckWithHint[[]byte]:
-					output := v.Check.Check(resBody)
-					if !output.Success {
-						localReport(t, "Body %s (%s)", output.Reason, v.Hint)
-					}
+					output = v.Check(resBody)
 				case string:
-					if string(resBody) != v {
-						localReport(t, "Body is not '%s'. It is: '%s'", v, resBody)
-					}
+					output = check.IsEqual(v).Check(string(resBody))
 				case []byte:
-					if !bytes.Equal(resBody, v) {
-						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
-							localReport(t, "Body is not '%+v'. It is: '%+v'", test.Response.Body, resBody)
-						} else {
-							localReport(t, "Body is not '%s'. It is: '%s'", test.Response.Body, resBody)
-						}
-					}
+					output = check.IsEqualBytes(v).Check(resBody)
 				default:
-					localReport(t, "Body check has an invalid type: %T", test.Response.Body)
+					output = check.CheckOutput{
+						Success: false,
+						Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body),
+					}
+				}
+
+				if !output.Success {
+					if output.Hint == "" {
+						localReport(t, "Body %s", output.Reason)
+					} else {
+						localReport(t, "Body %s (%s)", output.Reason, output.Hint)
+					}
 				}
 			}
 		})
