@@ -1,11 +1,11 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
-	"github.com/ipfs/gateway-conformance/tooling/check"
-	"github.com/ipfs/gateway-conformance/tooling/test"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -69,16 +69,13 @@ func TestGatewayTar(t *testing.T) {
 					Header("Content-Disposition").Contains("attachment;"),
 					Header("Etag").Contains("W/\"%s.x-tar", fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
-				),
-				// TODO: try to compare bytes for bytes.
-				// .Body(
-				// Tar().
-				// 	IsValid().
-				// 	File("outputDir/$FILE_CID").Content(
-				// 	Equals("I am a txt file on path with utf8"),
-				// ),
-			// TODO: `tar -x` the body.
-			// TODO: test the files and contents.
+				).Body(
+				IsTarFile().
+					HasFileWithContent(
+						fileCID,
+						"I am a txt file on path with utf8\n",
+					),
+			),
 		},
 		/**
 		  test_expect_success "GET TAR with 'Accept: application/x-tar' and extract" '
@@ -102,8 +99,9 @@ func TestGatewayTar(t *testing.T) {
 					Header("Content-Disposition").Contains("attachment;"),
 					Header("Etag").Contains("W/\"%s.x-tar", fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
-				),
-			// TODO: `tar -x` the body.
+				).Body(
+				IsTarFile(),
+			),
 		},
 		/**
 		  test_expect_success "GET TAR has expected root directory" '
@@ -120,8 +118,14 @@ func TestGatewayTar(t *testing.T) {
 				Path("ipfs/%s", dirCID).
 				Query("format", "tar"),
 			Response: Expect().
-				Status(200),
-			// TODO: open the body and check its contents.
+				Status(200).
+				Body(
+					IsTarFile().
+						HasFileWithContent(
+							fmt.Sprintf("%s/ą/ę/file-źł.txt", dirCID),
+							"I am a txt file on path with utf8\n",
+						),
+				),
 		},
 		/**
 		  test_expect_success "GET TAR with explicit ?filename= succeeds with modified Content-Disposition header" "
@@ -155,7 +159,7 @@ func TestGatewayTar(t *testing.T) {
 				Query("format", "tar"),
 			Response: Expect().
 				Body(
-					check.Contains("relative UnixFS paths outside the root are now allowed"),
+					Contains("relative UnixFS paths outside the root are now allowed"),
 				),
 		},
 		/**
@@ -171,10 +175,15 @@ func TestGatewayTar(t *testing.T) {
 				Path("ipfs/%s", insideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
-				Status(200),
-			// TODO: tar and check for the file.
+				Status(200).
+				Body(
+					IsTarFile().
+						HasFile(
+							"%s/foobar/file", insideRootCID,
+						),
+				),
 		},
 	}
 
-	test.Run(t, tests.Build())
+	Run(t, tests.Build())
 }
