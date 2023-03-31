@@ -10,6 +10,9 @@ test-kubo-subdomains: provision-kubo gateway-conformance
 test-kubo: provision-kubo fixtures.car gateway-conformance
 	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
 
+test-randomizer: provision-kubo fixtures.car gateway-conformance
+	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:4242 --specs -subdomain-gateway
+
 provision-cargateway: ./fixtures.car
 	# cd go-libipfs/examples/car && go install
 	car -c ./fixtures.car &
@@ -20,6 +23,9 @@ provision-kubo:
 # tools
 fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.
+
+randomizer:
+	go build -o ./randomizer ./cmd/randomizer
 
 gateway-conformance:
 	go build -o ./gateway-conformance ./cmd/gateway-conformance
