@@ -280,24 +280,18 @@ type CheckIsJSONEqual struct {
 }
 
 func IsJSONEqual(value []byte) Check[[]byte] {
-	var result map[string]any
+	var result interface{}
 	err := json.Unmarshal(value, &result)
 	if err != nil {
 		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
 	}
 
-	fmt.Println("result:", result)
-
 	return &CheckIsJSONEqual{
-		Value: value,
+		Value: result,
 	}
 }
 
 func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
-	fmt.Println("checked value:", string(v))
-
-	fmt.Println("checking", string(v), "against", c.Value)
-
 	var o map[string]any
 	err := json.Unmarshal(v, &o)
 	if err != nil {

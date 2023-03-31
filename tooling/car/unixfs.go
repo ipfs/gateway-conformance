@@ -99,6 +99,10 @@ func (d *UnixfsDag) mustGetNode(names ...string) format.Node {
 	return node
 }
 
+func (d *UnixfsDag) MustGetNode(names ...string) *FixtureNode {
+	return &FixtureNode{node: d.mustGetNode(names...)}
+}
+
 func (d *UnixfsDag) MustGetCid(names ...string) string {
 	return d.mustGetNode(names...).Cid().String()
 }

@@ -415,15 +415,6 @@ func TestPlainCodec(t *testing.T) {
 							Contains("%s; filename=\"%s.%s\"", row.Disposition, plainOrDagCID, row.Format),
 						Header("Content-Type").
 							Contains("application/vnd.ipld.dag-%s", row.Format),
-						// TODO: decoding the block as raw data doesn't return JSON.
-						// We have to port parts of the DAG get code from KUBO
-						// We might be able to reuse the `merkledag` module, if
-						// we come up with the `legacy.Register` and `format.Register`
-						// encoders to use for JSON and Dag JSON.
-						//
-						// We want to implement someting like:
-						//).Body(
-						// IsJSONEqual(plainOrDagFixture.RawData()),
 					).Body(
 					row.Checker(d),
 				),
@@ -473,9 +464,12 @@ func TestPathing(t *testing.T) {
 				Path("ipfs/%s/foo/link/bar", dagJSONTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
-				Status(200),
-			// TODO: fix loading blocks into JSON:
-			// Body(IsJSONEqual(`{"hello": "this is not a link"}`)),
+				Status(200).
+				Body(
+					// TODO: I like that this text is readable and easy to understand.
+					// 		 but we might prefer matching abstract values, something like "IsJSONEqual(someFixture.formatedAsJSON))"
+					IsJSONEqual([]byte(`{"hello": "this is not a link"}`)),
+				),
 		},
 		/**
 		  test_expect_success "GET DAG-CBOR traversal returns 501 if there is path remainder" '
@@ -507,9 +501,12 @@ func TestPathing(t *testing.T) {
 				Path("ipfs/%s/foo/link/bar", dagCBORTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
-				Status(200),
-			// TODO: fix loading blocks into JSON:
-			// Body(IsJSONEqual(`{"hello": "this is not a link"}`)),
+				Status(200).
+				Body(
+					// TODO: I like that this text is readable and easy to understand.
+					// 		 but we might prefer matching abstract values, something like "IsJSONEqual(someFixture.formatedAsJSON))"
+					IsJSONEqual([]byte(`{"hello": "this is not a link"}`)),
+				),
 		},
 	}
 
@@ -519,15 +516,16 @@ func TestPathing(t *testing.T) {
 // ## NATIVE TESTS for DAG-JSON (0x0129) and DAG-CBOR (0x71):
 // ## DAG- regression tests for core behaviors when native DAG-(CBOR|JSON) is requested
 func TestNativeDag(t *testing.T) {
-	missingCID := "" // TODO: generate
+	missingCID := car.RandomCID()
 
 	table := []struct {
 		Name        string
 		Format      string
 		Disposition string
+		Checker     func(value []byte) Check[[]byte]
 	}{
-		{"plain JSON codec", "json", "inline"},
-		{"plain CBOR codec", "cbor", "attachment"},
+		{"plain JSON codec", "json", "inline", IsJSONEqual},
+		{"plain CBOR codec", "cbor", "attachment", IsEqualBytes},
 	}
 
 	for _, row := range table {
@@ -541,6 +539,12 @@ func TestNativeDag(t *testing.T) {
 
 		// plainCID := plainFixture.Cid()
 		// plainOrDagCID := plainOrDagFixture.Cid()
+
+		node, err := legacy.DecodeNode(context.Background(), dagTraversal)
+		if err != nil {
+			panic(err)
+		}
+		formatted := car.FormatDagNode(node, "dag-" + row.Format)
 
 		tests := SugarTests{
 			/**
@@ -558,9 +562,10 @@ func TestNativeDag(t *testing.T) {
 				Request: Request().
 					Path("ipfs/%s", dagTraversalCID),
 				Response: Expect().
-					Status(200),
-				// TODO: make this work by loading the block with the right codec:
-				// Body(IsJSONEqual(dagTraversal.RawData())),
+					Status(200).
+					Body(
+						row.Checker(formatted),
+					),
 			},
 			/**
 			  # GET dag-cbor block via Accept and ?format and ensure both are the same as `ipfs block get` output
@@ -578,9 +583,10 @@ func TestNativeDag(t *testing.T) {
 					Path("ipfs/%s", dagTraversalCID).
 					Query("format", fmt.Sprintf("dag-%s", row.Format)),
 				Response: Expect().
-					Status(200),
-				// TODO: make this work by loading the block with the right codec:
-				// Body(IsJSONEqual(dagTraversal.RawData())),
+					Status(200).
+					Body(
+						row.Checker(formatted),
+					),
 			},
 			/**
 			  test_expect_success "GET $name from /ipfs for application/$format returns the same payload as format=dag-$format" '
@@ -589,15 +595,7 @@ func TestNativeDag(t *testing.T) {
 			  test_cmp expected plain_output
 			  '
 			*/
-			{
-				Name: fmt.Sprintf("GET %s from /ipfs for application/%s returns the same payload as format=dag-%s", row.Name, row.Format, row.Format),
-				Request: Request().
-					Path("ipfs/%s", dagTraversalCID).
-					Query("format", row.Format),
-				Response: Expect().
-					Status(200),
-				// TODO: equalities between requests => REPLACE WITH AN ACTUAL EXPECTED RESPONSES.
-			},
+			// TODO(lidel): Note we disable this test, we check the payloads above.
 			/**
 			  test_expect_success "GET $name from /ipfs with application/vnd.ipld.dag-$format returns the same payload as the raw block" '
 			  ipfs block get "/ipfs/$CID" > expected_block &&
@@ -611,9 +609,10 @@ func TestNativeDag(t *testing.T) {
 					Path("ipfs/%s", dagTraversalCID).
 					Header("Accept", fmt.Sprintf("application/vnd.ipld.dag-%s", row.Format)),
 				Response: Expect().
-					Status(200),
-				// TODO: make this work by loading the block with the right codec:
-				// Body(IsJSONEqual(dagTraversal.RawData())),
+					Status(200).
+					Body(
+						row.Checker(formatted),
+					),
 			},
 			/**
 			  # Make sure DAG-* can be requested as plain JSON or CBOR and response has plain Content-Type for interop purposes
@@ -633,8 +632,10 @@ func TestNativeDag(t *testing.T) {
 					Query("format", row.Format),
 				Response: Expect().
 					Status(200).
-					Header(Header("Content-Type", "application/%s", row.Format)),
-				// TODO: equalities between requests.
+					Header(Header("Content-Type", "application/%s", row.Format)).
+					Body(
+						row.Checker(formatted),
+					),
 			},
 			/**
 			  test_expect_success "GET $name with Accept: application/$format returns same payload as application/vnd.ipld.dag-$format but with plain Content-Type" '
@@ -651,8 +652,10 @@ func TestNativeDag(t *testing.T) {
 					Header("Accept", "application/%s", row.Format),
 				Response: Expect().
 					Status(200).
-					Header(Header("Content-Type", "application/%s", row.Format)),
-				// TODO: equalities between requests.
+					Header(Header("Content-Type", "application/%s", row.Format)).
+					Body(
+						row.Checker(formatted),
+					),
 			},
 			/**
 			  # Make sure expected HTTP headers are returned with the dag- block
@@ -699,7 +702,11 @@ func TestNativeDag(t *testing.T) {
 					Query("filename", fmt.Sprintf("foobar.%s", row.Format)).
 					Header("Accept", fmt.Sprintf("application/vnd.ipld.dag-%s", row.Format)),
 				Response: Expect().
-					Header(Header("Content-Disposition").Hint("includes Content-Disposition").Contains("%s; filename=\"foobar.%s\"", row.Disposition, row.Format)),
+					Headers(
+						Header("Content-Disposition").
+						Hint("includes Content-Disposition").
+						Contains("%s; filename=\"foobar.%s\"", row.Disposition, row.Format),
+					),
 			},
 			/**
 			  test_expect_success "GET for application/vnd.ipld.dag-$format with ?download=true forces Content-Disposition: attachment" '
@@ -715,7 +722,11 @@ func TestNativeDag(t *testing.T) {
 					Query("download", "true").
 					Header("Accept", fmt.Sprintf("application/vnd.ipld.dag-%s", row.Format)),
 				Response: Expect().
-					Header(Header("Content-Disposition").Hint("includes Content-Disposition").Contains("attachment; filename=\"foobar.%s\"", row.Format)),
+					Headers(
+						Header("Content-Disposition").
+						Hint("includes Content-Disposition").
+						Contains("attachment; filename=\"foobar.%s\"", row.Format),
+					),
 			},
 			/**
 			  # Cache control HTTP headers
