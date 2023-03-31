@@ -80,9 +80,12 @@ func TestGatewayJsonCbor(t *testing.T) {
 func TestDAgPbConversion(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0123-gateway-json-cbor.car")
 
-	dirCID := fixture.MustGetCid() // root dir
-	fileCID := fixture.MustGetCid("ą", "ę", "file-źł.txt")
-	fileData := fixture.MustGetRawData("ą", "ę", "file-źł.txt")
+	dir := fixture.MustGetRoot()
+	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
+
+	dirCID := dir.Cid()
+	fileCID := file.Cid()
+	fileData := file.RawData()
 
 	table := []struct {
 		Name        string
@@ -95,8 +98,8 @@ func TestDAgPbConversion(t *testing.T) {
 
 	for _, row := range table {
 		// ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output
-		formatedFile := fixture.MustGetFormattedDagNode("dag-"+row.Format, "ą", "ę", "file-źł.txt")
-		formatedDir := fixture.MustGetFormattedDagNode("dag-" + row.Format)
+		formatedFile := file.Formatted("dag-"+row.Format)
+		formatedDir := dir.Formatted("dag-" + row.Format)
 
 		tests := SugarTests{
 			/**
