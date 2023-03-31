@@ -13,17 +13,9 @@ import (
 func TestGatewayJsonCbor(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0123-gateway-json-cbor.car")
 
-	dirCID := fixture.MustGetCid() // root dir
-	fileJSONCID := fixture.MustGetCid("ą", "ę", "t.json")
-	fileJSONData := fixture.MustGetRawData("ą", "ę", "t.json")
-	fileCID := fixture.MustGetCid("ą", "ę", "file-źł.txt")
-	fileSize := len(fixture.MustGetRawData("ą", "ę", "file-źł.txt"))
-
-	fmt.Println("rootDirCID:", dirCID)
-	fmt.Println("fileJSONCID:", fileJSONCID)
-	fmt.Println("fileJSONData:", fileJSONData)
-	fmt.Println("fileCID:", fileCID)
-	fmt.Println("fileSize:", fileSize)
+	fileJSON := fixture.MustGetNode("ą", "ę", "t.json")
+	fileJSONCID := fileJSON.Cid()
+	fileJSONData := fileJSON.RawData()
 
 	tests := SugarTests{
 		{
