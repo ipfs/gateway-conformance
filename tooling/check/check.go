@@ -142,7 +142,7 @@ type CheckIsEqualBytes struct {
 }
 
 // golang doesn't support method overloading / generic specialization
-func IsEqualBytes(value []byte) CheckIsEqualBytes {
+func IsEqualBytes(value []byte) Check[[]byte] {
 	return CheckIsEqualBytes{
 		Value: value,
 	}
@@ -160,6 +160,8 @@ func (c CheckIsEqualBytes) Check(v []byte) CheckOutput {
 		Reason:  fmt.Sprintf("expected '%v', got '%v'", c.Value, v),
 	}
 }
+
+var _ Check[[]byte] = CheckIsEqualBytes{}
 
 func IsEqualWithHint(hint string, value string, rest ...any) CheckWithHint[string] {
 	return WithHint[string](hint, IsEqual(value, rest...))
@@ -277,33 +279,26 @@ type CheckIsJSONEqual struct {
 	Value interface{}
 }
 
-func IsJSONEqual(value interface{}) Check[[]byte] {
-	value, err := json.Marshal(value)
+func IsJSONEqual(value []byte) Check[[]byte] {
+	var result map[string]any
+	err := json.Unmarshal(value, &result)
 	if err != nil {
 		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
 	}
+
+	fmt.Println("result:", result)
 
 	return &CheckIsJSONEqual{
 		Value: value,
 	}
 }
 
-func areJSONEqual(b1, b2 []byte) bool {
-	var o1, o2 interface{}
-	err := json.Unmarshal(b1, &o1)
-	if err != nil {
-		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
-	}
-	err = json.Unmarshal(b2, &o2)
-	if err != nil {
-		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case
-	}
-
-	return reflect.DeepEqual(o1, o2)
-}
-
 func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
-	var o interface{}
+	fmt.Println("checked value:", string(v))
+
+	fmt.Println("checking", string(v), "against", c.Value)
+
+	var o map[string]any
 	err := json.Unmarshal(v, &o)
 	if err != nil {
 		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case

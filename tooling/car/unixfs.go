@@ -17,8 +17,10 @@ import (
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	"github.com/ipld/go-ipld-prime"
+	_ "github.com/ipld/go-ipld-prime/codec/cbor"
 	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
 	_ "github.com/ipld/go-ipld-prime/codec/dagjson"
+	_ "github.com/ipld/go-ipld-prime/codec/json"
 	"github.com/ipld/go-ipld-prime/multicodec"
 	mc "github.com/multiformats/go-multicodec"
 )
@@ -106,6 +108,11 @@ func (d *UnixfsDag) MustGetRawData(names ...string) []byte {
 }
 
 func (d *UnixfsDag) MustGetFormattedDagNode(codecStr string, names ...string) []byte {
+	node := d.mustGetNode(names...).(ipld.Node)
+	return FormatDagNode(node, codecStr)
+}
+
+func FormatDagNode(node ipld.Node, codecStr string) []byte {
 	var codec mc.Code
 	if err := codec.Set(codecStr); err != nil {
 		panic(err)
@@ -117,7 +124,6 @@ func (d *UnixfsDag) MustGetFormattedDagNode(codecStr string, names ...string) []
 	}
 
 	output := new(bytes.Buffer)
-	node := d.mustGetNode(names...).(ipld.Node)
 
 	err = encoder(node, output)
 

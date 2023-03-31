@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	legacy "github.com/ipfs/go-ipld-legacy"
 )
 
 func TestGatewayJsonCbor(t *testing.T) {
@@ -94,7 +96,7 @@ func TestDAgPbConversion(t *testing.T) {
 	for _, row := range table {
 		// ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output
 		formatedFile := fixture.MustGetFormattedDagNode("dag-"+row.Format, "ą", "ę", "file-źł.txt")
-		formatedDir := fixture.MustGetFormattedDagNode("dag-"+row.Format)
+		formatedDir := fixture.MustGetFormattedDagNode("dag-" + row.Format)
 
 		tests := SugarTests{
 			/**
@@ -258,7 +260,6 @@ func TestDAgPbConversion(t *testing.T) {
 
 		test.Run(t, tests.Build())
 	}
-
 }
 
 // # Requesting CID with plain json (0x0200) and cbor (0x51) codecs
@@ -268,9 +269,10 @@ func TestPlainCodec(t *testing.T) {
 		Name        string
 		Format      string
 		Disposition string
+		Checker     func(value []byte) Check[[]byte]
 	}{
-		{"plain JSON codec", "json", "inline"},
-		{"plain CBOR codec", "cbor", "attachment"},
+		{"plain JSON codec", "json", "inline", IsJSONEqual},
+		{"plain CBOR codec", "cbor", "attachment", IsEqualBytes},
 	}
 
 	for _, row := range table {
@@ -279,6 +281,19 @@ func TestPlainCodec(t *testing.T) {
 
 		plainCID := plainFixture.Cid()
 		plainOrDagCID := plainOrDagFixture.Cid()
+
+		// We want to implement the equivalent of:
+		// CID=$(echo "{ \"test\": \"plain-json-that-can-also-be-dag-json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
+		// ipfs dag get --output-codec dag-$format $CID > ipfs_dag_get_output 2>&1 &&
+		// test_cmp ipfs_dag_get_output curl_output_param &&
+		g, err := legacy.DecodeNode(context.Background(), plainOrDagFixture)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		d := car.FormatDagNode(g, "dag-"+row.Format)
+
+		fmt.Println("d:", row.Format, d, string(d))
 
 		tests := SugarTests{
 			/**
@@ -409,7 +424,9 @@ func TestPlainCodec(t *testing.T) {
 						// We want to implement someting like:
 						//).Body(
 						// IsJSONEqual(plainOrDagFixture.RawData()),
-					),
+					).Body(
+					row.Checker(d),
+				),
 			},
 		}
 
