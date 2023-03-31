@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -9,7 +8,6 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
-	legacy "github.com/ipfs/go-ipld-legacy"
 )
 
 func TestGatewayJsonCbor(t *testing.T) {
@@ -98,7 +96,7 @@ func TestDAgPbConversion(t *testing.T) {
 
 	for _, row := range table {
 		// ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output
-		formatedFile := file.Formatted("dag-"+row.Format)
+		formatedFile := file.Formatted("dag-" + row.Format)
 		formatedDir := dir.Formatted("dag-" + row.Format)
 
 		tests := SugarTests{
@@ -279,24 +277,12 @@ func TestPlainCodec(t *testing.T) {
 	}
 
 	for _, row := range table {
-		plainFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain.%s.car", row.Format))
-		plainOrDagFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format))
+		plain := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain.%s.car", row.Format)).MustGetRoot()
+		plainOrDag := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format)).MustGetRoot()
+		formatted := plainOrDag.Formatted("dag-" + row.Format)
 
-		plainCID := plainFixture.Cid()
-		plainOrDagCID := plainOrDagFixture.Cid()
-
-		// We want to implement the equivalent of:
-		// CID=$(echo "{ \"test\": \"plain-json-that-can-also-be-dag-json\" }" | ipfs dag put --input-codec json --store-codec $format) &&
-		// ipfs dag get --output-codec dag-$format $CID > ipfs_dag_get_output 2>&1 &&
-		// test_cmp ipfs_dag_get_output curl_output_param &&
-		g, err := legacy.DecodeNode(context.Background(), plainOrDagFixture)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		d := car.FormatDagNode(g, "dag-"+row.Format)
-
-		fmt.Println("d:", row.Format, d, string(d))
+		plainCID := plain.Cid()
+		plainOrDagCID := plainOrDag.Cid()
 
 		tests := SugarTests{
 			/**
@@ -325,7 +311,7 @@ func TestPlainCodec(t *testing.T) {
 						Header("Content-Type").
 							Contains(fmt.Sprintf("application/%s", row.Format)),
 					).Body(
-					plainFixture.RawData(),
+					plain.RawData(),
 				),
 			},
 			/**
@@ -355,7 +341,7 @@ func TestPlainCodec(t *testing.T) {
 						Header("Content-Type").
 							Contains("application/%s", row.Format),
 					).Body(
-					plainFixture.RawData(),
+					plain.RawData(),
 				),
 			},
 			/**
@@ -385,7 +371,7 @@ func TestPlainCodec(t *testing.T) {
 						Header("Content-Type").
 							Contains("application/%s", row.Format),
 					).Body(
-					plainFixture.RawData(),
+					plain.RawData(),
 				),
 			},
 			/**
@@ -419,7 +405,7 @@ func TestPlainCodec(t *testing.T) {
 						Header("Content-Type").
 							Contains("application/vnd.ipld.dag-%s", row.Format),
 					).Body(
-					row.Checker(d),
+					row.Checker(formatted),
 				),
 			},
 		}
@@ -430,8 +416,8 @@ func TestPlainCodec(t *testing.T) {
 
 // ## Pathing, traversal over DAG-JSON and DAG-CBOR
 func TestPathing(t *testing.T) {
-	dagJSONTraversal := car.MustOpenRawBlockFromCar("t0123/dag-json-traversal.car")
-	dagCBORTraversal := car.MustOpenRawBlockFromCar("t0123/dag-cbor-traversal.car")
+	dagJSONTraversal := car.MustOpenUnixfsCar("t0123/dag-json-traversal.car").MustGetRoot()
+	dagCBORTraversal := car.MustOpenUnixfsCar("t0123/dag-cbor-traversal.car").MustGetRoot()
 
 	dagJSONTraversalCID := dagJSONTraversal.Cid()
 	dagCBORTraversalCID := dagCBORTraversal.Cid()
@@ -532,22 +518,9 @@ func TestNativeDag(t *testing.T) {
 	}
 
 	for _, row := range table {
-		dagTraversal := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/dag-%s-traversal.car", row.Format))
+		dagTraversal := car.MustOpenUnixfsCar(fmt.Sprintf("t0123/dag-%s-traversal.car", row.Format)).MustGetRoot()
 		dagTraversalCID := dagTraversal.Cid()
-		// using unix fs / merkledag loader:
-		// could not choose a decoder: no decoder registered for multicodec code 113 (0x71)
-
-		// plainFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain.%s.car", row.Format))
-		// plainOrDagFixture := car.MustOpenRawBlockFromCar(fmt.Sprintf("t0123/plain-that-can-be-dag.%s.car", row.Format))
-
-		// plainCID := plainFixture.Cid()
-		// plainOrDagCID := plainOrDagFixture.Cid()
-
-		node, err := legacy.DecodeNode(context.Background(), dagTraversal)
-		if err != nil {
-			panic(err)
-		}
-		formatted := car.FormatDagNode(node, "dag-" + row.Format)
+		formatted := dagTraversal.Formatted("dag-" + row.Format)
 
 		tests := SugarTests{
 			/**
@@ -707,8 +680,8 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Content-Disposition").
-						Hint("includes Content-Disposition").
-						Contains("%s; filename=\"foobar.%s\"", row.Disposition, row.Format),
+							Hint("includes Content-Disposition").
+							Contains("%s; filename=\"foobar.%s\"", row.Disposition, row.Format),
 					),
 			},
 			/**
@@ -727,8 +700,8 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Content-Disposition").
-						Hint("includes Content-Disposition").
-						Contains("attachment; filename=\"foobar.%s\"", row.Format),
+							Hint("includes Content-Disposition").
+							Contains("attachment; filename=\"foobar.%s\"", row.Format),
 					),
 			},
 			/**
