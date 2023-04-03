@@ -1,5 +1,8 @@
 package car
 
+// Note we force imports of dagcbor, dagjson, and other codecs below.
+// They are registering themselves with the multicodec package
+// during their `init()`.
 import (
 	"bytes"
 	"context"
@@ -23,12 +26,6 @@ import (
 	"github.com/ipld/go-ipld-prime/multicodec"
 	mc "github.com/multiformats/go-multicodec"
 )
-
-func init() {
-	// Note we force imports of dagcbor and dagjson above.
-	// They are registering themselves with the multicodec package
-	// during their `init()`.
-}
 
 type UnixfsDag struct {
 	dsvc  format.DAGService
