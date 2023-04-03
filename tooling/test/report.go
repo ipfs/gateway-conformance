@@ -43,15 +43,11 @@ func safeDumpResponse(res *http.Response) (b []byte, err error) {
 		return []byte("nil"), nil
 	}
 
-	// Attempt to dump the response with the body included
-	defer func() {
-		if r := recover(); r != nil {
-			// If a panic occurred, dump the response again without the body
-			b, err = httputil.DumpResponse(res, false)
-		}
-	}()
-
 	b, err = httputil.DumpResponse(res, true)
+
+	if err != nil {
+		b, err = httputil.DumpResponse(res, false)
+	}
 
 	return b, err
 }
