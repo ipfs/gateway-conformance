@@ -37,9 +37,16 @@ func (c *CheckIsTarFile) Check(v []byte) CheckOutput {
 	r := bytes.NewReader(v)
 	tr := tar.NewReader(r)
 
-	foundFiles := make(map[string]bool)
-	foundFilesWithContent := make(map[string]bool)
-	fileContents := make(map[string]string)
+	searchedFiles := make(map[string]bool)
+	filenames := make([]string, 0, len(c.fileNames))
+
+	for _, fileName := range c.fileNames {
+		searchedFiles[fileName] = false
+	}
+
+	for fileName := range c.filesWithContent {
+		searchedFiles[fileName] = false
+	}
 
 	for {
 		hdr, err := tr.Next()
@@ -61,39 +68,32 @@ func (c *CheckIsTarFile) Check(v []byte) CheckOutput {
 				Reason:  fmt.Sprintf("failed to read file '%s' content: %v", hdr.Name, err),
 			}
 		}
-		fileContents[hdr.Name] = buf.String()
 
-		for _, fileName := range c.fileNames {
-			if hdr.Name == fileName {
-				foundFiles[fileName] = true
-			}
+		filenames = append(filenames, hdr.Name)
+
+		if _, ok := searchedFiles[hdr.Name]; ok {
+			searchedFiles[hdr.Name] = true
 		}
 
-		if content, ok := c.filesWithContent[hdr.Name]; ok {
-			if buf.String() == content {
-				foundFilesWithContent[hdr.Name] = true
-			}
-		}
-	}
+		if _, ok := c.filesWithContent[hdr.Name]; ok {
+			content := buf.String()
 
-	for _, fileName := range c.fileNames {
-		if !foundFiles[fileName] {
-			var fileList strings.Builder
-			for name := range fileContents {
-				fileList.WriteString(fmt.Sprintf("'%s', ", name))
-			}
-			return CheckOutput{
-				Success: false,
-				Reason:  fmt.Sprintf("file '%s' not found in tar archive. Found files: [%s]", fileName, fileList.String()),
+			if content != c.filesWithContent[hdr.Name] {
+				return CheckOutput{
+					Success: false,
+					Reason:  fmt.Sprintf("file '%s' with expected content '%s' not found in tar archive. Actual content: '%s'", hdr.Name, c.filesWithContent[hdr.Name], content),
+				}
 			}
 		}
 	}
 
-	for fileName, content := range c.filesWithContent {
-		if !foundFilesWithContent[fileName] {
+	for name, found := range searchedFiles {
+		if !found {
+			allFiles := strings.Join(filenames, ", ")
+
 			return CheckOutput{
 				Success: false,
-				Reason:  fmt.Sprintf("file '%s' with expected content '%s' not found in tar archive. Actual content: '%s'", fileName, content, fileContents[fileName]),
+				Reason:  fmt.Sprintf("file '%s' not found in tar archive. Found files: [%s]", name, allFiles),
 			}
 		}
 	}
