@@ -11,8 +11,13 @@ import (
 func TestGatewayCache(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0116-gateway-cache.car")
 
-	var ipnsId string
-	var etag string
+	// TODO: Add ipns record support to fixtures and enable the ipns tests
+	// https://specs.ipfs.tech/http-gateways/path-gateway/#get-ipns-name-path-params
+	// var ipnsId string
+
+	// TODO: Add request chaining support to the test framework and enable the etag tests
+	// https://specs.ipfs.tech/http-gateways/path-gateway/#etag-response-header
+	// var etag string
 
 	tests := SugarTests{
 		{
@@ -192,6 +197,8 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
+		// The tests below require `ipnsId` to be set.
+		/*
 		{
 			Name: "GET for /ipns/ unixfs dir listing succeeds",
 			Request: Request().
@@ -277,6 +284,9 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
+		*/
+		// The tests below require `etag` to be set.
+		/*
 		{
 			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
@@ -297,6 +307,7 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
+		*/
 	}.Build()
 
 	Run(t, tests)
