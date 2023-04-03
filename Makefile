@@ -43,4 +43,4 @@ output.html: output.xml
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:output.html
 	open ./output.html
 
-.PHONY: gateway-conformance
+.PHONY: gateway-conformance randomizer
