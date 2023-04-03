@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -93,8 +94,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()).
 				Headers(
-					Header("Cache-Control").
-						Equals("only-if-cached"),
+					Header("Cache-Control", "only-if-cached"),
 				).
 				Method("HEAD"),
 			Response: Expect().
@@ -105,8 +105,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN").
 				Headers(
-					Header("Cache-Control").
-						Equals("only-if-cached"),
+					Header("Cache-Control", "only-if-cached"),
 				).
 				Method("HEAD"),
 			Response: Expect().
@@ -117,8 +116,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()).
 				Headers(
-					Header("Cache-Control").
-						Equals("only-if-cached"),
+					Header("Cache-Control", "only-if-cached"),
 				),
 			Response: Expect().
 				Status(200),
@@ -128,8 +126,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/QmYzfKSE55XCjD1MW128RfciAf2DViABhEiXfgVFMabSjN").
 				Headers(
-					Header("Cache-Control").
-						Equals("only-if-cached"),
+					Header("Cache-Control", "only-if-cached"),
 				),
 			Response: Expect().
 				Status(412),
@@ -139,8 +136,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -150,8 +146,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4")),
+					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -161,8 +156,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("\"fakeEtag1\", \"fakeEtag2\", \"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+					Header("If-None-Match", fmt.Sprintf("\"fakeEtag1\", \"fakeEtag2\", \"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -172,8 +166,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("W/\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+					Header("If-None-Match", fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -183,8 +176,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("*"),
+					Header("If-None-Match", "*"),
 				),
 			Response: Expect().
 				Status(304),
@@ -194,8 +186,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match").
-						Equals("W/\"%s\"", fixture.MustGetCid("root2", "root3")),
+					Header("If-None-Match", fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3"))),
 				),
 			Response: Expect().
 				Status(304),
