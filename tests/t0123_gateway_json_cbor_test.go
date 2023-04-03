@@ -105,7 +105,8 @@ func TestDAgPbConversion(t *testing.T) {
 			{
 				Name: fmt.Sprintf("GET UnixFS file as %s with format=dag-%s converts to the expected Content-Type", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/%s?format=dag-%s", fileCID, row.Format),
+					Path("ipfs/%s", fileCID).
+					Query("format", "dag-"+row.Format),
 				Response: Expect().
 					Status(200).
 					Headers(
