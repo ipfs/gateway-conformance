@@ -26,6 +26,11 @@ var messedHeaders = map[string]Messer {
 	"Content-Disposition": swapRandomStrings,
 	"Content-Features": swapRandomStrings,
 	"Content-Security-Policy": swapRandomStrings,
+	"Cached-Control": swapRandomStrings,
+	"X-Ipfs-Path": swapRandomStrings,
+	"X-Ipfs-Roots": swapRandomStrings,
+	"Etag": swapRandomStrings,
+	"Location": swapRandomStrings,
 }
 
 func main() {
