@@ -9,7 +9,6 @@ import (
 	"text/template"
 )
 
-
 type ReportInput struct {
 	Req  *http.Request
 	Res  *http.Response
@@ -53,7 +52,7 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			if v == nil {
 				return "nil"
 			}
-			
+
 			var b []byte
 			var err error
 			switch v := v.(type) {
@@ -71,7 +70,7 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			if err != nil {
 				panic(err)
 			}
-			
+
 			return string(b)
 		},
 	}).Parse(TEMPLATE)

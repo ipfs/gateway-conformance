@@ -25,7 +25,6 @@ var SubdomainGatewayURL = strings.TrimRight(
 	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com"),
 	"/")
 
-
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""
