@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // list of all headers we want to mess with.
@@ -26,11 +27,29 @@ var messedHeaders = map[string]Messer {
 	"Content-Disposition": swapRandomStrings,
 	"Content-Features": swapRandomStrings,
 	"Content-Security-Policy": swapRandomStrings,
-	"Cached-Control": swapRandomStrings,
+	"Cache-Control": swapRandomStrings,
 	"X-Ipfs-Path": swapRandomStrings,
 	"X-Ipfs-Roots": swapRandomStrings,
+	"X-Content-Type-Options": swapRandomStrings,
 	"Etag": swapRandomStrings,
 	"Location": swapRandomStrings,
+	"Accept-Ranges": swapRandomStrings,
+	"If-None-Match": swapRandomStrings,
+}
+
+func init() {
+	// go through all the headers and just switch to lowercase keys:
+	for k, v := range messedHeaders {
+		kk := strings.ToLower(k)
+		fmt.Println("Replacing:", k, "with:", kk)
+		delete(messedHeaders, k)
+		messedHeaders[kk] = v
+	}
+
+	// print all kv in messedHeaders
+	for k, v := range messedHeaders {
+		fmt.Println("messedHeaders:", k, v)
+	}
 }
 
 func main() {
@@ -57,7 +76,9 @@ func main() {
 		// Swap two random bytes in the response headers
 		for k, v := range resp.Header {
 			// ignore most headers
-			if _, ok := messedHeaders[k]; !ok {
+			kk := strings.ToLower(k)
+			if _, ok := messedHeaders[kk]; !ok {
+				fmt.Println("could not find:", kk, "in messedHeaders")
 				continue
 			}
 
@@ -68,6 +89,8 @@ func main() {
 		// Swap two random bytes in the response body
 		swapRandomBytesReader := &swapRandomBytesReader{Reader: resp.Body}
 		resp.Body = swapRandomBytesReader
+
+		resp.StatusCode = resp.StatusCode + 1
 
 		return nil
 	}
