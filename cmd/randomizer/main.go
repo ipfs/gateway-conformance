@@ -16,25 +16,29 @@ import (
 // It's a map from string to bool to make finding a header quick
 type Messer func([]string)
 
-var messedHeaders = map[string]Messer {
+var messedHeaders = map[string]Messer{
 	"Content-Type": swapRandomStrings,
 	// "Content-Length": swapRandomNumbers,
-	"Content-Encoding": swapRandomStrings,
-	"Content-Language": swapRandomStrings,
-	"Content-Location": swapRandomStrings,
-	"Content-MD5": swapRandomStrings,
-	"Content-Range": swapRandomStrings,
-	"Content-Disposition": swapRandomStrings,
-	"Content-Features": swapRandomStrings,
+	"Content-Encoding":        swapRandomStrings,
+	"Content-Language":        swapRandomStrings,
+	"Content-Location":        swapRandomStrings,
+	"Content-MD5":             swapRandomStrings,
+	"Content-Range":           swapRandomStrings,
+	"Content-Disposition":     swapRandomStrings,
+	"Content-Features":        swapRandomStrings,
 	"Content-Security-Policy": swapRandomStrings,
-	"Cache-Control": swapRandomStrings,
-	"X-Ipfs-Path": swapRandomStrings,
-	"X-Ipfs-Roots": swapRandomStrings,
-	"X-Content-Type-Options": swapRandomStrings,
-	"Etag": swapRandomStrings,
-	"Location": swapRandomStrings,
-	"Accept-Ranges": swapRandomStrings,
-	"If-None-Match": swapRandomStrings,
+	"Cache-Control":           swapRandomStrings,
+	"X-Ipfs-Path":             swapRandomStrings,
+	"X-Ipfs-Roots":            swapRandomStrings,
+	"X-Content-Type-Options":  swapRandomStrings,
+	"Etag":                    swapRandomStrings,
+	"Location":                swapRandomStrings,
+	"Accept-Ranges":           swapRandomStrings,
+	"If-None-Match":           swapRandomStrings,
+}
+
+var addedHeaders = map[string]string{
+	"Cache-Control": "no-cache",
 }
 
 func init() {
@@ -86,6 +90,16 @@ func main() {
 			fmt.Println("messed:", k, v)
 			resp.Header[k] = v
 		}
+
+		// randomly add headers that do not exists
+		for k, v := range addedHeaders {
+			if rand.Intn(10) > 1 || resp.Header.Get(k) != "" {
+				continue
+			}
+
+			resp.Header[k] = []string{v}
+		}
+
 		// Swap two random bytes in the response body
 		swapRandomBytesReader := &swapRandomBytesReader{Reader: resp.Body}
 		resp.Body = swapRandomBytesReader
