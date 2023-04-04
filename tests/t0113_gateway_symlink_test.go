@@ -4,33 +4,46 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewaySymlink(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0113-gateway-symlink.car")
+	rootDirCID := fixture.MustGetCid()
 
-	tests := []CTest{
+	tests := SugarTests{
 		{
 			Name: "Test the directory listing",
 			Request: Request().
-				Path("ipfs/%s?format=raw", fixture.MustGetCid()).Request(),
+				Path("ipfs/%s/", rootDirCID),
+			Response: Expect().
+				Body(
+					And(
+						Contains(">foo<"),
+						Contains(">bar<"),
+					),
+				),
+		},
+		{
+			Name: "Test the directory raw query",
+			Request: Request().
+				Path("ipfs/%s", rootDirCID).
+				Query("format", "raw"),
 			Response: Expect().
 				Status(200).
-				Body(fixture.MustGetRawData()).
-				Response(),
+				Body(fixture.MustGetRawData()),
 		},
 		{
 			Name: "Test the symlink",
 			Request: Request().
-				Path("ipfs/%s/bar", fixture.MustGetCid()).Request(),
+				Path("ipfs/%s/bar", rootDirCID),
 			Response: Expect().
 				Status(200).
-				Bytes("foo").
-				Response(),
+				Bytes("foo"),
 		},
 	}
 
-	test.Run(t, tests)
+	test.Run(t, tests.Build())
 }

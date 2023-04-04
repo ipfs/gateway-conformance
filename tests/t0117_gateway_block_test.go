@@ -11,6 +11,7 @@ import (
 
 func TestGatewayBlock(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0117-gateway-block.car")
+	
 	tests := SugarTests{
 		{
 			Name: "GET with format=raw param returns a raw block",
