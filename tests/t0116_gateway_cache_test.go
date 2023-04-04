@@ -15,9 +15,8 @@ func TestGatewayCache(t *testing.T) {
 	// https://specs.ipfs.tech/http-gateways/path-gateway/#get-ipns-name-path-params
 	// var ipnsId string
 
-	// TODO: Add request chaining support to the test framework and enable the etag tests
 	// https://specs.ipfs.tech/http-gateways/path-gateway/#etag-response-header
-	// var etag string
+	var etag string
 
 	tests := SugarTests{
 		{
@@ -285,29 +284,46 @@ func TestGatewayCache(t *testing.T) {
 				Status(304),
 		},
 		*/
-		// The tests below require `etag` to be set.
-		/*
 		{
+			Name: "GET for /ipfs/ dir listing responds with Etag",
+			Request: Request().
+				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Etag").
+						Checks(func (v string) bool {
+							etag = v
+							return v != ""
+						}),
+				),
+		},
+		{
+			// DependsOn: "GET for /ipfs/ dir listing responds with Etag"
 			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
 				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"%s\"", etag)),
+					Header("If-None-Match").
+						ValueFrom(&etag),
 				),
 			Response: Expect().
 				Status(304),
 		},
 		{
+			// DependsOn: "GET for /ipfs/ dir listing responds with Etag"
 			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
 				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("W/\"%s\"", etag)),
+					Header("If-None-Match").
+						ValueFromFunc(func () string {
+							return fmt.Sprintf("W/%s", etag)
+						}),
 				),
 			Response: Expect().
 				Status(304),
 		},
-		*/
 	}
 
 	Run(t, tests)
