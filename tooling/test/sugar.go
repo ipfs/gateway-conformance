@@ -8,15 +8,15 @@ import (
 )
 
 type RequestBuilder struct {
-	Method_               string                      `json:"method,omitempty"`
-	Path_                 string                      `json:"path,omitempty"`
-	URL_                  string                      `json:"url,omitempty"`
-	Proxy_                string                      `json:"proxy,omitempty"`
-	UseProxyTunnel_       bool                        `json:"useProxyTunnel,omitempty"`
-	Headers_              map[string]Provider[string] `json:"headers,omitempty"`
-	DoNotFollowRedirects_ bool                        `json:"doNotFollowRedirects,omitempty"`
-	Query_                url.Values                  `json:"query,omitempty"`
-	Body_                 []byte                      `json:"body,omitempty"`
+	Method_               string          `json:"method,omitempty"`
+	Path_                 string          `json:"path,omitempty"`
+	URL_                  string          `json:"url,omitempty"`
+	Proxy_                string          `json:"proxy,omitempty"`
+	UseProxyTunnel_       bool            `json:"useProxyTunnel,omitempty"`
+	Headers_              []HeaderBuilder `json:"headers,omitempty"`
+	DoNotFollowRedirects_ bool            `json:"doNotFollowRedirects,omitempty"`
+	Query_                url.Values      `json:"query,omitempty"`
+	Body_                 []byte          `json:"body,omitempty"`
 }
 
 func Request() RequestBuilder {
@@ -69,21 +69,19 @@ func (r RequestBuilder) Method(method string) RequestBuilder {
 
 func (r RequestBuilder) Header(k, v string) RequestBuilder {
 	if r.Headers_ == nil {
-		r.Headers_ = make(map[string]Provider[string])
+		r.Headers_ = make([]HeaderBuilder, 0)
 	}
 
-	r.Headers_[k] = StringProvider(v)
+	r.Headers_ = append(r.Headers_, Header(k, v))
 	return r
 }
 
 func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 	if r.Headers_ == nil {
-		r.Headers_ = make(map[string]Provider[string])
+		r.Headers_ = make([]HeaderBuilder, 0)
 	}
 
-	for _, h := range hs {
-		r.Headers_[h.Key_] = h.Value_
-	}
+	r.Headers_ = append(r.Headers_, hs...)
 	return r
 }
 

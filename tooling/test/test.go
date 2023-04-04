@@ -99,12 +99,14 @@ func Run(t *testing.T, tests SugarTests) {
 			}
 
 			// add headers
-			for key, value := range request.Headers_ {
-				req.Header.Add(key, value.Get())
+			for _, header := range request.Headers_ {
+				key := header.Key_
+				value := header.Value_.Get()
+				req.Header.Add(key, value)
 
 				// https://github.com/golang/go/issues/7682
 				if key == "Host" {
-					req.Host = value.Get()
+					req.Host = value
 				}
 			}
 
