@@ -23,10 +23,10 @@ Hint: {{.Test.Hint}}
 Error: {{.Err}}
 
 Request:
-{{.Test.Request.Request() | json}}
+{{.Test.Request | json}}
 
 Expected Response:
-{{.Test.Response.Response() | json}}
+{{.Test.Response | json}}
 
 Actual Request:
 {{.Req | dump}}

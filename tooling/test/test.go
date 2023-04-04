@@ -5,30 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
-
-type CRequest struct {
-	Method               string            `json:"method,omitempty"`
-	URL                  string            `json:"url,omitempty"`
-	Query                url.Values        `json:"query,omitempty"`
-	Proxy                string            `json:"proxy,omitempty"`
-	UseProxyTunnel       bool              `json:"useProxyTunnel,omitempty"`
-	DoNotFollowRedirects bool              `json:"doNotFollowRedirects,omitempty"`
-	Path                 string            `json:"path,omitempty"`
-	Subdomain            string            `json:"subdomain,omitempty"`
-	Headers              map[string]string `json:"headers,omitempty"`
-	Body                 []byte            `json:"body,omitempty"`
-}
-
-type CResponse struct {
-	StatusCode int                    `json:"statusCode,omitempty"`
-	Headers    map[string]interface{} `json:"headers,omitempty"`
-	Body       interface{}            `json:"body,omitempty"`
-}
 
 type SugarTest struct {
 	Name     string
@@ -44,10 +24,10 @@ func Run(t *testing.T, tests SugarTests) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			request := test.Request.Request()
-			response := test.Response.Response()
+			request := test.Request
+			response := test.Response
 
-			method := request.Method
+			method := request.Method_
 			if method == "" {
 				method = "GET"
 			}
@@ -55,17 +35,17 @@ func Run(t *testing.T, tests SugarTests) {
 			// Prepare a client,
 			// use proxy, deal with redirects, etc.
 			client := &http.Client{}
-			if request.UseProxyTunnel {
-				if request.Proxy == "" {
+			if request.UseProxyTunnel_ {
+				if request.Proxy_ == "" {
 					t.Fatal("ProxyTunnel requires a proxy")
 				}
 
-				client = NewProxyTunnelClient(request.Proxy)
-			} else if request.Proxy != "" {
-				client = NewProxyClient(request.Proxy)
+				client = NewProxyTunnelClient(request.Proxy_)
+			} else if request.Proxy_ != "" {
+				client = NewProxyClient(request.Proxy_)
 			}
 
-			if request.DoNotFollowRedirects {
+			if request.DoNotFollowRedirects_ {
 				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
 				}
@@ -89,27 +69,27 @@ func Run(t *testing.T, tests SugarTests) {
 			}
 
 			var url string
-			if request.URL != "" && request.Path != "" {
+			if request.URL_ != "" && request.Path_ != "" {
 				localReport(t, "Both 'URL' and 'Path' are set")
 			}
-			if request.URL == "" && request.Path == "" {
+			if request.URL_ == "" && request.Path_ == "" {
 				localReport(t, "Neither 'URL' nor 'Path' are set")
 			}
-			if request.URL != "" {
-				url = request.URL
+			if request.URL_ != "" {
+				url = request.URL_
 			}
-			if request.Path != "" {
-				url = fmt.Sprintf("%s/%s", GatewayURL, request.Path)
+			if request.Path_ != "" {
+				url = fmt.Sprintf("%s/%s", GatewayURL, request.Path_)
 			}
 
-			query := request.Query.Encode()
+			query := request.Query_.Encode()
 			if query != "" {
 				url = fmt.Sprintf("%s?%s", url, query)
 			}
 
 			var body io.Reader
-			if request.Body != nil {
-				body = bytes.NewBuffer(request.Body)
+			if request.Body_ != nil {
+				body = bytes.NewBuffer(request.Body_)
 			}
 
 			// create a request
@@ -119,7 +99,7 @@ func Run(t *testing.T, tests SugarTests) {
 			}
 
 			// add headers
-			for key, value := range request.Headers {
+			for key, value := range request.Headers_ {
 				req.Header.Add(key, value)
 
 				// https://github.com/golang/go/issues/7682
@@ -135,49 +115,36 @@ func Run(t *testing.T, tests SugarTests) {
 				localReport(t, "Querying %s failed: %s", url, err)
 			}
 
-			if response.StatusCode != 0 {
-				if res.StatusCode != response.StatusCode {
-					localReport(t, "Status code is not %d. It is %d", response.StatusCode, res.StatusCode)
+			if response.StatusCode_ != 0 {
+				if res.StatusCode != response.StatusCode_ {
+					localReport(t, "Status code is not %d. It is %d", response.StatusCode_, res.StatusCode)
 				}
 			}
 
-			for key, value := range response.Headers {
-				t.Run(fmt.Sprintf("Header %s", key), func(t *testing.T) {
-					actual := res.Header.Get(key)
-
-					var output check.CheckOutput
-					var hint string
-
-					switch v := value.(type) {
-					case check.Check[string]:
-						output = v.Check(actual)
-					case check.CheckWithHint[string]:
-						output = v.Check.Check(actual)
-						hint = v.Hint
-					case string:
-						output = check.IsEqual(v).Check(actual)
-					default:
-						localReport(t, "Header check '%s' has an invalid type: %T", key, value)
-					}
+			for _, header := range response.Headers_ {
+				t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
+					actual := res.Header.Get(header.Key_)
+					output := header.Check_.Check(actual)
+					hint := header.Hint_
 
 					if !output.Success {
 						if hint == "" {
-							localReport(t, "Header '%s' %s", key, output.Reason)
+							localReport(t, "Header '%s' %s", header.Key_, output.Reason)
 						} else {
-							localReport(t, "Header '%s' %s (%s)", key, output.Reason, hint)
+							localReport(t, "Header '%s' %s (%s)", header.Key_, output.Reason, hint)
 						}
 					}
 				})
 			}
 
-			if response.Body != nil {
+			if response.Body_ != nil {
 				defer res.Body.Close()
 				resBody, err := io.ReadAll(res.Body)
 				if err != nil {
 					localReport(t, err)
 				}
 
-				switch v := response.Body.(type) {
+				switch v := response.Body_.(type) {
 				case check.Check[string]:
 					output := v.Check(string(resBody))
 					if !output.Success {
@@ -195,13 +162,13 @@ func Run(t *testing.T, tests SugarTests) {
 				case []byte:
 					if !bytes.Equal(resBody, v) {
 						if res.Header.Get("Content-Type") == "application/vnd.ipld.raw" {
-							localReport(t, "Body is not '%+v'. It is: '%+v'", response.Body, resBody)
+							localReport(t, "Body is not '%+v'. It is: '%+v'", response.Body_, resBody)
 						} else {
-							localReport(t, "Body is not '%s'. It is: '%s'", response.Body, resBody)
+							localReport(t, "Body is not '%s'. It is: '%s'", response.Body_, resBody)
 						}
 					}
 				default:
-					localReport(t, "Body check has an invalid type: %T", response.Body)
+					localReport(t, "Body check has an invalid type: %T", response.Body_)
 				}
 			}
 		})
