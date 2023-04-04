@@ -43,7 +43,7 @@ func TestGatewayCar(t *testing.T) {
 						Equals("none"),
 				),
 		},
-	}.Build()
+	}
 
 	Run(t, tests)
 }

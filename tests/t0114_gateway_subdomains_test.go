@@ -22,10 +22,10 @@ func TestGatewaySubdomains(t *testing.T) {
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
 	CIDWikipedia := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
 
-	tests := []CTest{}
+	tests := SugarTests{}
 
 	// sugar: readable way to add more tests
-	with := func(moreTests []CTest) {
+	with := func(moreTests SugarTests) {
 		tests = append(tests, moreTests...)
 	}
 
@@ -64,7 +64,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					We return body with HTTP 301 so existing cli scripts that use path-based
 					gateway do not break (curl doesn't auto-redirect without passing -L; wget
 					does not span across hostnames by default)
-					Context: https://github.com/ipfs/go-ipfs/issues/6975					
+					Context: https://github.com/ipfs/go-ipfs/issues/6975
 				`,
 					IsEqual("hello\n"),
 				),
@@ -374,7 +374,7 @@ func TestGatewaySubdomains(t *testing.T) {
 	}
 }
 
-func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqURL interface{}, expected ExpectBuilder) []CTest {
+func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqURL interface{}, expected ExpectBuilder) SugarTests {
 	t.Helper()
 
 	baseURL := ""
@@ -447,5 +447,5 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 				),
 			Response: expected,
 		},
-	}.Build()
+	}
 }

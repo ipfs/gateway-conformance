@@ -306,7 +306,7 @@ func TestGatewayCache(t *testing.T) {
 				Status(304),
 		},
 		*/
-	}.Build()
+	}
 
 	Run(t, tests)
 }

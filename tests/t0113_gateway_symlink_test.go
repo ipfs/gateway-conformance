@@ -45,5 +45,5 @@ func TestGatewaySymlink(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests.Build())
+	test.Run(t, tests)
 }

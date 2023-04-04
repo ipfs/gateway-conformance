@@ -5,37 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
-
-type CRequest struct {
-	Method               string            `json:"method,omitempty"`
-	URL                  string            `json:"url,omitempty"`
-	Query                url.Values        `json:"query,omitempty"`
-	Proxy                string            `json:"proxy,omitempty"`
-	UseProxyTunnel       bool              `json:"useProxyTunnel,omitempty"`
-	DoNotFollowRedirects bool              `json:"doNotFollowRedirects,omitempty"`
-	Path                 string            `json:"path,omitempty"`
-	Subdomain            string            `json:"subdomain,omitempty"`
-	Headers              map[string]string `json:"headers,omitempty"`
-	Body                 []byte            `json:"body,omitempty"`
-}
-
-type CResponse struct {
-	StatusCode int                    `json:"statusCode,omitempty"`
-	Headers    map[string]interface{} `json:"headers,omitempty"`
-	Body       interface{}            `json:"body,omitempty"`
-}
-
-type CTest struct {
-	Name     string    `json:"name,omitempty"`
-	Hint     string    `json:"hint,omitempty"`
-	Request  CRequest  `json:"request,omitempty"`
-	Response CResponse `json:"response,omitempty"`
-}
 
 type SugarTest struct {
 	Name     string
@@ -46,25 +19,12 @@ type SugarTest struct {
 
 type SugarTests []SugarTest
 
-func (s SugarTests) Build() []CTest {
-	var tests []CTest
-	for _, test := range s {
-		tests = append(tests, CTest{
-			Name:     test.Name,
-			Hint:     test.Hint,
-			Request:  test.Request.Request(),
-			Response: test.Response.Response(),
-		})
-	}
-	return tests
-}
-
-func Run(t *testing.T, tests []CTest) {
+func Run(t *testing.T, tests SugarTests) {
 	// NewDialer()
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			method := test.Request.Method
+			method := test.Request.Method_
 			if method == "" {
 				method = "GET"
 			}
@@ -72,17 +32,17 @@ func Run(t *testing.T, tests []CTest) {
 			// Prepare a client,
 			// use proxy, deal with redirects, etc.
 			client := &http.Client{}
-			if test.Request.UseProxyTunnel {
-				if test.Request.Proxy == "" {
+			if test.Request.UseProxyTunnel_ {
+				if test.Request.Proxy_ == "" {
 					t.Fatal("ProxyTunnel requires a proxy")
 				}
 
-				client = NewProxyTunnelClient(test.Request.Proxy)
-			} else if test.Request.Proxy != "" {
-				client = NewProxyClient(test.Request.Proxy)
+				client = NewProxyTunnelClient(test.Request.Proxy_)
+			} else if test.Request.Proxy_ != "" {
+				client = NewProxyClient(test.Request.Proxy_)
 			}
 
-			if test.Request.DoNotFollowRedirects {
+			if test.Request.DoNotFollowRedirects_ {
 				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
 				}
@@ -106,27 +66,27 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			var url string
-			if test.Request.URL != "" && test.Request.Path != "" {
+			if test.Request.URL_ != "" && test.Request.Path_ != "" {
 				localReport(t, "Both 'URL' and 'Path' are set")
 			}
-			if test.Request.URL == "" && test.Request.Path == "" {
+			if test.Request.URL_ == "" && test.Request.Path_ == "" {
 				localReport(t, "Neither 'URL' nor 'Path' are set")
 			}
-			if test.Request.URL != "" {
-				url = test.Request.URL
+			if test.Request.URL_ != "" {
+				url = test.Request.URL_
 			}
-			if test.Request.Path != "" {
-				url = fmt.Sprintf("%s/%s", GatewayURL, test.Request.Path)
+			if test.Request.Path_ != "" {
+				url = fmt.Sprintf("%s/%s", GatewayURL, test.Request.Path_)
 			}
 
-			query := test.Request.Query.Encode()
+			query := test.Request.Query_.Encode()
 			if query != "" {
 				url = fmt.Sprintf("%s?%s", url, query)
 			}
 
 			var body io.Reader
-			if test.Request.Body != nil {
-				body = bytes.NewBuffer(test.Request.Body)
+			if test.Request.Body_ != nil {
+				body = bytes.NewBuffer(test.Request.Body_)
 			}
 
 			// create a request
@@ -136,7 +96,7 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			// add headers
-			for key, value := range test.Request.Headers {
+			for key, value := range test.Request.Headers_ {
 				req.Header.Add(key, value)
 
 				// https://github.com/golang/go/issues/7682
@@ -152,41 +112,28 @@ func Run(t *testing.T, tests []CTest) {
 				localReport(t, "Querying %s failed: %s", url, err)
 			}
 
-			if test.Response.StatusCode != 0 {
-				if res.StatusCode != test.Response.StatusCode {
-					localReport(t, "Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+			if test.Response.StatusCode_ != 0 {
+				if res.StatusCode != test.Response.StatusCode_ {
+					localReport(t, "Status code is not %d. It is %d", test.Response.StatusCode_, res.StatusCode)
 				}
 			}
 
-			for key, value := range test.Response.Headers {
-				t.Run(fmt.Sprintf("Header %s", key), func(t *testing.T) {
-					actual := res.Header.Get(key)
-
-					var output check.CheckOutput
-
-					switch v := value.(type) {
-					case check.Check[string]:
-						output = v.Check(actual)
-					case string:
-						output = check.IsEqual(v).Check(actual)
-					default:
-						output = check.CheckOutput{
-							Success: false,
-							Reason: fmt.Sprintf("Header check '%s' has an invalid type: %T", key, value),
-						}
-					}
+			for _, header := range test.Response.Headers_ {
+				t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
+					actual := res.Header.Get(header.Key_)
+					output := header.Check_.Check(actual)
 
 					if !output.Success {
-						if output.Hint == "" {
-							localReport(t, "Header '%s' %s", key, output.Reason)
+						if header.Hint_ == "" {
+							localReport(t, "Header '%s' %s", header.Key_, output.Reason)
 						} else {
-							localReport(t, "Header '%s' %s (%s)", key, output.Reason, output.Hint)
+							localReport(t, "Header '%s' %s (%s)", header.Key_, output.Reason, header.Hint_)
 						}
 					}
 				})
 			}
 
-			if test.Response.Body != nil {
+			if test.Response.Body_ != nil {
 				defer res.Body.Close()
 				resBody, err := io.ReadAll(res.Body)
 				if err != nil {
@@ -195,7 +142,7 @@ func Run(t *testing.T, tests []CTest) {
 
 				var output check.CheckOutput
 
-				switch v := test.Response.Body.(type) {
+				switch v := test.Response.Body_.(type) {
 				case check.Check[string]:
 					output = v.Check(string(resBody))
 				case check.Check[[]byte]:
@@ -207,7 +154,7 @@ func Run(t *testing.T, tests []CTest) {
 				default:
 					output = check.CheckOutput{
 						Success: false,
-						Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body),
+						Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body_),
 					}
 				}
 

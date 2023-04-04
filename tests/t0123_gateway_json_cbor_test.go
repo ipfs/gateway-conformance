@@ -62,7 +62,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests.Build())
+	test.Run(t, tests)
 }
 
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
@@ -252,7 +252,7 @@ func TestDAgPbConversion(t *testing.T) {
 			},
 		}
 
-		test.Run(t, tests.Build())
+		test.Run(t, tests)
 	}
 }
 
@@ -403,7 +403,7 @@ func TestPlainCodec(t *testing.T) {
 			},
 		}
 
-		test.Run(t, tests.Build())
+		test.Run(t, tests)
 	}
 }
 
@@ -492,7 +492,7 @@ func TestPathing(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests.Build())
+	test.Run(t, tests)
 }
 
 // ## NATIVE TESTS for DAG-JSON (0x0129) and DAG-CBOR (0x71):
@@ -854,6 +854,6 @@ func TestNativeDag(t *testing.T) {
 			*/
 		}
 
-		test.Run(t, tests.Build())
+		test.Run(t, tests)
 	}
 }
