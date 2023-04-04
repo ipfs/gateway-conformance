@@ -172,6 +172,18 @@ func Header(key string, opts ...string) HeaderBuilder {
 	return HeaderBuilder{Key_: key}
 }
 
+func (h HeaderBuilder) Value(value string, args ...any) HeaderBuilder {
+	h.Value_ = StringProvider(fmt.Sprintf(value, args...))
+	return h
+}
+
+func (h HeaderBuilder) ValueFrom(value *string) HeaderBuilder {
+	h.Value_ = FuncProvider[string](func() string {
+		return *value
+	})
+	return h
+}
+
 func (h HeaderBuilder) Contains(value string, rest ...any) HeaderBuilder {
 	h.Check_ = check.Contains(value, rest...)
 	return h
