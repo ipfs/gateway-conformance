@@ -152,6 +152,7 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 	return e
 }
 
+// TODO: split into two types: RequestHeaderBuidler and ResponseHeaderBuilder
 type HeaderBuilder struct {
 	Key_   string              `json:"key,omitempty"`
 	Value_ Provider[string]    `json:"value,omitempty"`

@@ -291,6 +291,8 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(200).
 				Headers(
+					// TODO: We should make etag setting more explicit than a side-effect of the check.
+					// E.g. Header("Etag").ValueTo(&etag).Not().IsEmpty()
 					Header("Etag").
 						Checks(func(v string) bool {
 							etag = v
@@ -299,11 +301,14 @@ func TestGatewayCache(t *testing.T) {
 				),
 		},
 		{
+			// NOTE: Do we need a more formal way to express dependencies between test cases?
 			// DependsOn: "GET for /ipfs/ dir listing responds with Etag"
 			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
 				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
 				Headers(
+					// TODO: Check that etag is set.
+					// E.g. Header("If-None-Match").ValueFrom(&etag).Not().IsEmpty()
 					Header("If-None-Match").
 						ValueFrom(&etag),
 				),
