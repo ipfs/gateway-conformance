@@ -198,91 +198,91 @@ func TestGatewayCache(t *testing.T) {
 		},
 		// The tests below require `ipnsId` to be set.
 		/*
-		{
-			Name: "GET for /ipns/ unixfs dir listing succeeds",
-			Request: Request().
-				Path("ipns/%s/root2/root3/", ipnsId),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3", ipnsId),
-					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
-					Header("Etag").
-						Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3")),
-				),
-		},
-		{
-			Name: "GET for /ipns/ unixfs dir with index.html succeeds",
-			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/", ipnsId),
-					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
-					Header("Etag").
-						Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3", "root4")),
-				),
-		},
-		{
-			Name: "GET for /ipns/ unixfs file succeeds",
-			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsId),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						Equals("public, max-age=29030400, immutable"),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/index.html", ipnsId),
-					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
-					Header("Etag").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
-				),
-		},
-		{
-			Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
-			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId).
-				Query("format", "dag-json"),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						Equals("public, max-age=29030400, immutable"),
-				),
-		},
-		{
-			Name: "GET for /ipns/ unixfs dir as JSON succeeds",
-			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId).
-				Query("format", "json"),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						Equals("public, max-age=29030400, immutable"),
-				),
-		},
-		{
-			Name: "GET for /ipns/ file with matching Etag in If-None-Match returns 304 Not Modified",
-			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsId).
-				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
-				),
-			Response: Expect().
-				Status(304),
-		},
+			{
+				Name: "GET for /ipns/ unixfs dir listing succeeds",
+				Request: Request().
+					Path("ipns/%s/root2/root3/", ipnsId),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Cache-Control").
+							IsEmpty(),
+						Header("X-Ipfs-Path").
+							Equals("/ipns/%s/root2/root3", ipnsId),
+						Header("X-Ipfs-Roots").
+							Equals("%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
+						Header("Etag").
+							Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3")),
+					),
+			},
+			{
+				Name: "GET for /ipns/ unixfs dir with index.html succeeds",
+				Request: Request().
+					Path("ipns/%s/root2/root3/root4/", ipnsId),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Cache-Control").
+							IsEmpty(),
+						Header("X-Ipfs-Path").
+							Equals("/ipns/%s/root2/root3/root4/", ipnsId),
+						Header("X-Ipfs-Roots").
+							Equals("%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
+						Header("Etag").
+							Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3", "root4")),
+					),
+			},
+			{
+				Name: "GET for /ipns/ unixfs file succeeds",
+				Request: Request().
+					Path("ipns/%s/root2/root3/root4/index.html", ipnsId),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Cache-Control").
+							Equals("public, max-age=29030400, immutable"),
+						Header("X-Ipfs-Path").
+							Equals("/ipns/%s/root2/root3/root4/index.html", ipnsId),
+						Header("X-Ipfs-Roots").
+							Equals("%s,%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Header("Etag").
+							Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+					),
+			},
+			{
+				Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
+				Request: Request().
+					Path("ipns/%s/root2/root3/root4/", ipnsId).
+					Query("format", "dag-json"),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Cache-Control").
+							Equals("public, max-age=29030400, immutable"),
+					),
+			},
+			{
+				Name: "GET for /ipns/ unixfs dir as JSON succeeds",
+				Request: Request().
+					Path("ipns/%s/root2/root3/root4/", ipnsId).
+					Query("format", "json"),
+				Response: Expect().
+					Status(200).
+					Headers(
+						Header("Cache-Control").
+							Equals("public, max-age=29030400, immutable"),
+					),
+			},
+			{
+				Name: "GET for /ipns/ file with matching Etag in If-None-Match returns 304 Not Modified",
+				Request: Request().
+					Path("ipns/%s/root2/root3/root4/index.html", ipnsId).
+					Headers(
+						Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					),
+				Response: Expect().
+					Status(304),
+			},
 		*/
 		{
 			Name: "GET for /ipfs/ dir listing responds with Etag",
@@ -292,7 +292,7 @@ func TestGatewayCache(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Etag").
-						Checks(func (v string) bool {
+						Checks(func(v string) bool {
 							etag = v
 							return v != ""
 						}),
@@ -317,7 +317,7 @@ func TestGatewayCache(t *testing.T) {
 				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
 				Headers(
 					Header("If-None-Match").
-						ValueFromFunc(func () string {
+						ValueFromFunc(func() string {
 							return fmt.Sprintf("W/%s", etag)
 						}),
 				),
