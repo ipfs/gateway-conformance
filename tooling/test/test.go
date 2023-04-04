@@ -100,11 +100,11 @@ func Run(t *testing.T, tests SugarTests) {
 
 			// add headers
 			for key, value := range request.Headers_ {
-				req.Header.Add(key, value)
+				req.Header.Add(key, value.Get())
 
 				// https://github.com/golang/go/issues/7682
 				if key == "Host" {
-					req.Host = value
+					req.Host = value.Get()
 				}
 			}
 

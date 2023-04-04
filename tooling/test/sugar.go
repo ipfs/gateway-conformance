@@ -8,15 +8,15 @@ import (
 )
 
 type RequestBuilder struct {
-	Method_               string            `json:"method,omitempty"`
-	Path_                 string            `json:"path,omitempty"`
-	URL_                  string            `json:"url,omitempty"`
-	Proxy_                string            `json:"proxy,omitempty"`
-	UseProxyTunnel_       bool              `json:"useProxyTunnel,omitempty"`
-	Headers_              map[string]string `json:"headers,omitempty"`
-	DoNotFollowRedirects_ bool              `json:"doNotFollowRedirects,omitempty"`
-	Query_                url.Values        `json:"query,omitempty"`
-	Body_                 []byte            `json:"body,omitempty"`
+	Method_               string                      `json:"method,omitempty"`
+	Path_                 string                      `json:"path,omitempty"`
+	URL_                  string                      `json:"url,omitempty"`
+	Proxy_                string                      `json:"proxy,omitempty"`
+	UseProxyTunnel_       bool                        `json:"useProxyTunnel,omitempty"`
+	Headers_              map[string]Provider[string] `json:"headers,omitempty"`
+	DoNotFollowRedirects_ bool                        `json:"doNotFollowRedirects,omitempty"`
+	Query_                url.Values                  `json:"query,omitempty"`
+	Body_                 []byte                      `json:"body,omitempty"`
 }
 
 func Request() RequestBuilder {
@@ -69,22 +69,21 @@ func (r RequestBuilder) Method(method string) RequestBuilder {
 
 func (r RequestBuilder) Header(k, v string) RequestBuilder {
 	if r.Headers_ == nil {
-		r.Headers_ = make(map[string]string)
+		r.Headers_ = make(map[string]Provider[string])
 	}
 
-	r.Headers_[k] = v
+	r.Headers_[k] = StringProvider(v)
 	return r
 }
 
 func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 	if r.Headers_ == nil {
-		r.Headers_ = make(map[string]string)
+		r.Headers_ = make(map[string]Provider[string])
 	}
 
 	for _, h := range hs {
 		r.Headers_[h.Key_] = h.Value_
 	}
-
 	return r
 }
 
@@ -157,7 +156,7 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 
 type HeaderBuilder struct {
 	Key_   string              `json:"key,omitempty"`
-	Value_ string              `json:"value,omitempty"`
+	Value_ Provider[string]    `json:"value,omitempty"`
 	Check_ check.Check[string] `json:"-"`
 	Hint_  string              `json:"-"`
 }
@@ -167,7 +166,7 @@ func Header(key string, opts ...string) HeaderBuilder {
 		panic("too many options")
 	}
 	if len(opts) > 0 {
-		return HeaderBuilder{Key_: key, Value_: opts[0], Check_: check.IsEqual(opts[0])}
+		return HeaderBuilder{Key_: key, Value_: StringProvider(opts[0]), Check_: check.IsEqual(opts[0])}
 	}
 
 	return HeaderBuilder{Key_: key}
