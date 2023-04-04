@@ -182,6 +182,11 @@ func (h HeaderBuilder) ValueFrom(value *string) HeaderBuilder {
 	return h
 }
 
+func (h HeaderBuilder) ValueFromFunc(value func() string) HeaderBuilder {
+	h.Value_ = FuncProvider[string](value)
+	return h
+}
+
 func (h HeaderBuilder) Contains(value string, rest ...any) HeaderBuilder {
 	h.Check_ = check.Contains(value, rest...)
 	return h
