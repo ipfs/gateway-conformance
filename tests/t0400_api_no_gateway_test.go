@@ -7,7 +7,7 @@ import (
 )
 
 func TestApiNoGateway(t *testing.T) {
-	tests := []test.CTest{}
+	tests := test.SugarTests{}
 
 	test.Run(t, tests)
 }

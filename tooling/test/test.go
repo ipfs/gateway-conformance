@@ -59,10 +59,10 @@ func (s SugarTests) Build() []CTest {
 	return tests
 }
 
-func Run(t *testing.T, tests []CTest) {
+func Run(t *testing.T, tests SugarTests) {
 	// NewDialer()
 
-	for _, test := range tests {
+	for _, test := range tests.Build() {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method
 			if method == "" {

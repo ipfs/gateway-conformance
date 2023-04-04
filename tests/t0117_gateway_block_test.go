@@ -117,7 +117,7 @@ func TestGatewayBlock(t *testing.T) {
 						}),
 				),
 		},
-	}.Build()
+	}
 
 	Run(t, tests)
 }
