@@ -6,7 +6,7 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
-	"github.com/ipfs/gateway-conformance/tooling/test"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -288,7 +288,11 @@ func TestRedirectsFileSupport(t *testing.T) {
 		},
 	}...)
 
-	test.Run(t, tests.Build())
+	if specs.SubdomainGateway.IsEnabled() {
+		Run(t, tests.Build())
+	} else {
+		t.Skip("subdomain gateway disabled")
+	}
 }
 
 // TODO: dnslink tests
