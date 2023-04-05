@@ -7,7 +7,7 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
-	. "github.com/ipfs/gateway-conformance/tooling/specs"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -369,8 +369,10 @@ func TestGatewaySubdomains(t *testing.T) {
 		))
 	}
 
-	if SubdomainGateway.IsEnabled() {
+	if specs.SubdomainGateway.IsEnabled() {
 		Run(t, tests)
+	} else {
+		t.Skip("subdomain gateway disabled")
 	}
 }
 
