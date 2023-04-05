@@ -96,7 +96,7 @@ func (d *UnixfsDag) mustGetNode(names ...string) format.Node {
 }
 
 func (d *UnixfsDag) MustGetNode(names ...string) *FixtureNode {
-	return &FixtureNode{node: d.mustGetNode(names...)}
+	return &FixtureNode{node: d.mustGetNode(names...), dsvc: d.dsvc}
 }
 
 func (d *UnixfsDag) MustGetRoot() *FixtureNode {
