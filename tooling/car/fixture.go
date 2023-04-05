@@ -7,7 +7,6 @@ import (
 	"time"
 
 	files "github.com/ipfs/boxo/files"
-	_ "github.com/ipfs/boxo/ipld/merkledag"
 
 	unixfile "github.com/ipfs/boxo/ipld/unixfs/file"
 	"github.com/ipfs/go-cid"
