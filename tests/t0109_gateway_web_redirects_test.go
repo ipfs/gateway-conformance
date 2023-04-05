@@ -158,7 +158,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
 					Header("Etag").Equals("\"%s\"", custom404.Cid().String()),
 				).
-				Body(Contains(string(custom404.RawData()))),
+				Body(Contains(custom404.ReadFile())),
 		},
 		// CUSTOM_4XX_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/examples/410.html | cut -d "/" -f3)
 		// test_expect_success "request for $REDIRECTS_DIR_HOSTNAME/gone/has-no-redirects-entry returns custom 410, per _redirects file" '
@@ -178,7 +178,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
 					Header("Etag").Equals("\"%s\"", custom410.Cid().String()),
 				).
-				Body(Contains(string(custom410.RawData()))),
+				Body(Contains(custom410.ReadFile())),
 		},
 		// CUSTOM_4XX_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/examples/451.html | cut -d "/" -f3)
 		// test_expect_success "request for $REDIRECTS_DIR_HOSTNAME/unavail/has-no-redirects-entry returns custom 451, per _redirects file" '
@@ -200,7 +200,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
 					Header("Etag").Equals("\"%s\"", custom451.Cid().String()),
 				).
-				Body(Contains(string(custom451.RawData()))),
+				Body(Contains(custom451.ReadFile())),
 		},
 		// test_expect_success "request for $REDIRECTS_DIR_HOSTNAME/catch-all returns 200, per _redirects file" '
 		//
@@ -228,11 +228,14 @@ func TestRedirectsFileSupport(t *testing.T) {
 		{
 			// TODO: how to test this correctly?
 			Name: "This test ensures _redirects is supported only on Web Gateways that use Host header (DNSLink, Subdomain)",
+			Hint: `
+			We expect the request to fail with a 404 (do not use the _redirect), and that 404 should not contain the custom 404 body.
+			`,
 			Request: Request().
 				URL("http://127.0.0.1:8080/ipfs/%s/301-redirect-one", redirectDirCID),
 			Response: Expect().
 				Status(404).
-				Body(Not(Contains("my 404"))),
+				Body(Not(Contains(custom404.ReadFile()))),
 		},
 	}
 

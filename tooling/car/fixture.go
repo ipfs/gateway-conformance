@@ -1,10 +1,15 @@
 package car
 
 import (
+	"context"
+	"io"
+	"strings"
 	"time"
 
+	files "github.com/ipfs/boxo/files"
 	_ "github.com/ipfs/boxo/ipld/merkledag"
 
+	unixfile "github.com/ipfs/boxo/ipld/unixfs/file"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	"github.com/ipld/go-ipld-prime"
@@ -16,50 +21,46 @@ type FixtureNode struct {
 	dsvc format.DAGService
 }
 
-// get cid method
 func (n *FixtureNode) Cid() cid.Cid {
 	return n.node.Cid()
 }
 
-// get raw data method
 func (n *FixtureNode) RawData() []byte {
 	return n.node.RawData()
 }
 
-// get formated node (pass codec name as parameter)
 func (n *FixtureNode) Formatted(codecStr string) []byte {
 	node := n.node.(ipld.Node)
 	return FormatDagNode(node, codecStr)
 }
 
 
-// func (n *FixtureNode) ToFile() files.File {
-//        f, err := unixfile.NewUnixfsFile(context.Background(), n.dsvc, n.node)
-//        if err != nil {
-//                panic(err)
-//        }
+func (n *FixtureNode) ToFile() files.File {
+       f, err := unixfile.NewUnixfsFile(context.Background(), n.dsvc, n.node)
+       if err != nil {
+               panic(err)
+       }
 
-//        r, ok := f.(files.File)
+       r, ok := f.(files.File)
 
-//        if !ok {
-//                panic("not a file")
-//        }
+       if !ok {
+               panic("not a file")
+       }
 
-//        return r
-// }
+       return r
+}
 
-// // read the file
-// func (n *FixtureNode) ReadFile() string {
-//        f := n.ToFile()
+func (n *FixtureNode) ReadFile() string {
+       f := n.ToFile()
 
-//        buf := new(strings.Builder)
-//        _, err := io.Copy(buf, f)
-//        if err != nil {
-//                panic(err)
-//        }
+       buf := new(strings.Builder)
+       _, err := io.Copy(buf, f)
+       if err != nil {
+               panic(err)
+       }
 
-//        return buf.String()
-// }
+       return buf.String()
+}
 
 func RandomCID() cid.Cid {
     now := time.Now().UTC()
