@@ -17,7 +17,6 @@ provision-cargateway: ./fixtures.car
 provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
-# tools
 fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.
 

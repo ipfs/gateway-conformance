@@ -7,13 +7,13 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestRedirectsFileSupport(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0109-redirects.car")
-
 	redirectDir := fixture.MustGetNode("examples")
 	redirectDirCID := redirectDir.Base32Cid()
 
@@ -52,6 +52,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
+					Header("Host", u.Host).
 					URL("%s/redirect-one", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
@@ -311,7 +312,97 @@ func TestRedirectsFileSupport(t *testing.T) {
 	}
 }
 
-// TODO: dnslink tests
+func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
+	dnsLinks := dnslink.MustOpenDNSLink("t0109-dnslink.yml")
+	dnsLink := dnsLinks.Get("custom-dnslink")
+
+	gatewayURL := SubdomainGatewayURL
+	u, err := url.Parse(gatewayURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dnsLinkBaseUrl := fmt.Sprintf("%s://%s.%s", u.Scheme, dnsLink, u.Host)
+
+	tests := SugarTests{
+		// # make sure test setup is valid (fail if CoreAPI is unable to resolve)
+		// test_expect_success "spoofed DNSLink record resolves in cli" "
+		// ipfs resolve /ipns/$DNSLINK_FQDN > result &&
+		// test_should_contain \"$REDIRECTS_DIR_CID\" result &&
+		// ipfs cat /ipns/$DNSLINK_FQDN/_redirects > result &&
+		// test_should_contain \"index.html\" result
+		// "
+		// SKIPPED
+
+		// test_expect_success "request for $DNSLINK_FQDN/redirect-one redirects with default of 301, per _redirects file" '
+		// curl -sD - --resolve $DNSLINK_FQDN:$GWAY_PORT:127.0.0.1 "http://$DNSLINK_FQDN:$GWAY_PORT/redirect-one" > response &&
+		// test_should_contain "301 Moved Permanently" response &&
+		// test_should_contain "Location: /one.html" response
+		// '
+		{
+			Name: "request for $DNSLINK_FQDN/redirect-one redirects with default of 301, per _redirects file",
+			Request: Request().
+				URL("%s/redirect-one", dnsLinkBaseUrl),
+			Response: Expect().
+				Status(301).
+				Headers(
+					Header("Location", "/one.html"),
+				),
+		},
+		// # ensure custom 404 works and has the same cache headers as regular /ipns/ paths
+		// test_expect_success "request for $DNSLINK_FQDN/en/has-no-redirects-entry returns custom 404, per _redirects file" '
+		// curl -sD - --resolve $DNSLINK_FQDN:$GWAY_PORT:127.0.0.1 "http://$DNSLINK_FQDN:$GWAY_PORT/not-found/has-no-redirects-entry" > response &&
+		// test_should_contain "404 Not Found" response &&
+		// test_should_contain "Etag: \"Qmd9GD7Bauh6N2ZLfNnYS3b7QVAijbud83b8GE8LPMNBBP\"" response &&
+		// test_should_not_contain "Cache-Control: public, max-age=29030400, immutable" response &&
+		// test_should_not_contain "immutable" response &&
+		// test_should_contain "Date: " response &&
+		// test_should_contain "my 404" response
+		// '
+		{
+			Name: "request for $DNSLINK_FQDN/en/has-no-redirects-entry returns custom 404, per _redirects file",
+			Hint: `ensure custom 404 works and has the same cache headers as regular /ipns/ paths`,
+			Request: Request().
+				URL("%s/not-found/has-no-redirects-entry", dnsLinkBaseUrl),
+			Response: Expect().
+				Status(404).
+				Headers(
+					Header("Etag", "\"Qmd9GD7Bauh6N2ZLfNnYS3b7QVAijbud83b8GE8LPMNBBP\""),
+					Header("Cache-Control").Not().Contains("public, max-age=29030400, immutable"),
+					Header("Cache-Control").Not().Contains("immutable"),
+					Header("Date").Exists(),
+				).
+				Body(
+					// TODO: I like the readable part here, maybe rewrite to load the file.
+					Contains("my 404"),
+				),
+		},
+		// test_expect_success "request for $NO_DNSLINK_FQDN/redirect-one does not redirect, since DNSLink is disabled" '
+		// curl -sD - --resolve $NO_DNSLINK_FQDN:$GWAY_PORT:127.0.0.1 "http://$NO_DNSLINK_FQDN:$GWAY_PORT/redirect-one" > response &&
+		// test_should_not_contain "one.html" response &&
+		// test_should_not_contain "301 Moved Permanently" response &&
+		// test_should_not_contain "Location:" response
+		// '
+		// TODO(lidel): this test seems to validate some kubo behavior not really gateway.
+		// {
+		// 	Name: "request for $NO_DNSLINK_FQDN/redirect-one does not redirect, since DNSLink is disabled",
+		// 	Request: Request().
+		// 		URL("%s/redirect-one", noDnsLinkBaseUrl),
+		// 	Response: Expect().
+		// 		// TODO: add "status not equal to 301" check.
+		// 		// TODO: what `test_should_not_contain "one.html" response` actually means? No location correct?
+		// 		Headers(
+		// 			Header("Location").Not().Exists(),
+		// 		),
+		// },
+	}
+
+	if specs.DNSLinkResolver.IsEnabled() {
+		Run(t, unwrapTests(t, tests))
+	} else {
+		t.Skip("subdomain gateway disabled")
+	}
+}
 
 func unwrapTests(t *testing.T, tests SugarTests) SugarTests {
 	t.Helper()
