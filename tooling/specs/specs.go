@@ -26,11 +26,13 @@ type Spec string
 
 const (
 	SubdomainGateway Spec = "subdomain-gateway"
+	DNSLinkResolver  Spec = "dnslink-resolver"
 )
 
 // All specs should be listed here.
 var specMaturity = map[Spec]maturity{
 	SubdomainGateway: stable,
+	DNSLinkResolver:  stable,
 }
 
 func (s Spec) IsMature() bool {

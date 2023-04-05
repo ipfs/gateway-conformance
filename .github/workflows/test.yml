@@ -28,6 +28,8 @@ jobs:
           ipfs init;
           ./gateway-conformance/kubo-config.example.sh;
       - uses: ipfs/start-ipfs-daemon-action@v1
+        env:
+          IPFS_NS_MAP: 12 # TODO
       - name: Provision Kubo Gateway
         run: |
           find ./fixtures -name '*.car' -exec ipfs dag import {} \;

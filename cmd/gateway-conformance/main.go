@@ -12,6 +12,7 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"github.com/urfave/cli/v2"
 )
@@ -173,19 +174,39 @@ func main() {
 						return err
 					}
 
-					files, err := fixtures.List()
+					fxs, err := fixtures.List()
 					if err != nil {
 						return err
 					}
 
 					merged := cCtx.Bool("merged")
 					if merged {
-						err = car.Merge(files, filepath.Join(directory, "fixtures.car"))
+						err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
+						if err != nil {
+							return err
+						}
+
+						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
+						if err != nil {
+							return err
+						}
+
+						err = dnslink.AsEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.env"))
 						if err != nil {
 							return err
 						}
 					} else {
-						err = copyFiles(files, directory)
+						err = copyFiles(fxs.CarFiles, directory)
+						if err != nil {
+							return err
+						}
+
+						err = copyFiles(fxs.ConfigFiles, directory)
+						if err != nil {
+							return err
+						}
+
+						err = dnslink.AsEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.env"))
 						if err != nil {
 							return err
 						}
