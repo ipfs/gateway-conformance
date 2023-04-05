@@ -295,7 +295,10 @@ func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
 	var o map[string]any
 	err := json.Unmarshal(v, &o)
 	if err != nil {
-		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case
+		return CheckOutput{
+			Success: false,
+			Reason:  fmt.Sprintf("expected '%s' to be valid JSON, but got error: %s", string(v), err),
+		}
 	}
 
 	if reflect.DeepEqual(o, c.Value) {

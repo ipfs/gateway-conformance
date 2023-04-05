@@ -153,9 +153,11 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			if test.Response.StatusCode != 0 {
-				if res.StatusCode != test.Response.StatusCode {
-					localReport(t, "Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
-				}
+				t.Run("Status code", func(t *testing.T) {
+					if res.StatusCode != test.Response.StatusCode {
+						localReport(t, "Status code is not %d. It is %d", test.Response.StatusCode, res.StatusCode)
+					}
+				})
 			}
 
 			for key, value := range test.Response.Headers {
@@ -187,37 +189,39 @@ func Run(t *testing.T, tests []CTest) {
 			}
 
 			if test.Response.Body != nil {
-				defer res.Body.Close()
-				resBody, err := io.ReadAll(res.Body)
-				if err != nil {
-					localReport(t, err)
-				}
-
-				var output check.CheckOutput
-
-				switch v := test.Response.Body.(type) {
-				case check.Check[string]:
-					output = v.Check(string(resBody))
-				case check.Check[[]byte]:
-					output = v.Check(resBody)
-				case string:
-					output = check.IsEqual(v).Check(string(resBody))
-				case []byte:
-					output = check.IsEqualBytes(v).Check(resBody)
-				default:
-					output = check.CheckOutput{
-						Success: false,
-						Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body),
+				t.Run("Body", func(t *testing.T) {
+					defer res.Body.Close()
+					resBody, err := io.ReadAll(res.Body)
+					if err != nil {
+						localReport(t, err)
 					}
-				}
 
-				if !output.Success {
-					if output.Hint == "" {
-						localReport(t, "Body %s", output.Reason)
-					} else {
-						localReport(t, "Body %s (%s)", output.Reason, output.Hint)
+					var output check.CheckOutput
+
+					switch v := test.Response.Body.(type) {
+					case check.Check[string]:
+						output = v.Check(string(resBody))
+					case check.Check[[]byte]:
+						output = v.Check(resBody)
+					case string:
+						output = check.IsEqual(v).Check(string(resBody))
+					case []byte:
+						output = check.IsEqualBytes(v).Check(resBody)
+					default:
+						output = check.CheckOutput{
+							Success: false,
+							Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body),
+						}
 					}
-				}
+
+					if !output.Success {
+						if output.Hint == "" {
+							localReport(t, "Body %s", output.Reason)
+						} else {
+							localReport(t, "Body %s (%s)", output.Reason, output.Hint)
+						}
+					}
+				})
 			}
 		})
 	}

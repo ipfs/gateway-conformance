@@ -35,6 +35,23 @@ Actual Response:
 {{.Res | dump}}
 `
 
+// If the response is invalid (the content length > Body length for example),
+// go's DumpResponse will panic. This function recover's from that panic and
+// dumps the response again without the body.
+func safeDumpResponse(res *http.Response) (b []byte, err error) {
+	if res == nil {
+		return []byte("nil"), nil
+	}
+
+	b, err = httputil.DumpResponse(res, true)
+
+	if err != nil {
+		b, err = httputil.DumpResponse(res, false)
+	}
+
+	return b, err
+}
+
 func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err error) {
 	input := ReportInput{
 		Req:  req,
@@ -59,10 +76,7 @@ func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err
 			case *http.Request:
 				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
-				// TODO: we have to disable the body dump because
-				// it triggers an error:
-				// "http: ContentLength=6 with Body length 0"
-				b, err = httputil.DumpResponse(v, false)
+				b, err = safeDumpResponse(v)
 			default:
 				panic("unknown type")
 			}

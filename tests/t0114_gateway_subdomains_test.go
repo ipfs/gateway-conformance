@@ -371,6 +371,8 @@ func TestGatewaySubdomains(t *testing.T) {
 
 	if SubdomainGateway.IsEnabled() {
 		Run(t, tests)
+	} else {
+		t.Skip("Skipping subdomain gateway tests")
 	}
 }
 
