@@ -8,19 +8,13 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
-	mb "github.com/multiformats/go-multibase"
 )
 
 func TestRedirectsFileSupport(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0109-redirects.car")
 
-	// root := fixture.MustGetNode()
 	redirectDir := fixture.MustGetNode("examples")
-
-	redirectDirCID, err := mb.Encode(mb.Base32, redirectDir.Cid().Bytes())
-	if err != nil {
-		t.Fatal(err)
-	}
+	redirectDirCID := redirectDir.Base32Cid()
 
 	redirectDirHostname := fmt.Sprintf("%s.ipfs.localhost:8080", redirectDirCID)
 
