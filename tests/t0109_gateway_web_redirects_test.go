@@ -233,5 +233,62 @@ func TestRedirectsFileSupport(t *testing.T) {
 		},
 	}
 
+	// # Invalid file, containing forced redirect
+	// INVALID_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/forced | cut -d "/" -f3)
+	invalidRedirectsDirCID := fixture.MustGetNode("forced").Base32Cid()
+	// INVALID_REDIRECTS_DIR_HOSTNAME="${INVALID_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
+	invalidDirHostname := fmt.Sprintf("%s.ipfs.localhost:8080", invalidRedirectsDirCID)
+	// TOO_LARGE_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/too-large | cut -d "/" -f3)
+	tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").Base32Cid()
+	// TOO_LARGE_REDIRECTS_DIR_HOSTNAME="${TOO_LARGE_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
+	tooLargeDirHostname := fmt.Sprintf("%s.ipfs.localhost:8080", tooLargeRedirectsDirCID)
+
+	tests = append(tests, SugarTests{
+		// # if accessing a path that doesn't exist, read _redirects and fail parsing, and return error
+		// test_expect_success "invalid file: request for $INVALID_REDIRECTS_DIR_HOSTNAME/not-found returns error about invalid redirects file" '
+		//   curl -sD - --resolve $INVALID_REDIRECTS_DIR_HOSTNAME:127.0.0.1 "http://$INVALID_REDIRECTS_DIR_HOSTNAME/not-found" > response &&
+		//   test_should_contain "500" response &&
+		//   test_should_contain "could not parse _redirects:" response &&
+		//   test_should_contain "forced redirects (or \"shadowing\") are not supported" response
+		// '
+		{
+			Name: "invalid file: request for $INVALID_REDIRECTS_DIR_HOSTNAME/not-found returns error about invalid redirects file",
+			Hint: `if accessing a path that doesn't exist, read _redirects and fail parsing, and return error`,
+			Request: Request().
+				URL("http://%s/not-found", invalidDirHostname),
+			Response: Expect().
+				Status(500).
+				Body(
+					And(
+						Contains("could not parse _redirects:"),
+						Contains("forced redirects (or \"shadowing\") are not supported"),
+					),
+				),
+		},
+		// # if accessing a path that doesn't exist and _redirects file is too large, return error
+		// test_expect_success "invalid file: request for $TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found returns error about too large redirects file" '
+		//   curl -sD - --resolve $TOO_LARGE_REDIRECTS_DIR_HOSTNAME:127.0.0.1 "http://$TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found" > response &&
+		//   test_should_contain "500" response &&
+		//   test_should_contain "could not parse _redirects:" response &&
+		//   test_should_contain "redirects file size cannot exceed" response
+		// '
+		{
+			Name: "invalid file: request for $TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found returns error about too large redirects file",
+			Hint: `if accessing a path that doesn't exist and _redirects file is too large, return error`,
+			Request: Request().
+				URL("http://%s/not-found", tooLargeDirHostname),
+			Response: Expect().
+				Status(500).
+				Body(
+					And(
+						Contains("could not parse _redirects:"),
+						Contains("redirects file size cannot exceed"),
+					),
+				),
+		},
+	}...)
+
 	test.Run(t, tests.Build())
 }
+
+// TODO: dnslink tests
