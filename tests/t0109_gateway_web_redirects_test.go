@@ -305,7 +305,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 	}
 
 	if specs.SubdomainGateway.IsEnabled() {
-		Run(t, unwrapTests(t, tests).Build())
+		Run(t, unwrapTests(t, tests))
 	} else {
 		t.Skip("subdomain gateway disabled")
 	}

@@ -185,5 +185,5 @@ func TestGatewayTar(t *testing.T) {
 		},
 	}
 
-	Run(t, tests.Build())
+	Run(t, tests)
 }
