@@ -16,7 +16,7 @@ type RequestBuilder struct {
 	Headers_              map[string]string `json:"headers,omitempty"`
 	DoNotFollowRedirects_ bool              `json:"doNotFollowRedirects,omitempty"`
 	Query_                url.Values        `json:"query,omitempty"`
-	Body_ 							  []byte            `json:"body,omitempty"`
+	Body_                 []byte            `json:"body,omitempty"`
 }
 
 func Request() RequestBuilder {
