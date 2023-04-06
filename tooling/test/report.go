@@ -13,7 +13,7 @@ type ReportInput struct {
 	Req  *http.Request
 	Res  *http.Response
 	Err  error
-	Test CTest
+	Test SugarTest
 }
 
 const TEMPLATE = `
@@ -35,7 +35,7 @@ Actual Response:
 {{.Res | dump}}
 `
 
-func report(t *testing.T, test CTest, req *http.Request, res *http.Response, err error) {
+func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response, err error) {
 	input := ReportInput{
 		Req:  req,
 		Res:  res,
