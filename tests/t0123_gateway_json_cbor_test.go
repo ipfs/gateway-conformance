@@ -210,8 +210,9 @@ func TestDAgPbConversion(t *testing.T) {
 				Response: Expect().
 					Status(200).
 					Headers(
+						// NOTE: kubo gateway returns "text/plain; charset=utf-8" for example
 						Header("Content-Type").
-							Equals("text/plain"),
+							Contains("text/plain"),
 						Header("Content-Type").
 							Not().Contains("application/%s", row.Format),
 						Header("Content-Type").
@@ -240,8 +241,9 @@ func TestDAgPbConversion(t *testing.T) {
 				Response: Expect().
 					Status(200).
 					Headers(
+						// NOTE: kubo gateway returns "text/plain; charset=utf-8" for example
 						Header("Content-Type").
-							Equals("text/plain"),
+							Contains("text/plain"),
 						Header("Content-Type").
 							Not().Contains("application/%s", row.Format),
 						Header("Content-Type").
