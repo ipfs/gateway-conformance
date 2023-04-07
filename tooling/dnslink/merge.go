@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 )
 
 func Aggregate(inputPaths []string) (map[string]string, error) {
@@ -40,24 +39,5 @@ func Merge(inputPaths []string, outputPath string) error {
 	}
 
 	err = os.WriteFile(outputPath, j, 0644)
-	return err
-}
-
-func AsEnv(inputPaths []string, outputPath string) error {
-	kvs, err := Aggregate(inputPaths)
-	if err != nil {
-		return err
-	}
-
-	var kvsStr []string
-	for k, v := range kvs {
-		kvsStr = append(kvsStr, fmt.Sprintf("%s:%s", k, v))
-	}
-
-	env := strings.Join(kvsStr, ",")
-	env = "export IPFS_NS_MAP=\"" + env + "\""
-
-	err = os.WriteFile(outputPath, []byte(env), 0644)
-
 	return err
 }
