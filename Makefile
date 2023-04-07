@@ -14,7 +14,7 @@ provision-cargateway: ./fixtures.car
 	# cd go-libipfs/examples/car && go install
 	car -c ./fixtures.car &
 
-provision-kubo:
+provision-kubo: fixtures.car
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
 
 fixtures.car: gateway-conformance

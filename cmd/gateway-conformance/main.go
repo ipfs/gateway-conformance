@@ -190,11 +190,6 @@ func main() {
 						if err != nil {
 							return err
 						}
-
-						err = dnslink.AsEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.env"))
-						if err != nil {
-							return err
-						}
 					} else {
 						err = copyFiles(fxs.CarFiles, directory)
 						if err != nil {
@@ -206,7 +201,7 @@ func main() {
 							return err
 						}
 
-						err = dnslink.AsEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.env"))
+						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
 						if err != nil {
 							return err
 						}
