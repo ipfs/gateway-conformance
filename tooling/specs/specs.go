@@ -1,6 +1,8 @@
 package specs
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type maturity string
 

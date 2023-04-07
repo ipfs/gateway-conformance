@@ -98,17 +98,3 @@ func TestGatewayDirListingOnSubdomainGateway(t *testing.T) {
 		specs.SubdomainGateway,
 	)
 }
-
-func TestGatewayDirListingOnDNSLinkGateway(t *testing.T) {
-	// fixture := car.MustOpenUnixfsCar("t0115/fixtures.car")
-	// dir := fixture.MustGetRoot()
-	// file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
-
-	tests := SugarTests{}
-
-	test.RunIfSpecsAreEnabled(
-		t,
-		tests,
-		specs.DNSLinkResolver,
-	)
-}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 )
 
 type SugarTest struct {
@@ -19,9 +20,27 @@ type SugarTest struct {
 
 type SugarTests []SugarTest
 
-func Run(t *testing.T, tests SugarTests) {
-	// NewDialer()
+func RunIfSpecsAreEnabled(
+	t *testing.T,
+	tests SugarTests,
+	required ...specs.Spec,
+) {
+	missing := []specs.Spec{}
+	for _, spec := range required {
+		if !spec.IsEnabled() {
+			missing = append(missing, spec)
+		}
+	}
 
+	if len(missing) > 0 {
+		t.Skipf("skipping tests, missing specs: %v", missing)
+		return
+	}
+
+	Run(t, tests)
+}
+
+func Run(t *testing.T, tests SugarTests) {
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			method := test.Request.Method_
