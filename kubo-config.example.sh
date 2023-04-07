@@ -10,3 +10,8 @@ ipfs config --json Gateway.PublicGateways '{
 		"Paths": ["/ipfs", "/ipns", "/api"]		
 	}											
 }'
+
+IPFS_NS_MAP=$(cat ./dnslinks.json | jq -r 'to_entries | map("\(.key).example.com:\(.value)") | join(",")')
+
+echo "Set the following IPFS_NS_MAP before starting the kubo daemon:"
+echo "IPFS_NS_MAP=${IPFS_NS_MAP}"
