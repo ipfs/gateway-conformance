@@ -7,6 +7,7 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
@@ -305,87 +306,9 @@ func TestRedirectsFileSupport(t *testing.T) {
 	}
 
 	if specs.SubdomainGateway.IsEnabled() {
-		Run(t, unwrapTests(t, tests))
+		Run(t, helpers.UnwrapSubdomainTests(t, tests))
 	} else {
 		t.Skip("subdomain gateway disabled")
 	}
 }
 
-// TODO: dnslink tests
-
-func unwrapTests(t *testing.T, tests SugarTests) SugarTests {
-	t.Helper()
-
-	var out SugarTests
-	for _, test := range tests {
-		out = append(out, unwrapTestForGateway(t, test)...)
-	}
-	return out
-}
-
-func unwrapTestForGateway(t *testing.T, test SugarTest) SugarTests {
-	t.Helper()
-
-	baseURL := test.Request.GetURL()
-	req := test.Request
-	expected := test.Response
-
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Because you might be testing an IPFS node in CI, or on your local machine, the test are designed
-	// to test the subdomain behavior (querying http://{CID}.my-subdomain-gateway.io/) even if the node is
-	// actually living on http://127.0.0.1:8080 or somewhere else.
-	//
-	// The test knows two addresses:
-	// 		- GatewayURL: the URL we connect to, it might be "dweb.link", "127.0.0.1:8080", etc.
-	// 		- SubdomainGatewayURL: the URL we test for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
-
-	// host is the hostname of the gateway we are testing, it might be `localhost` or `example.com`
-	host := u.Host
-
-	// raw url is the url but we replace the host with our local url, it might be `http://127.0.0.1/ipfs/something`
-	u.Host = GatewayHost
-	rawURL := u.String()
-
-	return SugarTests{
-		{
-			Name: fmt.Sprintf("%s (direct HTTP)", test.Name),
-			Hint: fmt.Sprintf("%s\n%s", test.Hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
-			Request: req.
-				URL(rawURL).
-				DoNotFollowRedirects().
-				Headers(
-					Header("Host", host),
-				),
-			Response: expected,
-		},
-		{
-			Name: fmt.Sprintf("%s (HTTP proxy)", test.Name),
-			Hint: fmt.Sprintf("%s\n%s", test.Hint, "HTTP proxy (hostname is passed via URL)"),
-			Request: req.
-				URL(baseURL).
-				Proxy(GatewayURL).
-				DoNotFollowRedirects(),
-			Response: expected,
-		},
-		{
-			Name: fmt.Sprintf("%s (HTTP proxy tunneling via CONNECT)", test.Name),
-			Hint: fmt.Sprintf("%s\n%s", test.Hint, `HTTP proxy
-				In HTTP/1.x, the pseudo-method CONNECT,
-				can be used to convert an HTTP connection into a tunnel to a remote host
-				https://tools.ietf.org/html/rfc7231#section-4.3.6
-			`),
-			Request: req.
-				URL(baseURL).
-				Proxy(GatewayURL).
-				WithProxyTunnel().
-				DoNotFollowRedirects().
-				Headers(
-					Header("Host", host),
-				),
-			Response: expected,
-		},
-	}
-}
