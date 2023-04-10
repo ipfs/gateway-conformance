@@ -34,6 +34,7 @@ jobs:
       - name: Provision Kubo Gateway
         run: |
           find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+          find ./fixtures -name '*.ipns-record' -exec sh -c 'ipfs routing put --allow-offline /ipns/$(basename -s .ipns-record "{}") "{}"' \;
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:

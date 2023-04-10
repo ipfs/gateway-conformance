@@ -190,6 +190,13 @@ func main() {
 						if err != nil {
 							return err
 						}
+
+						// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
+						// merge the IPNS records into a car file.
+						err = copyFiles(fxs.IPNSRecords, directory)
+						if err != nil {
+							return err
+						}
 					} else {
 						err = copyFiles(fxs.CarFiles, directory)
 						if err != nil {
@@ -197,6 +204,11 @@ func main() {
 						}
 
 						err = copyFiles(fxs.ConfigFiles, directory)
+						if err != nil {
+							return err
+						}
+
+						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
 						}
