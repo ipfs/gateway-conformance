@@ -190,6 +190,12 @@ func main() {
 						if err != nil {
 							return err
 						}
+
+						// TODO: merge IPNS records somehow
+						err = copyFiles(fxs.IPNSRecords, directory)
+						if err != nil {
+							return err
+						}
 					} else {
 						err = copyFiles(fxs.CarFiles, directory)
 						if err != nil {
@@ -197,6 +203,11 @@ func main() {
 						}
 
 						err = copyFiles(fxs.ConfigFiles, directory)
+						if err != nil {
+							return err
+						}
+
+						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
 						}

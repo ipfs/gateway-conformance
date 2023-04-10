@@ -16,11 +16,13 @@ func Dir() string {
 type Fixtures struct {
 	CarFiles    []string
 	ConfigFiles []string
+	IPNSRecords []string
 }
 
 func List() (*Fixtures, error) {
 	var carFiles []string
 	var yamlFiles []string
+	var ipnsRecords []string
 
 	err := filepath.WalkDir(Dir(), func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -45,6 +47,14 @@ func List() (*Fixtures, error) {
 			}
 			yamlFiles = append(yamlFiles, path)
 		}
+		// if we have an ipns-record file, append:
+		if filepath.Ext(path) == ".ipns-record" {
+			path, err := filepath.Abs(path)
+			if err != nil {
+				return err
+			}
+			ipnsRecords = append(ipnsRecords, path)
+		}
 
 		return nil
 	})
@@ -56,5 +66,6 @@ func List() (*Fixtures, error) {
 	return &Fixtures{
 		CarFiles:    carFiles,
 		ConfigFiles: yamlFiles,
+		IPNSRecords: ipnsRecords,
 	}, nil
 }
