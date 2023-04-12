@@ -40,7 +40,7 @@ func TestLoadIPNSRecord(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "k51qzi5uqu5dhjjqhpcuvdnskq4mz84a2xg1rpqzi6s5460q2612egkfjsk42x", ipns.Key())
 	assert.Equal(t, ipns.Value(), "/ipfs/bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244")
-	assert.True(t, ipns.entry.Validity.After(YEAR_100))
+	assert.True(t, ipns.Entry.Validity.After(YEAR_100))
 
 	verify, err := ipns.Verify()
 	assert.Nil(t, err)
@@ -58,7 +58,7 @@ func TestLoadTestRecord(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki", ipns.Key())
 	assert.Equal(t, ipns.Value(), "/ipfs/bafyaaeykceeaeeqlnbswy3dpo5xxe3debimaw")
-	assert.True(t, ipns.entry.Validity.After(YEAR_100))
+	assert.True(t, ipns.Entry.Validity.After(YEAR_100))
 
 	verify, err := ipns.Verify()
 	assert.Nil(t, err)

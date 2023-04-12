@@ -34,24 +34,33 @@ func OpenIPNSRecord(absPath string) (*IpnsRecord, error) {
 		return nil, err
 	}
 
+	r, err := UnmarshalIpnsRecord(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func OpenIPNSRecordWithKey(absPath string) (*IpnsRecord, error) {
 	// name is [pubkey](_anything)?.ipns-record
 	pubkey, err := extractPubkeyFromPath(absPath)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := UnmarshalIpnsRecord(data)
+	r, err := OpenIPNSRecord(absPath)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return r.WithKey(pubkey), nil
 }
 
-func MustOpenIPNSRecord(file string) *IpnsRecord {
+func MustOpenIPNSRecordWithKey(file string) *IpnsRecord {
 	fixturePath := path.Join(fixtures.Dir(), file)
 	
-	ipnsRecord, err := OpenIPNSRecord(fixturePath)
+	ipnsRecord, err := OpenIPNSRecordWithKey(fixturePath)
 	if err != nil {
 		panic(err)
 	}

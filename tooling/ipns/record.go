@@ -5,8 +5,8 @@ import (
 )
 
 type IpnsRecord struct {
-	pb    *ipns_pb.IpnsEntry
-	entry *IpnsInspectEntry
+	Pb    *ipns_pb.IpnsEntry
+	Entry *IpnsInspectEntry
 }
 
 func UnmarshalIpnsRecord(data []byte) (*IpnsRecord, error) {
@@ -20,7 +20,7 @@ func UnmarshalIpnsRecord(data []byte) (*IpnsRecord, error) {
 		return nil, err
 	}
 
-	return &IpnsRecord{pb: pb, entry: entry}, nil
+	return &IpnsRecord{Pb: pb, Entry: entry}, nil
 }
 
 func (i *IpnsRecord) WithKey(key string) *IpnsRecord {
@@ -29,20 +29,20 @@ func (i *IpnsRecord) WithKey(key string) *IpnsRecord {
 	// 	panic(fmt.Errorf("public key mismatch: %s != %s", i.entry.PublicKey, key))
 	// }
 
-	i.entry.PublicKey = key
+	i.Entry.PublicKey = key
 	return i
 }
 
 func (i *IpnsRecord) Value() string {
-	return i.entry.Value
+	return i.Entry.Value
 }
 
 func (i *IpnsRecord) Key() string {
-	return i.entry.PublicKey
+	return i.Entry.PublicKey
 }
 
 func (i *IpnsRecord) Verify() (bool, error) {
-	result, err := verify(i.entry.PublicKey, i.pb)
+	result, err := verify(i.Entry.PublicKey, i.Pb)
 
 	if err != nil {
 		return false, err

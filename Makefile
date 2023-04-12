@@ -16,6 +16,7 @@ provision-cargateway: ./fixtures.car
 
 provision-kubo: fixtures.car
 	find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+	find ./fixtures -name '*.ipns-record' -exec sh -c 'ipfs routing put --allow-offline /ipns/$$(basename -s .ipns-record "{}") "{}"' \;
 
 fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.

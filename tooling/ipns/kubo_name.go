@@ -24,15 +24,15 @@ import (
 // IpnsInspectEntry contains the deserialized values from an IPNS Entry:
 // https://github.com/ipfs/specs/blob/main/ipns/IPNS.md#record-serialization-format
 type IpnsInspectEntry struct {
-	Value        string
-	ValidityType *ipns_pb.IpnsEntry_ValidityType
-	Validity     *time.Time
-	Sequence     uint64
-	TTL          *uint64
-	PublicKey    string
-	SignatureV1  string
-	SignatureV2  string
-	Data         interface{}
+	Value        string                     `json:"value"`
+	ValidityType *ipns_pb.IpnsEntry_ValidityType `json:"validityType"`
+	Validity     *time.Time                 `json:"validity"`
+	Sequence     uint64                     `json:"sequence"`
+	TTL          *uint64                    `json:"ttl"`
+	PublicKey    string                     `json:"publicKey"`
+	SignatureV1  string                     `json:"signatureV1"`
+	SignatureV2  string                     `json:"signatureV2"`
+	Data         interface{}                `json:"data"`
 }
 
 func unmarshalIPNSEntry(data []byte) (*ipns_pb.IpnsEntry, error) {

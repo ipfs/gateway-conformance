@@ -21,7 +21,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 	// '
 	// TODO: what if you'd import with `t0124/simple-id.ipns-record`,
 	// then the loader "just" finds the file with `peer_id_simple-id.ipns-record`?
-	ipns := ipns.MustOpenIPNSRecord("t0124/k51qzi5uqu5dhjjqhpcuvdnskq4mz84a2xg1rpqzi6s5460q2612egkfjsk42x.ipns-record")
+	ipns := ipns.MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
 	ipnsKey := ipns.Key()
 
 	tests := SugarTests{
@@ -92,7 +92,6 @@ func TestGatewayIPNSRecord(t *testing.T) {
 						PointsTo("/ipfs/%s", fileCID.String()),
 				),
 		},
-
 		// test_expect_success "GET KEY with expliciy ?filename= succeeds with modified Content-Disposition header" '
 		// curl -sD - "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_KEY?format=ipns-record&filename=testтест.ipns-record" > curl_output_filename 2>&1 &&
 		// grep -F "Content-Disposition: attachment; filename=\"test____.ipns-record\"; filename*=UTF-8'\'\''test%D1%82%D0%B5%D1%81%D1%82.ipns-record" curl_output_filename &&
@@ -107,7 +106,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 			Response: Expect().
 				Headers(
 					Header("Content-Disposition").
-						Contains("%s", "attachment; filename=\"test____.ipns-record\"; filename*=UTF-8'\\''test%D1%82%D0%B5%D1%81%D1%82.ipns-record"),
+						Contains("%s", "attachment; filename=\"test____.ipns-record\"; filename*=UTF-8''test%D1%82%D0%B5%D1%81%D1%82.ipns-record"),
 				),
 		},
 	}
