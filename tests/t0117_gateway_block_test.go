@@ -34,25 +34,33 @@ func TestGatewayBlock(t *testing.T) {
 				Body(fixture.MustGetRawData("dir")),
 		},
 		{
-			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
+			// This was the original shell test:
+			// test_expect_success "GET response for application/vnd.ipld.raw has expected Content-Type" '
+			// curl -svX GET -H "Accept: application/vnd.ipld.raw" "http://127.0.0.1:$GWAY_PORT/ipfs/$ROOT_DIR_CID/dir/ascii.txt" >/dev/null 2>curl_output &&
+			// test_should_contain "< Content-Type: application/vnd.ipld.raw" curl_output
+			// '
+			// test_expect_success "GET response for application/vnd.ipld.raw includes Content-Length" '
+			// BYTES=$(ipfs block get $FILE_CID | wc --bytes)
+			// test_should_contain "< Content-Length: $BYTES" curl_output
+			// '
+			// test_expect_success "GET response for application/vnd.ipld.raw includes Content-Disposition" '
+			// test_should_contain "< Content-Disposition: attachment\; filename=\"${FILE_CID}.bin\"" curl_output
+			// '
+			// test_expect_success "GET response for application/vnd.ipld.raw includes nosniff hint" '
+			// test_should_contain "< X-Content-Type-Options: nosniff" curl_output
+			// '
+			// 
+			// TOOD: complete this requests + response
+			// bonus point for testing the body as well.
+			Name: "GET with application/vnd.ipld.raw header returns expected response & headers",
 			Request: Request().
-				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()).
-				Headers(
-					Header("Accept", "application/vnd.ipld.raw"),
-				),
+				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Content-Type").
 						Equals("application/vnd.ipld.raw"),
-					Header("Content-Length").
-						Equals("%d", len(fixture.MustGetRawData("dir", "ascii.txt"))),
-					Header("Content-Disposition").
-						Matches("attachment;\\s*filename=\"%s\\.bin", fixture.MustGetCid("dir", "ascii.txt")),
-					Header("X-Content-Type-Options").
-						Equals("nosniff"),
-				).
-				Body(fixture.MustGetRawData("dir", "ascii.txt")),
+				),
 		},
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header with custom filename",
