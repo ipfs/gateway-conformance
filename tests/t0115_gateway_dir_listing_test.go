@@ -18,11 +18,6 @@ func TestGatewayDirListingOnPathGateway(t *testing.T) {
 	// file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 
 	tests := SugarTests{
-		// test_expect_success "path gw: backlink on root CID should be hidden" '
-		//   curl -sD - http://127.0.0.1:$GWAY_PORT/ipfs/${DIR_CID}/ > list_response &&
-		//   test_should_contain "Index of" list_response &&
-		//   test_should_not_contain "<a href=\"/ipfs/$DIR_CID/\">..</a>" list_response
-		// '
 		{
 			// TODO: run the test, check the report and fix this test.
 			Name: "path gw: backlink on root CID should be hidden",
@@ -41,12 +36,7 @@ func TestGatewayDirListingOnPathGateway(t *testing.T) {
 					),
 				),
 		},
-		// test_expect_success "path gw: redirect dir listing to URL with trailing slash" '
-		//   curl -sD - http://127.0.0.1:$GWAY_PORT/ipfs/${DIR_CID}/ą/ę > list_response &&
-		//   test_should_contain "HTTP/1.1 301 Moved Permanently" list_response &&
-		//   test_should_contain "Location: /ipfs/${DIR_CID}/%c4%85/%c4%99/" list_response
-		// '
-		// TODO: implement this test.
+		// TODO: path gw: redirect dir listing to URL with trailing slash
 	}
 
 	test.Run(t, tests)

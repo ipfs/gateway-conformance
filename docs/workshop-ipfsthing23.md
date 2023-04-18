@@ -215,8 +215,14 @@ Then, run the tests again:
 
 > start from scratch and write a new test
 
-No move on to the next test, just below:
+Now, we're going to add a completely new test case to the same file (`tests/t0115_gateway_dir_listing_test.go`) and function (`TestGatewayDirListingOnPathGateway`).
 
+The test should:
+1. Make a request for `/ipfs/ROOT_CID/ą/ę`
+1. Check if the status code is 301
+1. Check if the location header is exactly `/ipfs/ROOT_CID/%c4%85/%c4%99` (WARNING: you're going to have to escape the `%` character as in `/ipfs/ROOT_CID/%%c4%%85/%%c4%%99`)
+
+Here is how it looks like in sharness:
 ```
 test_expect_success "path gw: redirect dir listing to URL with trailing slash" '
 curl -sD - http://127.0.0.1:$GWAY_PORT/ipfs/${DIR_CID}/ą/ę > list_response &&
@@ -225,55 +231,27 @@ test_should_contain "Location: /ipfs/${DIR_CID}/%c4%85/%c4%99/" list_response
 '
 ```
 
-It should be easy to port.
+Once you're done, first, rebuild the docker image:
+
+```bash
+make docker
+```
+
+Then, run the tests again:
+
+```bash
+./gc ...
+```
 
 #### Implement a more complex test
 
 > Introduce Headers, Body, etc.
 
-These tests are quite simple, we've implemented the hard part first!
-
-Open `t0117_gateway_block_test.go`, there is a `// TODO` you can follow along.
-
-## Write a test that relies on subdomain or dnslink
-
-These requires extra configuration and relies on the specs.
-
-### Setup the env
-
-:warning: the next command will change your ipfs configuration.
-
-Run the script `./kubo-config.example.sh` which will update your configuration
-and print an env variable you may use for dnslinking.
-
-Restart the kubo daemon with this env, it should look something like:
-
-```
-IPFS_NS_MAP=dnslink-enabled-on-fqdn.example.com:/ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj ipfs daemon
-```
-
-Then `make test-kubo-subdomains` will run the test with subdomain specs enabled.
-
-// TODO add the subdomain test to gateway dir listing. Show how the sugar that generates more tests.
-
-### Implement a subdomain test
-
-Constraint: make this configurable, we should be able to use
-
-- example.com and localhost for local dev,
-- but also dweb.link, cloudflare-ipfs.com, etc.
-
-Solution: construct an URL, then use proxying, host tweaks, etc.
-
-test implementer: construct urls (we can't guess these)
-use `helpers.UnwrapSubdomainTests` to generate more tests (thanks for the data driven approach we can compose, etc).
+Go to `tests/t0117_gateway_block_test.go`, look for TODOs and implement them.
 
 ## Write a new spec test
 
-https://specs.ipfs.tech/http-gateways/
-
-What about testing https://specs.ipfs.tech/http-gateways/trustless-gateway/ ?
-
+Go to https://specs.ipfs.tech/http-gateways/, pick a spec, and write a test for it.
 
 ### TODOs
 

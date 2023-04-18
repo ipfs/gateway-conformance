@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -95,7 +96,11 @@ func Run(t *testing.T, tests SugarTests) {
 				url = test.Request.URL_
 			}
 			if test.Request.Path_ != "" {
-				url = fmt.Sprintf("%s/%s", GatewayURL, test.Request.Path_)
+				if strings.HasPrefix(test.Request.Path_, "/") {
+					url = fmt.Sprintf("%s%s", GatewayURL, test.Request.Path_)
+				} else {
+					url = fmt.Sprintf("%s/%s", GatewayURL, test.Request.Path_)
+				}
 			}
 
 			query := test.Request.Query_.Encode()
