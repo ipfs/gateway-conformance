@@ -54,9 +54,18 @@ func TestGatewayBlock(t *testing.T) {
 			// bonus point for testing the body as well.
 			Name: "GET with application/vnd.ipld.raw header returns expected response & headers",
 			Request: Request().
-				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
+				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()).
+				Headers(
+					Header("Accept", "application/vnd.ipld.raw"),
+				),
 			Response: Expect().
-				Status(200),
+				Status(200).
+				Headers(
+					Header("Content-Type", "application/vnd.ipld.raw"),
+					Header("Content-Length", "%d", len(fixture.MustGetRawData("dir", "ascii.txt"))),
+					Header("Content-Disposition").Contains("attachment; filename=\"%s.bin\"", fixture.MustGetCid("dir", "ascii.txt")),
+					Header("X-Content-Type-Options", "nosniff"),
+				).Body(fixture.MustGetRawData("dir", "ascii.txt")),
 		},
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header with custom filename",
