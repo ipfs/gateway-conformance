@@ -28,7 +28,7 @@ func TestGatewayDirListingOnPathGateway(t *testing.T) {
 			Request: Request().
 				Path("/ipfs/%s/", dir.Cid()),
 			Response: Expect().
-				Status(202).
+				Status(200).
 				Body(
 					And(
 						Contains("Index of"),
@@ -37,6 +37,17 @@ func TestGatewayDirListingOnPathGateway(t *testing.T) {
 				),
 		},
 		// TODO: path gw: redirect dir listing to URL with trailing slash
+		{
+			Name: "path gw: redirect dir listing to URL with trailing slash",
+			Request: Request().
+				Path("/ipfs/%s/ą/ę", dir.Cid()).
+				DoNotFollowRedirects(),
+			Response: Expect().
+				Status(301).
+				Headers(
+					Header("Location").Equals("/ipfs/%s/%%c4%%85/%%c4%%99/", dir.Cid()),
+			),
+		},
 	}
 
 	test.Run(t, tests)
