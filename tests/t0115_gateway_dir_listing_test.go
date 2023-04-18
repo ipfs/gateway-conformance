@@ -67,7 +67,7 @@ func TestGatewayDirListingOnSubdomainGateway(t *testing.T) {
 			This test is using a custom configuration to resolve the hostname to an IP address.
 			`,
 			Request: Request().
-				URL("%s://%s.%s:%s/", u.Scheme, dir.Cid(), u.Host, u.Port),
+				URL("%s://%s.ipfs.%s", u.Scheme, dir.Cid(), u.Host),
 			Response: Expect().
 				Status(200).
 				Body(
