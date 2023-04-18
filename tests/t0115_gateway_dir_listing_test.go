@@ -84,7 +84,7 @@ func TestGatewayDirListingOnSubdomainGateway(t *testing.T) {
 				Body(
 					And(
 						Contains("Index of"),
-						Contains("<a href=\"/\">..</a>"),
+						Not(Contains("<a href=\"/\">..</a>")),
 					),
 				),
 		},
