@@ -1,24 +1,5 @@
 # Workshop IPFS Thing 2023
 
-- [Workshop IPFS Thing 2023](#workshop-ipfs-thing-2023)
-  - [Intro to the gateway test suite](#intro-to-the-gateway-test-suite)
-    - [Current State](#current-state)
-    - [Design](#design)
-      - [Simple API \& Mostly Data](#simple-api--mostly-data)
-      - [Emphasis on detailed reporting](#emphasis-on-detailed-reporting)
-      - [Applies to "any" type of gateway](#applies-to-any-type-of-gateway)
-      - [Relation with the Specs](#relation-with-the-specs)
-  - [Write our first 3 tests (guided walkthrough)](#write-our-first-3-tests-guided-walkthrough)
-    - [Green Run](#green-run)
-      - [Fix our first test](#fix-our-first-test)
-      - [Implement our second test](#implement-our-second-test)
-      - [Implement a more complex test](#implement-a-more-complex-test)
-  - [Write a test that relies on subdomain or dnslink](#write-a-test-that-relies-on-subdomain-or-dnslink)
-    - [Setup the env](#setup-the-env)
-    - [Implement a subdomain test](#implement-a-subdomain-test)
-  - [Write a new spec test](#write-a-new-spec-test)
-    - [TODOs](#todos)
-
 ## Intro to the gateway test suite
 
 `gateway-conformance` is a tool designed to test if an IPFS Gateway implementation complies with the IPFS Gateway Specification correctly. The tool is distributed as a Docker image, as well as a GitHub Action(s).
@@ -72,7 +53,7 @@ Next step will be to interact directly with the specs:
 ### Prepare the env
 
 Prerequisites:
-- docker
+- docker or Go 1.20
 - kubo
 
 #### Start Kubo Gateway
@@ -87,10 +68,18 @@ ipfs daemon --offline &
 make provision-kubo
 ```
 
-#### Build the Docker image for Gateway Conformance CLI
+#### Build the Gateway Conformance CLI
+
+##### Docker (recommended)
 
 ```bash
 make docker
+```
+
+##### Go 1.20 (alternative)
+
+```bash
+make gateway-conformance
 ```
 
 #### Run the tests against Kubo Gateway
@@ -98,16 +87,22 @@ make docker
 - pass the Gateway URL
 - disable subdomain-gateway spec tests because we didn't configure Kubo to run on a subdomain
 
-##### OSX
+##### Docker (OSX)
 
 ```bash
 ./gc --gateway-url http://host.docker.internal:8080 --specs -subdomain-gateway
 ```
 
-##### Linux
+##### Docker (Linux)
 
 ```bash
 ./gc --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
+```
+
+##### Go 1.20
+
+```bash
+./gateway-conformance --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
 ```
 
 ### Green Run
