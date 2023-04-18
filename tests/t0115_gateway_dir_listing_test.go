@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
@@ -65,9 +64,6 @@ func TestGatewayDirListingOnSubdomainGateway(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO: figure out how to use these informations below:
-	fmt.Printf("gatewayURL: %s, dirCid: %s, host: %s", gatewayURL, dir.Cid(), u.Host)
-
 	tests := SugarTests{
 		// test_expect_success "subdomain gw: backlink on root CID should be hidden" '
 		//   curl -sD - --resolve $DIR_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DIR_HOSTNAME:$GWAY_PORT/ > list_response &&
@@ -79,8 +75,8 @@ func TestGatewayDirListingOnSubdomainGateway(t *testing.T) {
 			Hint: `
 			This test is using a custom configuration to resolve the hostname to an IP address.
 			`,
-			Request: Request(),
-			// URL("%s://%s.%s/", u.Scheme, dir.Cid(), u.Host),
+			Request: Request().
+				URL("%s://%s.%s/", u.Scheme, dir.Cid(), u.Host),
 			Response: Expect().
 				Status(200).
 				Body(

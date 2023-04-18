@@ -49,18 +49,14 @@ func TestGatewayBlock(t *testing.T) {
 			// test_expect_success "GET response for application/vnd.ipld.raw includes nosniff hint" '
 			// test_should_contain "< X-Content-Type-Options: nosniff" curl_output
 			// '
-			// 
+			//
 			// TOOD: complete this requests + response
 			// bonus point for testing the body as well.
 			Name: "GET with application/vnd.ipld.raw header returns expected response & headers",
 			Request: Request().
 				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
 			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Content-Type").
-						Equals("application/vnd.ipld.raw"),
-				),
+				Status(200),
 		},
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header with custom filename",

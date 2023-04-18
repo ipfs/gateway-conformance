@@ -24,9 +24,8 @@ fixtures.car: gateway-conformance
 gateway-conformance:
 	go build -o ./gateway-conformance ./cmd/gateway-conformance
 
-test-docker: fixtures.car gateway-conformance
-	docker build -t gateway-conformance .
-	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --network=host gateway-conformance test
+test-docker: docker fixtures.car gateway-conformance
+	./gc test
 
 output.xml: test-kubo
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --entrypoint "/bin/bash" ghcr.io/pl-strflt/saxon:v1 -c """
@@ -36,5 +35,8 @@ output.xml: test-kubo
 output.html: output.xml
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:output.html
 	open ./output.html
+
+docker:
+	docker build -t gateway-conformance .
 
 .PHONY: gateway-conformance

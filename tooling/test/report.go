@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"testing"
@@ -22,14 +23,14 @@ Hint: {{.Test.Hint}}
 
 Error: {{.Err}}
 
-Request:
+Expected Request:
 {{.Test.Request | json}}
-
-Expected Response:
-{{.Test.Response | json}}
 
 Actual Request:
 {{.Req | dump}}
+
+Expected Response:
+{{.Test.Response | json}}
 
 Actual Response:
 {{.Res | dump}}
@@ -41,6 +42,10 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 		Res:  res,
 		Err:  err,
 		Test: test,
+	}
+
+	if input.Res == nil {
+		input.Res = &http.Response{}
 	}
 
 	tmpl, err := template.New("report").Funcs(template.FuncMap{
@@ -82,7 +87,7 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, input)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to execute template: %#v %w", input, err))
 	}
 
 	if input.Err != nil {

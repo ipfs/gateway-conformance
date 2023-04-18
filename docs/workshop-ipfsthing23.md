@@ -69,52 +69,62 @@ Next step will be to interact directly with the specs:
 
 ## Write our first 3 tests (guided walkthrough)
 
-If you see errors when generating the `./fixtures.car`: remove the file and re-run
+### Prepare the env
+
+Prerequisites:
+- docker
+- kubo
+
+#### Start Kubo Gateway
+
+```bash
+ipfs daemon --offline &
+```
+
+#### Provision Kubo Gateway (import CAR fixtures)
+
+```bash
+make provision-kubo
+```
+
+#### Build the Docker image for Gateway Conformance CLI
+
+```bash
+make docker
+```
+
+#### Run the tests against Kubo Gateway
+
+- pass the Gateway URL
+- disable subdomain-gateway spec tests because we didn't configure Kubo to run on a subdomain
+
+##### OSX
+
+```bash
+./gc --gateway-url http://host.docker.internal:8080 --specs -subdomain-gateway
+```
+
+##### Linux
+
+```bash
+./gc --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
+```
 
 ### Green Run
 
-Start a kubo node for local dev and provision the node.
-We'll use the makefile:
+On the first run, you should see an error. There is a typo in the test, we'll fix it now.
 
-`make test-kubo`
+#### Fixing a test
 
-this will:
+> introducing reporting and the test format
 
-- build the CLI
-- provision the kubo gateway: import all the fixture on your local daemon
-- run the test suite, (without subdomains tests)
+We started porting a test from kubo sharness (115 - gateway dir listing, original shell script: `t0115-gateway-dir-listing.sh`).
 
-You should see two errors in the test right now:
+We moved a static fixture to the gateway conformance repo, created a test file, and prepared a few test cases for you.
 
-```txt
-=== RUN   TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length
-    report.go:89:
-        Name: GET response for application/vnd.ipld.car
-        Hint:
-                                        CAR stream is not deterministic, as blocks can arrive in random order,
-                                        but if we have a small file that fits into a single block, and export its CID
-                                        we will get a CAR that is a deterministic array of bytes.
+The file we'll be looking at lives at `tests/t0115_gateway_dir_listing_test.go`.
 
-
-        Error: Header 'Content-Length' expected empty string, got '127' (CAR is streamed, gateway may not have the entire thing, unable to calculate total size)
-```
-
-That one we'll live with for now, it's an issue we detected in Kubo.
-
-The other is a typo in the test, we'll fix it next.
-
-
-#### Fix our first test
-
-> introduce the reporting and the test format
-
-We started porting a test from kubo sharness (115 - gateway dir listing)
-
-Original shell script: `t0115-gateway-dir-listing.sh`
-We moved the fixture in the gateway conformance repo, created the test file, and prepared a few tests for you. It lives in `t0115_gateway_dir_listing_test.go`
-
-We started porting the first test:
-
+Here is how the test looked like in sharness:
 ```bash
 test_expect_success "path gw: backlink on root CID should be hidden" '
 curl -sD - http://127.0.0.1:$GWAY_PORT/ipfs/${DIR_CID}/ > list_response &&
@@ -123,8 +133,7 @@ test_should_not_contain "<a href=\"/ipfs/$DIR_CID/\">..</a>" list_response
 '
 ```
 
-Which looks like this:
-
+And now, this:
 ```go
 {
  Name: "path gw: backlink on root CID should be hidden",
@@ -145,7 +154,7 @@ Which looks like this:
 },
 ```
 
-But there is an error in the test, you should see this in your error logs:
+There is an error in the test! You should see this in your error logs:
 
 ```
 --- FAIL: TestGatewayDirListingOnPathGateway (0.02s)
@@ -188,9 +197,21 @@ But there is an error in the test, you should see this in your error logs:
             Transfer-Encoding: chunked
 ```
 
-Fix the test and add a new one.
+Try to find an error in the test, and fix it.
 
-#### Implement our second test
+Once you're done, first, rebuild the docker image:
+
+```bash
+make docker
+```
+
+Then, run the tests again:
+
+```bash
+./gc ...
+```
+
+#### Implement a new test
 
 > start from scratch and write a new test
 

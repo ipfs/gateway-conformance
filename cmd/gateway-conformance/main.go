@@ -23,10 +23,17 @@ type event struct {
 
 type out struct {
 	Writer io.Writer
+	Filter func(s string) bool
 }
 
 func (o out) Write(p []byte) (n int, err error) {
-	os.Stdout.Write(p)
+	if o.Filter != nil {
+		for _, line := range strings.Split(string(p), "\n") {
+			if o.Filter(line) {
+				os.Stdout.Write([]byte(fmt.Sprintf("%s\n", line)))
+			}
+		}
+	}
 	return o.Writer.Write(p)
 }
 
@@ -119,9 +126,37 @@ func main() {
 						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
 					}
 
-					cmd.Stdout = out{output}
+					cmd.Stdout = out{
+						Writer: output,
+						Filter: func(line string) bool {
+							return strings.Contains(line, "FAIL") || strings.HasPrefix(line, "PASS")
+						},
+					}
 					cmd.Stderr = os.Stderr
+
+					fmt.Println("Running tests...\n")
 					testErr := cmd.Run()
+					fmt.Println("\nDONE!\n")
+
+					if testErr != nil {
+						fmt.Println("\nLooking for details...\n")
+						strOutput := output.String()
+						lineDump := []string{}
+						for _, line := range strings.Split(strOutput, "\n") {
+							if strings.Contains(line, "FAIL") {
+								fmt.Println(line)
+								for _, l := range lineDump {
+									fmt.Println(l)
+								}
+							}
+							if strings.HasPrefix(line, " ") {
+								lineDump = append(lineDump, line)
+							} else {
+								lineDump = []string{}
+							}
+						}
+						fmt.Println("\nDONE!\n")
+					}
 
 					if jsonOutput != "" {
 						json := &bytes.Buffer{}
@@ -129,6 +164,8 @@ func main() {
 						cmd.Stdin = output
 						cmd.Stdout = json
 						cmd.Stderr = os.Stderr
+
+						fmt.Println("\nGenerating JSON report...")
 						err := cmd.Run()
 						if err != nil {
 							return err
@@ -148,6 +185,7 @@ func main() {
 						if err != nil {
 							return err
 						}
+						fmt.Println("DONE!\n")
 					}
 
 					return testErr
