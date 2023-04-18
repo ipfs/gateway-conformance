@@ -249,7 +249,19 @@ Then, run the tests again:
 
 Go to `tests/t0117_gateway_block_test.go`, look for TODOs and implement them.
 
-## Write a new spec test
+### [optional] Fix a subdomain gateway test
+
+To be able to run subdomain gateway tests, you need to configure your gateway to run on a subdomain.
+
+You can use `kubo-config.example.sh`, for example.
+
+You're going to need to restart the gateway after you change the config.
+
+Then, when running tests, you can stop passing the `--specs -subdomain-gateway` flag.
+
+You'll find a `subdomain-gateway` spec test that is failing (`TestGatewayDirListingOnSubdomainGateway`) in `tests/t0115_gateway_dir_listing_test.go`. It's marked with a TODO.
+
+### [optional] Write a new spec test
 
 Go to https://specs.ipfs.tech/http-gateways/, pick a spec, and write a test for it.
 
