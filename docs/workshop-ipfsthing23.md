@@ -21,13 +21,13 @@
 
 ## Intro to the gateway test suite
 
-`gateway-conformance` is a tool designed to test if an IPFS Gateway implementation complies with the IPFS Gateway Specification correctly. The tool is distributed as a Docker image, as well as a GitHub Action(s).
+`gateway-conformance` is a tool designed to test if an IPFS Gateway implementation complies with the IPFS Gateway Specification correctly. The tool is distributed as a Docker image and a GitHub Action(s).
 
 <https://github.com/ipfs/gateway-conformance>
 
 ### Current State
 
-Many Kubo Sharness tests have been ported to go
+Many Kubo Sharness tests have been ported to go.
 
 The suite is used in CI:
 
@@ -40,31 +40,31 @@ The suite is used in CI:
 #### Simple API & Mostly Data
 
 - Make sure it's easy to contribute,
-- Make sure it's easy to transform tests when needed (generate more test case from simple definitions, upgrade or change the APIs easily, for example adding interop with specs).
+- Make sure it's easy to transform tests when needed (generate more test cases from simple definitions, upgrade or change the APIs easily, for example, adding interop with specs).
 
 #### Emphasis on detailed reporting
 
-Currently error dumps contains quick actionnable feedback on errors,
-and we output detailed markdown of test passing / failings.
+Currently, error dumps contain quick, actionable feedback on errors,
+and we output detailed markdown of test passing/failings.
 
 Later have metrics about how "conforming" a gateway is.
 
 #### Applies to "any" type of gateway
 
-Enable / Disable specs like subdomain, dnslinks, etc.
+Enable / Disable specs like subdomain, DNS links, etc.
 
-Configurable domain URL: We can test a domain gateway runnig on local env, (<http://127.0.0.1>), and are able run the same test suite on a live gateway aswell (<http://dweb.link>)
+Configurable domain URL: We can test a domain gateway running on local env (<http://127.0.0.1>) and can run the same test suite on a live gateway as well (<http://dweb.link>)
 
-TODO: prove this, we don't at the moment.
+TODO: prove this; we don't at the moment.
 
 #### Relation with the Specs
 
-We've been porting kubo test suite to make them reusable accross implementations, and make them easier to scale.
+We've been porting the Kubo test suite to make them reusable across implementations and make them easier to scale.
 
-Next step will be to interact directly with the specs:
+The next step will be to interact directly with the specs:
 
-- we have hints of this: the redirect test suite relies on car file provided in the specs.
-- eventually we want a way to link a "phrase" in the spec to a test in the test suite.
+- we have hints of this: the redirect test suite relies on the car file provided in the specs.
+- eventually, we want a way to link a "phrase" in the spec to a test in the test suite.
   - Contribution welcome.
 
 ## Write our first 3 tests (guided walkthrough)
@@ -73,45 +73,27 @@ If you see errors when generating the `./fixtures.car`: remove the file and re-r
 
 ### Green Run
 
-Start a kubo node for local dev and provision the node.
+Start a Kubo node for local dev and provision the node.
 We'll use the makefile:
 
 `make test-kubo`
 
-this will:
+This will:
 
 - build the CLI
-- provision the kubo gateway: import all the fixture on your local daemon
-- run the test suite, (without subdomains tests)
+- provision the Kubo gateway: import all the fixtures on your local daemon
+- run the test suite (without subdomains tests)
 
-You should see two errors in the test right now:
-
-```txt
-=== RUN   TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length
-    report.go:89:
-        Name: GET response for application/vnd.ipld.car
-        Hint:
-                                        CAR stream is not deterministic, as blocks can arrive in random order,
-                                        but if we have a small file that fits into a single block, and export its CID
-                                        we will get a CAR that is a deterministic array of bytes.
-
-
-        Error: Header 'Content-Length' expected empty string, got '127' (CAR is streamed, gateway may not have the entire thing, unable to calculate total size)
-```
-
-That one we'll live with for now, it's an issue we detected in Kubo.
-
-The other is a typo in the test, we'll fix it next.
-
+You should see an error that we're going to fix!
 
 #### Fix our first test
 
-> introduce the reporting and the test format
+> Introduce the reporting and the test format
 
 We started porting a test from kubo sharness (115 - gateway dir listing)
 
 Original shell script: `t0115-gateway-dir-listing.sh`
-We moved the fixture in the gateway conformance repo, created the test file, and prepared a few tests for you. It lives in `t0115_gateway_dir_listing_test.go`
+We moved the fixture in the gateway conformance repo, created the test file, and prepared a few tests for you. It lives in `t0115_gateway_dir_listing_test.go`.
 
 We started porting the first test:
 
@@ -129,8 +111,8 @@ Which looks like this:
 {
  Name: "path gw: backlink on root CID should be hidden",
  Hint: `
- this test is written for the workshop, it will fail by default.
- But we can use it to show the rough idea of how to write tests.
+ this test is written for the workshop; it will fail by default.
+ But we can use it to show a rough idea of how to write tests.
  `,
  Request: Request().
   Path("/ipfs/%s/", dir.Cid()),
@@ -145,7 +127,7 @@ Which looks like this:
 },
 ```
 
-But there is an error in the test, you should see this in your error logs:
+But there is an error in the test. You should see this in your error logs:
 
 ```
 --- FAIL: TestGatewayDirListingOnPathGateway (0.02s)
@@ -192,7 +174,7 @@ Fix the test and add a new one.
 
 #### Implement our second test
 
-> start from scratch and write a new test
+> Start from scratch and write a new test
 
 No move on to the next test, just below:
 
@@ -210,22 +192,22 @@ It should be easy to port.
 
 > Introduce Headers, Body, etc.
 
-These tests are quite simple, we've implemented the hard part first!
+These tests are pretty simple. We've implemented the hard part first!
 
-Open `t0117_gateway_block_test.go`, there is a `// TODO` you can follow along.
+Open `t0117_gateway_block_test.go`. There is a `// TODO` you can follow along.
 
-## Write a test that relies on subdomain or dnslink
+## Write a test that relies on a subdomain or DNS link
 
-These requires extra configuration and relies on the specs.
+These require extra configuration and rely on the specs.
 
 ### Setup the env
 
-:warning: the next command will change your ipfs configuration.
+:warning: the following command will change your ipfs configuration.
 
-Run the script `./kubo-config.example.sh` which will update your configuration
+Run the script `./kubo-config.example.sh`, which will update your configuration
 and print an env variable you may use for dnslinking.
 
-Restart the kubo daemon with this env, it should look something like:
+Restart the Kubo daemon with this env. It should look something like this:
 
 ```
 IPFS_NS_MAP=dnslink-enabled-on-fqdn.example.com:/ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj ipfs daemon
@@ -233,19 +215,19 @@ IPFS_NS_MAP=dnslink-enabled-on-fqdn.example.com:/ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY
 
 Then `make test-kubo-subdomains` will run the test with subdomain specs enabled.
 
-// TODO add the subdomain test to gateway dir listing. Show how the sugar that generates more tests.
+// TODO Add the subdomain test to the gateway dir listing. Show how the sugar that generates more tests.
 
 ### Implement a subdomain test
 
-Constraint: make this configurable, we should be able to use
+Constraint: make this configurable; we should be able to use
 
 - example.com and localhost for local dev,
 - but also dweb.link, cloudflare-ipfs.com, etc.
 
 Solution: construct an URL, then use proxying, host tweaks, etc.
 
-test implementer: construct urls (we can't guess these)
-use `helpers.UnwrapSubdomainTests` to generate more tests (thanks for the data driven approach we can compose, etc).
+test implementer: construct URLs (we can't guess these)
+use `helpers.UnwrapSubdomainTests` to generate more tests (thanks to the data-driven approach, we can compose, etc.).
 
 ## Write a new spec test
 
@@ -256,4 +238,4 @@ What about testing https://specs.ipfs.tech/http-gateways/trustless-gateway/ ?
 
 ### TODOs
 
-When we run the test suite it fails, what advice can we share fix this? I (laurent) run the tests in an IDE, it's easy to find there. If you run in CLI how do you fix it?
+When we run the test suite, it fails. What advice can we share to fix this? I (Laurent) run the tests in an IDE. It's easy to find there. If you run in CLI, how do you fix it?
