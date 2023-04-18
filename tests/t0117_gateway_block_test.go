@@ -50,7 +50,7 @@ func TestGatewayBlock(t *testing.T) {
 			// test_should_contain "< X-Content-Type-Options: nosniff" curl_output
 			// '
 			//
-			// TOOD: complete this requests + response
+			// TODO: complete this requests + response
 			// bonus point for testing the body as well.
 			Name: "GET with application/vnd.ipld.raw header returns expected response & headers",
 			Request: Request().
