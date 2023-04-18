@@ -133,6 +133,11 @@ func main() {
 						if err != nil {
 							return err
 						}
+						// create directory if it doesn't exist
+						err = os.MkdirAll(filepath.Dir(jsonOutput), 0755)
+						if err != nil {
+							return err
+						}
 						// write jsonOutput to json file
 						f, err := os.Create(jsonOutput)
 						if err != nil {

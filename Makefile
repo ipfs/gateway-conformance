@@ -1,14 +1,14 @@
 all: test-kubo
 
 test-cargateway: provision-cargateway fixtures.car gateway-conformance
-	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8040 --specs -subdomain-gateway
+	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8040 --specs -subdomain-gateway
 
 test-kubo-subdomains: provision-kubo gateway-conformance
 	./kubo-config.example.sh
-	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080
+	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080
 
-test-kubo: provision-kubo fixtures.car gateway-conformance
-	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
+test-kubo: provision-kubo gateway-conformance
+	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
 
 provision-cargateway: ./fixtures.car
 	# cd go-libipfs/examples/car && go install
