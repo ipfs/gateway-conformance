@@ -69,6 +69,7 @@ func main() {
 	var specs string
 	var directory string
 	var merged bool
+	var verbose bool
 
 	app := &cli.App{
 		Name:  "gateway-conformance",
@@ -105,6 +106,12 @@ func main() {
 						Value:       "",
 						Destination: &specs,
 					},
+					&cli.BoolFlag{
+						Name: "verbose",
+						Usage: "Prints all the output to the console.",
+						Value:       false,
+						Destination: &verbose,
+					},
 				},
 				Action: func(cCtx *cli.Context) error {
 					args := []string{"test", "./tests", "-test.v=test2json"}
@@ -129,7 +136,7 @@ func main() {
 					cmd.Stdout = out{
 						Writer: output,
 						Filter: func(line string) bool {
-							return strings.Contains(line, "FAIL") || strings.HasPrefix(line, "PASS")
+							return verbose || strings.Contains(line, "FAIL") || strings.HasPrefix(line, "PASS")
 						},
 					}
 					cmd.Stderr = os.Stderr
@@ -148,11 +155,11 @@ func main() {
 								for _, l := range lineDump {
 									fmt.Println(l)
 								}
-							}
-							if strings.HasPrefix(line, " ") {
-								lineDump = append(lineDump, line)
-							} else {
 								lineDump = []string{}
+							} else if strings.Contains(line, "===") {
+								lineDump = []string{}
+							} else {
+								lineDump = append(lineDump, line)
 							}
 						}
 						fmt.Println("\nDONE!\n")
