@@ -53,8 +53,17 @@ Next step will be to interact directly with the specs:
 ### Prepare the env
 
 Prerequisites:
+- gateway-conformance clone
 - docker or Go 1.20
 - kubo
+
+#### Clone the repository
+
+```bash
+git clone git@github.com:ipfs/gateway-conformance.git
+cd gateway-conformance
+git checkout workshop
+```
 
 #### Start Kubo Gateway
 
