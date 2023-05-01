@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
@@ -39,7 +38,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		redirectDirBaseURL := fmt.Sprintf("%s://%s.ipfs.%s", u.Scheme, redirectDirCID, u.Host)
+		redirectDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, redirectDirCID, u.Host)
 
 		tests = append(tests, SugarTests{
 			// test_expect_success "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file" '
@@ -54,7 +53,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Request: Request().
 					DoNotFollowRedirects().
 					Header("Host", u.Host).
-					URL("%s/redirect-one", redirectDirBaseURL),
+					URL("{{}}/redirect-one", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -72,7 +71,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/301-redirect-one redirects with 301, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
-					URL("%s/301-redirect-one", redirectDirBaseURL),
+					URL("{{}}/301-redirect-one", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -90,7 +89,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/302-redirect-two redirects with 302, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
-					URL("%s/302-redirect-two", redirectDirBaseURL),
+					URL("{{}}/302-redirect-two", redirectDirBaseURL),
 				Response: Expect().
 					Status(302).
 					Headers(
@@ -108,7 +107,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/200-index returns 200, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
-					URL("%s/200-index", redirectDirBaseURL),
+					URL("{{}}/200-index", redirectDirBaseURL),
 				Response: Expect().
 					Status(200).
 					Body(Contains("my index")),
@@ -124,7 +123,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/posts/:year/:month/:day/:title redirects with 301 and placeholders, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
-					URL("%s/posts/2022/01/01/hello-world", redirectDirBaseURL),
+					URL("{{}}/posts/2022/01/01/hello-world", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -142,7 +141,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/splat/one.html redirects with 301 and splat placeholder, per _redirects file",
 				Request: Request().
 					DoNotFollowRedirects().
-					URL("%s/splat/one.html", redirectDirBaseURL),
+					URL("{{}}/splat/one.html", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -162,12 +161,12 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/not-found/has-no-redirects-entry returns custom 404, per _redirects file",
 				Request: Request().
-					URL("%s/not-found/has-no-redirects-entry", redirectDirBaseURL),
+					URL("{{}}/not-found/has-no-redirects-entry", redirectDirBaseURL),
 				Response: Expect().
 					Status(404).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"%s\"", custom404.Cid().String()),
+						Header("Etag").Equals("\"{{}}\"", custom404.Cid().String()),
 					).
 					Body(Contains(custom404.ReadFile())),
 			},
@@ -182,12 +181,12 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/gone/has-no-redirects-entry returns custom 410, per _redirects file",
 				Request: Request().
-					URL("%s/gone/has-no-redirects-entry", redirectDirBaseURL),
+					URL("{{}}/gone/has-no-redirects-entry", redirectDirBaseURL),
 				Response: Expect().
 					Status(410).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"%s\"", custom410.Cid().String()),
+						Header("Etag").Equals("\"{{}}\"", custom410.Cid().String()),
 					).
 					Body(Contains(custom410.ReadFile())),
 			},
@@ -204,12 +203,12 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/unavail/has-no-redirects-entry returns custom 451, per _redirects file",
 				Request: Request().
-					URL("%s/unavail/has-no-redirects-entry", redirectDirBaseURL),
+					URL("{{}}/unavail/has-no-redirects-entry", redirectDirBaseURL),
 				Response: Expect().
 					Status(451).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"%s\"", custom451.Cid().String()),
+						Header("Etag").Equals("\"{{}}\"", custom451.Cid().String()),
 					).
 					Body(Contains(custom451.ReadFile())),
 			},
@@ -223,7 +222,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/catch-all returns 200, per _redirects file",
 				Request: Request().
-					URL("%s/catch-all", redirectDirBaseURL),
+					URL("{{}}/catch-all", redirectDirBaseURL),
 				Response: Expect().
 					Status(200).
 					Body(Contains("my index")),
@@ -243,7 +242,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 			// We expect the request to fail with a 404 (do not use the _redirect), and that 404 should not contain the custom 404 body.
 			// `,
 			// 	Request: Request().
-			// 		URL("http://127.0.0.1:8080/ipfs/%s/301-redirect-one", redirectDirCID),
+			// 		URL("http://127.0.0.1:8080/ipfs/{{}}/301-redirect-one", redirectDirCID),
 			// 	Response: Expect().
 			// 		Status(404).
 			// 		Body(Not(Contains(custom404.ReadFile()))),
@@ -254,11 +253,11 @@ func TestRedirectsFileSupport(t *testing.T) {
 		// INVALID_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/forced | cut -d "/" -f3)
 		invalidRedirectsDirCID := fixture.MustGetNode("forced").Base32Cid()
 		// INVALID_REDIRECTS_DIR_HOSTNAME="${INVALID_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
-		invalidDirBaseURL := fmt.Sprintf("%s://%s.ipfs.%s", u.Scheme, invalidRedirectsDirCID, u.Host)
+		invalidDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, invalidRedirectsDirCID, u.Host)
 		// TOO_LARGE_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/too-large | cut -d "/" -f3)
 		tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").Base32Cid()
 		// TOO_LARGE_REDIRECTS_DIR_HOSTNAME="${TOO_LARGE_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
-		tooLargeDirBaseURL := fmt.Sprintf("%s://%s.ipfs.%s", u.Scheme, tooLargeRedirectsDirCID, u.Host)
+		tooLargeDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, tooLargeRedirectsDirCID, u.Host)
 
 		tests = append(tests, SugarTests{
 			// # if accessing a path that doesn't exist, read _redirects and fail parsing, and return error
@@ -272,7 +271,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "invalid file: request for $INVALID_REDIRECTS_DIR_HOSTNAME/not-found returns error about invalid redirects file",
 				Hint: `if accessing a path that doesn't exist, read _redirects and fail parsing, and return error`,
 				Request: Request().
-					URL("%s/not-found", invalidDirBaseURL),
+					URL("{{}}/not-found", invalidDirBaseURL),
 				Response: Expect().
 					Status(500).
 					Body(
@@ -293,7 +292,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Name: "invalid file: request for $TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found returns error about too large redirects file",
 				Hint: `if accessing a path that doesn't exist and _redirects file is too large, return error`,
 				Request: Request().
-					URL("%s/not-found", tooLargeDirBaseURL),
+					URL("{{}}/not-found", tooLargeDirBaseURL),
 				Response: Expect().
 					Status(500).
 					Body(
@@ -323,7 +322,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dnsLinkBaseUrl := fmt.Sprintf("%s://%s.%s", u.Scheme, dnsLink, u.Host)
+	dnsLinkBaseUrl := Templated("{{scheme}}://{{dnslink}}.{{host}}", u.Scheme, dnsLink, u.Host)
 
 	tests := SugarTests{
 		// # make sure test setup is valid (fail if CoreAPI is unable to resolve)
@@ -343,7 +342,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		{
 			Name: "request for $DNSLINK_FQDN/redirect-one redirects with default of 301, per _redirects file",
 			Request: Request().
-				URL("%s/redirect-one", dnsLinkBaseUrl),
+				URL("{{}}/redirect-one", dnsLinkBaseUrl),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -364,7 +363,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 			Name: "request for $DNSLINK_FQDN/en/has-no-redirects-entry returns custom 404, per _redirects file",
 			Hint: `ensure custom 404 works and has the same cache headers as regular /ipns/ paths`,
 			Request: Request().
-				URL("%s/not-found/has-no-redirects-entry", dnsLinkBaseUrl),
+				URL("{{}}/not-found/has-no-redirects-entry", dnsLinkBaseUrl),
 			Response: Expect().
 				Status(404).
 				Headers(
@@ -388,7 +387,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		// {
 		// 	Name: "request for $NO_DNSLINK_FQDN/redirect-one does not redirect, since DNSLink is disabled",
 		// 	Request: Request().
-		// 		URL("%s/redirect-one", noDnsLinkBaseUrl),
+		// 		URL("{{}}/redirect-one", noDnsLinkBaseUrl),
 		// 	Response: Expect().
 		// 		// TODO: add "status not equal to 301" check.
 		// 		// TODO: what `test_should_not_contain "one.html" response` actually means? No location correct?
