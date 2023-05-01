@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 func TestRedirectsFileSupport(t *testing.T) {

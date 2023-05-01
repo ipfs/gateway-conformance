@@ -1,12 +1,12 @@
 package tests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 // "Test HTTP Gateway TAR (application/x-tar) Support"
@@ -61,13 +61,13 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with format=tar and extract",
 			Request: Request().
-				Path("ipfs/%s", fileCID).
+				Path("ipfs/{{}}", fileCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Content-Disposition").Contains("attachment;"),
-					Header("Etag").Contains("W/\"%s.x-tar", fileCID),
+					Header("Etag").Contains("W/\"{{}}.x-tar", fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
 				).Body(
 				IsTarFile().
@@ -91,13 +91,13 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with 'Accept: application/x-tar' and extract",
 			Request: Request().
-				Path("ipfs/%s", fileCID).
+				Path("ipfs/{{CID}}", fileCID).
 				Header("Accept", "application/x-tar"),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Content-Disposition").Contains("attachment;"),
-					Header("Etag").Contains("W/\"%s.x-tar", fileCID),
+					Header("Etag").Contains("W/\"{{}}.x-tar", fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
 				).Body(
 				IsTarFile(),
@@ -115,14 +115,14 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR has expected root directory",
 			Request: Request().
-				Path("ipfs/%s", dirCID).
+				Path("ipfs/{{}}", dirCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
 				Body(
 					IsTarFile().
 						HasFileWithContent(
-							fmt.Sprintf("%s/ą/ę/file-źł.txt", dirCID),
+							tmpl.Templated("{{}}/ą/ę/file-źł.txt", dirCID),
 							"I am a txt file on path with utf8\n",
 						),
 				),
@@ -136,14 +136,14 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with explicit ?filename= succeeds with modified Content-Disposition header",
 			Request: Request().
-				Path("ipfs/%s", dirCID).
+				Path("ipfs/{{}}", dirCID).
 				Query("filename", "testтест.tar").
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
 				Headers(
-					// Note: golang's compiler assumes the "weird" string is a format string, we use `"%s"` to move it out of the way.
-					Header("Content-Disposition").Contains("%s", "attachment; filename=\"test____.tar\"; filename*=UTF-8''test%D1%82%D0%B5%D1%81%D1%82.tar"),
+					// Note: golang's compiler assumes the "weird" string is a format string, we use `"{{}}"` to move it out of the way.
+					Header("Content-Disposition").Contains("{{}}", "attachment; filename=\"test____.tar\"; filename*=UTF-8''test%D1%82%D0%B5%D1%81%D1%82.tar"),
 				),
 		},
 		/**
@@ -155,7 +155,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with relative paths outside root fails",
 			Request: Request().
-				Path("ipfs/%s", outsideRootCID).
+				Path("ipfs/{{}}", outsideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Body(
@@ -172,14 +172,14 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with relative paths inside root works",
 			Request: Request().
-				Path("ipfs/%s", insideRootCID).
+				Path("ipfs/{{}}", insideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
 				Body(
 					IsTarFile().
 						HasFile(
-							"%s/foobar/file", insideRootCID,
+							"{{}}/foobar/file", insideRootCID,
 						),
 				),
 		},

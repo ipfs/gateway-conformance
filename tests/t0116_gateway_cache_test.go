@@ -1,13 +1,13 @@
 package tests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 func TestGatewayCache(t *testing.T) {
@@ -21,58 +21,58 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir listing succeeds",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()),
+				Path("ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipfs/%s/root2/root3/", fixture.MustGetCid()),
+						Equals("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
+						Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
 					Header("Etag").
-						Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3")),
+						Matches("DirIndex-.*_CID-{{}}", fixture.MustGetCid("root2", "root3")),
 				),
 		},
 		{
 			Name: "GET for /ipfs/ unixfs dir with index.html succeeds",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
+				Path("ipfs/{{}}/root2/root3/root4/", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						Equals("public, max-age=29030400, immutable"),
 					Header("X-Ipfs-Path").
-						Equals("/ipfs/%s/root2/root3/root4/", fixture.MustGetCid()),
+						Equals("/ipfs/{{CID}}/root2/root3/root4/", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
+						Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
 					Header("Etag").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4")),
+						Equals("\"{{CID}}\"", fixture.MustGetCid("root2", "root3", "root4")),
 				),
 		},
 		{
 			Name: "GET for /ipfs/ unixfs file succeeds",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+				Path("ipfs/{{CID}}/root2/root3/root4/index.html", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						Equals("public, max-age=29030400, immutable"),
 					Header("X-Ipfs-Path").
-						Equals("/ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()),
+						Equals("/ipfs/{{CID}}/root2/root3/root4/index.html", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Equals("{{}},{{}},{{}},{{}},{{}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 					Header("Etag").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Equals("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 				),
 		},
 		{
 			Name: "GET for /ipfs/ unixfs dir as DAG-JSON succeeds",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/?format=dag-json", fixture.MustGetCid()),
+				Path("ipfs/{{}}/root2/root3/root4/?format=dag-json", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
@@ -83,7 +83,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ unixfs dir as JSON succeeds",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()),
+				Path("ipfs/{{}}/root2/root3/root4/?format=json", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
@@ -94,7 +94,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "HEAD for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/?format=json", fixture.MustGetCid()).
 				Headers(
 					Header("Cache-Control", "only-if-cached"),
 				).
@@ -116,7 +116,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/?format=json", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/?format=json", fixture.MustGetCid()).
 				Headers(
 					Header("Cache-Control", "only-if-cached"),
 				),
@@ -136,9 +136,9 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Templated("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -146,9 +146,9 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ dir with index.html file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4"))),
+					Header("If-None-Match", Templated("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -156,9 +156,9 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching third Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"fakeEtag1\", \"fakeEtag2\", \"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Templated("\"fakeEtag1\", \"fakeEtag2\", \"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -166,9 +166,9 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with matching weak Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Templated("W/\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -176,7 +176,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ file with wildcard Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/root4/index.html", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
 					Header("If-None-Match", "*"),
 				),
@@ -186,9 +186,9 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
+				Path("ipfs/{{}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("W/\"%s\"", fixture.MustGetCid("root2", "root3"))),
+					Header("If-None-Match", Templated("W/\"{{}}\"", fixture.MustGetCid("root2", "root3"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -198,9 +198,9 @@ func TestGatewayCache(t *testing.T) {
 			{
 				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 				Request: Request().
-					Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
+					Path("ipfs/{{}}/root2/root3/", fixture.MustGetCid()).
 					Headers(
-						Header("If-None-Match", fmt.Sprintf("\"%s\"", etag)),
+						Header("If-None-Match", fmt.Sprintf("\"{{}}\"", etag)),
 					),
 				Response: Expect().
 					Status(304),
@@ -208,9 +208,9 @@ func TestGatewayCache(t *testing.T) {
 			{
 				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
 				Request: Request().
-					Path("ipfs/%s/root2/root3/", fixture.MustGetCid()).
+					Path("ipfs/{{}}/root2/root3/", fixture.MustGetCid()).
 					Headers(
-						Header("If-None-Match", fmt.Sprintf("W/\"%s\"", etag)),
+						Header("If-None-Match", fmt.Sprintf("W/\"{{}}\"", etag)),
 					),
 				Response: Expect().
 					Status(304),
@@ -230,58 +230,58 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs dir listing succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/", ipnsKey),
+				Path("ipns/{{key}}/root2/root3/", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/", ipnsKey),
+						Equals("/ipns/{{key}}/root2/root3/", ipnsKey),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
+						Equals("{{cid1}},{{cid2}},{{cid3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
 					Header("Etag").
-						Matches("DirIndex-.*_CID-%s", fixture.MustGetCid("root2", "root3")),
+						Matches("DirIndex-.*_CID-{{cid}}", fixture.MustGetCid("root2", "root3")),
 				),
 		},
 		{
 			Name: "GET for /ipns/ unixfs dir with index.html succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsKey),
+				Path("ipns/{{key}}/root2/root3/root4/", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/", ipnsKey),
+						Equals("/ipns/{{key}}/root2/root3/root4/", ipnsKey),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
+						Equals("{{cid1}},{{cid2}},{{cid3}},{{cid4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
 					Header("Etag").
-						Matches("\"%s\"", fixture.MustGetCid("root2", "root3", "root4")),
+						Matches(`"{{cid}}"`, fixture.MustGetCid("root2", "root3", "root4")),
 				),
 		},
 		{
 			Name: "GET for /ipns/ unixfs file succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsKey),
+				Path("ipns/{{key}}/root2/root3/root4/index.html", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/index.html", ipnsKey),
+						Equals("/ipns/{{key}}/root2/root3/root4/index.html", ipnsKey),
 					Header("X-Ipfs-Roots").
-						Equals("%s,%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Equals("{{cid1}},{{cid2}},{{cid3}},{{cid4}},{{cid5}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 					Header("Etag").
-						Equals("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Equals(`"{{cid}}"`, fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 				),
 		},
 		{
 			Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsKey).
+				Path("ipns/{{key}}/root2/root3/root4/", ipnsKey).
 				Query("format", "dag-json"),
 			Response: Expect().
 				Status(200).
@@ -293,7 +293,7 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs dir as JSON succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsKey).
+				Path("ipns/{{key}}/root2/root3/root4/", ipnsKey).
 				Query("format", "json"),
 			Response: Expect().
 				Status(200).
@@ -305,9 +305,9 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsKey).
+				Path("ipns/{{key}}/root2/root3/root4/index.html", ipnsKey).
 				Headers(
-					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Templated(`"{{cid}}"`, fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
