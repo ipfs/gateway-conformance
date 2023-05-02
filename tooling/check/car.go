@@ -11,14 +11,15 @@ import (
 
 type CheckIsCarFile struct {
 	blockCIDs         []cid.Cid
-	blocksWithContent map[cid.Cid][]byte
 	rootCIDs          []cid.Cid
+	blocksWithContent map[cid.Cid][]byte
 }
 
 func IsCar() *CheckIsCarFile {
 	return &CheckIsCarFile{
 		blockCIDs:         []cid.Cid{},
 		blocksWithContent: map[cid.Cid][]byte{},
+		rootCIDs:          []cid.Cid{},
 	}
 }
 
@@ -30,18 +31,27 @@ func decoded(cidStr string) cid.Cid {
 	return cid
 }
 
-func (c *CheckIsCarFile) HasBlock(cidStr string) *CheckIsCarFile {
+func (c CheckIsCarFile) HasBlock(cidStr string) CheckIsCarFile {
 	c.blockCIDs = append(c.blockCIDs, decoded(cidStr))
 	return c
 }
 
-func (c *CheckIsCarFile) HasRoot(cidStr string) *CheckIsCarFile {
+func (c CheckIsCarFile) HasRoot(cidStr string) CheckIsCarFile {
 	c.rootCIDs = append(c.rootCIDs, decoded(cidStr))
 	return c
 }
 
-func (c *CheckIsCarFile) HasBlockWithContent(cidStr string, content []byte) *CheckIsCarFile {
+func (c CheckIsCarFile) HasBlockWithContent(cidStr string, content []byte) CheckIsCarFile {
+	// Clone previous map to prevent side-effects
+	current := c.blocksWithContent
+	c.blocksWithContent = make(map[cid.Cid][]byte, len(c.blocksWithContent)+1)
+	for k, v := range current {
+		c.blocksWithContent[k] = v
+	}
+
+	// Update with new value
 	c.blocksWithContent[decoded(cidStr)] = content
+
 	return c
 }
 
