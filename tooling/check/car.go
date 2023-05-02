@@ -22,30 +22,26 @@ func IsCar() *CheckIsCarFile {
 	}
 }
 
-func (c *CheckIsCarFile) HasBlock(cidStr string) *CheckIsCarFile {
+func decoded(cidStr string) cid.Cid {
 	cid, err := cid.Decode(cidStr)
 	if err != nil {
 		panic(fmt.Errorf("invalid CID: %w", err))
 	}
-	c.blockCIDs = append(c.blockCIDs, cid)
+	return cid
+}
+
+func (c *CheckIsCarFile) HasBlock(cidStr string) *CheckIsCarFile {
+	c.blockCIDs = append(c.blockCIDs, decoded(cidStr))
 	return c
 }
 
 func (c *CheckIsCarFile) HasRoot(cidStr string) *CheckIsCarFile {
-	cid, err := cid.Decode(cidStr)
-	if err != nil {
-		panic(fmt.Errorf("invalid CID: %w", err))
-	}
-	c.rootCIDs = append(c.rootCIDs, cid)
+	c.rootCIDs = append(c.rootCIDs, decoded(cidStr))
 	return c
 }
 
 func (c *CheckIsCarFile) HasBlockWithContent(cidStr string, content []byte) *CheckIsCarFile {
-	cid, err := cid.Decode(cidStr)
-	if err != nil {
-		panic(fmt.Errorf("invalid CID: %w", err))
-	}
-	c.blocksWithContent[cid] = content
+	c.blocksWithContent[decoded(cidStr)] = content
 	return c
 }
 
