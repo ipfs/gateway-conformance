@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func loadCarFile(t *testing.T, carFilePath string) []byte {
+func loadFile(t *testing.T, carFilePath string) []byte {
 	file, err := os.Open(carFilePath)
 	if err != nil {
 		t.Fatalf("failed to open car file: %v", err)
@@ -24,7 +24,7 @@ func loadCarFile(t *testing.T, carFilePath string) []byte {
 }
 
 func TestHasFile(t *testing.T) {
-	block := loadCarFile(t, "./_fixtures/hello_ipfs.car")
+	block := loadFile(t, "./_fixtures/hello_ipfs.car")
 
 	c1 := IsCar().
 		HasBlock("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244").

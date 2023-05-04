@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/ipfs/boxo/blockservice"
@@ -99,6 +100,32 @@ func (d *UnixfsDag) MustGetNode(names ...string) *FixtureNode {
 	return &FixtureNode{node: d.mustGetNode(names...), dsvc: d.dsvc}
 }
 
+func (d *UnixfsDag) MustGetChildren(names ...string) [](*FixtureNode) {
+	root := d.mustGetNode(names...)
+
+	paths := root.Tree("", -1)
+	sort.Strings(paths) // depth first traversal paths is equivalent to lexicographic sort
+	fmt.Println("paths:", paths)
+
+	var nodes [](*FixtureNode)
+	for _, path := range paths {
+		fmt.Println("paths:", path)
+		p := strings.Split(path, "/")
+		nodes = append(nodes, d.MustGetNode(p...))
+	}
+
+	return nodes
+}
+
+func (d *UnixfsDag) MustGetChildrenCids(names ...string) []string {
+	nodes := d.MustGetChildren(names...)
+	var cids []string
+	for _, node := range nodes {
+		cids = append(cids, node.Cid().String())
+	}
+	return cids
+}
+
 func (d *UnixfsDag) MustGetRoot() *FixtureNode {
 	return d.MustGetNode()
 }
@@ -140,6 +167,10 @@ func FormatDagNode(node ipld.Node, codecStr string) []byte {
 
 func MustOpenUnixfsCar(file string) *UnixfsDag {
 	fixturePath := path.Join(fixtures.Dir(), file)
+
+	if strings.HasPrefix(file, "./") {
+		fixturePath = file
+	}
 
 	dag, err := newUnixfsDagFromCar(fixturePath)
 	if err != nil {
