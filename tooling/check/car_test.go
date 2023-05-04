@@ -24,23 +24,34 @@ func loadCarFile(t *testing.T, carFilePath string) []byte {
 }
 
 func TestHasFile(t *testing.T) {
+	block := loadCarFile(t, "./_fixtures/hello_ipfs.car")
+
 	c1 := IsCar().
 		HasBlock("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244").
-		HasBlockWithContent("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244", []byte("Hello IPFS\n")).
 		HasRoot("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244")
+
+	assert.True(t, c1.Check(block).Success)
 
 	// invalid CID
 	c2 := IsCar().
 		HasBlock("bafkreiac7wncixdkhdew6wwnzya36b54t7nxcnhps377fjgtmezddnj6em")
 
-	// invalid content
+	assert.False(t, c2.Check(block).Success)
+
+	// missing Roots
 	c3 := IsCar().
 		HasBlock("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244").
-		HasBlockWithContent("bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244", []byte("Invalid Content\n"))
+		Exactly()
 
-	block := loadCarFile(t, "./_fixtures/hello_ipfs.car")
+	assert.False(t, c3.Check(block).Success)
 
-	assert.Equal(t, true, c1.Check(block).Success)
-	assert.Equal(t, false, c2.Check(block).Success)
-	assert.Equal(t, false, c3.Check(block).Success)
+	// more blocks than expected
+	c4 := IsCar()
+	assert.True(t, c4.Check(block).Success)
+
+	// more blocks than expected, but exact
+	c5 := IsCar().
+		Exactly()
+
+	assert.False(t, c5.Check(block).Success)
 }
