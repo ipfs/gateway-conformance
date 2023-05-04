@@ -68,7 +68,6 @@ func TestCIDEquals(t *testing.T) {
 	assert.False(t, CidSetEquals(a, b).Success)
 }
 
-
 func TestCidArrayEquals(t *testing.T) {
 	a := cids("hello")
 	b := cids()
@@ -81,7 +80,7 @@ func TestCidArrayEquals(t *testing.T) {
 	a = cids("hello", "world")
 	b = cids("world", "hello")
 	assert.False(t, CidArrayEquals(a, b).Success)
-	
+
 	a = cids("hello", "world")
 	b = cids("hello", "world", "foo")
 	assert.False(t, CidArrayEquals(a, b).Success)
@@ -111,7 +110,7 @@ func TestCidArrayContains(t *testing.T) {
 	a = cids("hello", "world")
 	b = cids("world", "hello")
 	assert.False(t, CidOrderedSubsetContains(a, b).Success)
-	
+
 	a = cids("hello", "world")
 	b = cids("hello", "world", "foo")
 	assert.False(t, CidOrderedSubsetContains(a, b).Success)

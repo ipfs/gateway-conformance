@@ -39,18 +39,17 @@ func TestGetNodes(t *testing.T) {
 	assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", leaf)
 
 	nodes := f.MustGetChildren()
-	// TODO: We only get 3 for now, the ./subdir/leaf.txt is not included
-	
-	// assert.Len(t, nodes, 4)
+
+	assert.Len(t, nodes, 4)
 	assert.Equal(t, "bafkreidw23elffhagxz3oi6ctoibqouzfowfn3bwcvq2yzgd5n5h4gjyou", nodes[0].Cid().String())
 	assert.Equal(t, "bafkreiaeqsxxqwmsnhzhrlyr2udn25hpj24bs7gzcgkhbrkmhcuikcgh4a", nodes[1].Cid().String())
 	assert.Equal(t, "bafybeiaq6e55xratife7s5cmzjcmwy4adzzlk74sbdpfcq72gus6cweeeq", nodes[2].Cid().String())
-	// assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", nodes[3].Cid().String())
+	assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", nodes[3].Cid().String())
 
 	cids := f.MustGetChildrenCids()
-	// assert.Len(t, nodes, 4)
+	assert.Len(t, nodes, 4)
 	assert.Equal(t, "bafkreidw23elffhagxz3oi6ctoibqouzfowfn3bwcvq2yzgd5n5h4gjyou", cids[0])
 	assert.Equal(t, "bafkreiaeqsxxqwmsnhzhrlyr2udn25hpj24bs7gzcgkhbrkmhcuikcgh4a", cids[1])
 	assert.Equal(t, "bafybeiaq6e55xratife7s5cmzjcmwy4adzzlk74sbdpfcq72gus6cweeeq", cids[2])
-	// assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", cids[3])
+	assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", cids[3])
 }
