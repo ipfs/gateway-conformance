@@ -1,27 +1,10 @@
 package car
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func loadFile(t *testing.T, carFilePath string) []byte {
-	file, err := os.Open(carFilePath)
-	if err != nil {
-		t.Fatalf("failed to open car file: %v", err)
-	}
-	defer file.Close()
-
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		t.Fatalf("failed to read car file: %v", err)
-	}
-
-	return fileBytes
-}
 
 func TestGetNodes(t *testing.T) {
 	f := MustOpenUnixfsCar("./_fixtures/dag.car")
