@@ -17,6 +17,13 @@ func TestBasicTemplating(t *testing.T) {
 	assert.Equal(t, "this is basic templated.", x)
 
 	x, err = templatedSafe(
+		"This is a regular string.",
+	)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "This is a regular string.", x)
+
+	x, err = templatedSafe(
 		"{{first}} is {{second}} templated.",
 		"this",
 	)
