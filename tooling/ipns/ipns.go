@@ -67,21 +67,3 @@ func MustOpenIPNSRecordWithKey(file string) *IpnsRecord {
 
 	return ipnsRecord
 }
-
-// func MustOpenDNSLink(file string) *DNSLinks {
-// 	fixturePath := path.Join(fixtures.Dir(), file)
-// 	dnsLinks, err := OpenDNSLink(fixturePath)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	return dnsLinks
-// }
-
-// func (d *DNSLinks) Get(id string) string {
-// 	dnsLink, ok := d.DNSLinks[id]
-// 	if !ok {
-// 		panic(fmt.Errorf("dnslink %s not found", id))
-// 	}
-// 	return dnsLink.Subdomain
-// }

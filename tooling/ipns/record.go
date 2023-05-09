@@ -24,11 +24,6 @@ func UnmarshalIpnsRecord(data []byte) (*IpnsRecord, error) {
 }
 
 func (i *IpnsRecord) WithKey(key string) *IpnsRecord {
-	// TODO: for some reason our keys are set to `"m"`, figure out why and reenable this check if possible.
-	// if i.entry.PublicKey != "" && i.entry.PublicKey != key {
-	// 	panic(fmt.Errorf("public key mismatch: %s != %s", i.entry.PublicKey, key))
-	// }
-
 	i.Entry.PublicKey = key
 	return i
 }

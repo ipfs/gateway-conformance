@@ -19,8 +19,6 @@ func TestGatewayIPNSRecord(t *testing.T) {
 	// ipfs dag import ../t0124-gateway-ipns-record/fixtures.car &&
 	// ipfs routing put /ipns/${IPNS_KEY} ../t0124-gateway-ipns-record/${IPNS_KEY}.ipns-record
 	// '
-	// TODO: what if you'd import with `t0124/simple-id.ipns-record`,
-	// then the loader "just" finds the file with `peer_id_simple-id.ipns-record`?
 	ipns := ipns.MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
 	ipnsKey := ipns.Key()
 
