@@ -13,6 +13,8 @@ type CheckIsCarFile struct {
 	isOrdered bool
 }
 
+var _ Check[[]byte] = (*CheckIsCarFile)(nil)
+
 func IsCar() *CheckIsCarFile {
 	return &CheckIsCarFile{
 		blockCIDs: []cid.Cid{},
@@ -30,38 +32,38 @@ func decoded(cidStr string) cid.Cid {
 	return cid
 }
 
-func (c CheckIsCarFile) HasBlock(cidStr string) CheckIsCarFile {
+func (c CheckIsCarFile) HasBlock(cidStr string) *CheckIsCarFile {
 	c.blockCIDs = append(c.blockCIDs, decoded(cidStr))
-	return c
+	return &c
 }
 
-func (c CheckIsCarFile) HasBlocks(cidStrs ...string) CheckIsCarFile {
+func (c CheckIsCarFile) HasBlocks(cidStrs ...string) *CheckIsCarFile {
 	for _, cidStr := range cidStrs {
 		c.blockCIDs = append(c.blockCIDs, decoded(cidStr))
 	}
-	return c
+	return &c
 }
 
-func (c CheckIsCarFile) HasRoot(cidStr string) CheckIsCarFile {
+func (c CheckIsCarFile) HasRoot(cidStr string) *CheckIsCarFile {
 	c.rootCIDs = append(c.rootCIDs, decoded(cidStr))
-	return c
+	return &c
 }
 
-func (c CheckIsCarFile) HasRoots(cidStrs ...string) CheckIsCarFile {
+func (c CheckIsCarFile) HasRoots(cidStrs ...string) *CheckIsCarFile {
 	for _, cidStr := range cidStrs {
 		c.rootCIDs = append(c.rootCIDs, decoded(cidStr))
 	}
-	return c
+	return &c
 }
 
-func (c CheckIsCarFile) Exactly() CheckIsCarFile {
+func (c CheckIsCarFile) Exactly() *CheckIsCarFile {
 	c.isExact = true
-	return c
+	return &c
 }
 
-func (c CheckIsCarFile) InThatOrder() CheckIsCarFile {
+func (c CheckIsCarFile) InThatOrder() *CheckIsCarFile {
 	c.isOrdered = true
-	return c
+	return &c
 }
 
 func (c *CheckIsCarFile) Check(carContent []byte) CheckOutput {

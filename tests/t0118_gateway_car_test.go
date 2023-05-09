@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -41,6 +42,12 @@ func TestGatewayCar(t *testing.T) {
 					Header("Accept-Ranges").
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to support range-requests. Partial downloads and resumes should be handled using IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769").
 						Equals("none"),
+				).Body(
+					IsCar().
+					 	HasRoot(fixture.MustGetCid("subdir", "ascii.txt")).
+						HasBlock(fixture.MustGetCid("subdir", "ascii.txt")).
+						Exactly().
+						InThatOrder(),	
 				),
 		},
 	}
