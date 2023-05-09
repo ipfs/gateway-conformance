@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=fixture.schema.json
 dnslinks:
   custom-dnslink:
     subdomain: dnslink-enabled-on-fqdn
