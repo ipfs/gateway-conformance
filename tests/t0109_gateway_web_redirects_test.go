@@ -315,7 +315,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 	dnsLinks := dnslink.MustOpenDNSLink("t0109-dnslink.yml")
-	dnsLink := dnsLinks.Get("custom-dnslink")
+	dnsLink := dnsLinks.MustGet("custom-dnslink")
 
 	gatewayURL := SubdomainGatewayURL
 	u, err := url.Parse(gatewayURL)

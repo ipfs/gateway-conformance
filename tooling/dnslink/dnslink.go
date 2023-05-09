@@ -43,7 +43,7 @@ func MustOpenDNSLink(file string) *DNSLinks {
 	return dnsLinks
 }
 
-func (d *DNSLinks) Get(id string) string {
+func (d *DNSLinks) MustGet(id string) string {
 	dnsLink, ok := d.DNSLinks[id]
 	if !ok {
 		panic(fmt.Errorf("dnslink %s not found", id))
