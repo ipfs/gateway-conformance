@@ -26,7 +26,10 @@ jobs:
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
-          ./gateway-conformance/kubo-config.example.sh;
+          source ./gateway-conformance/kubo-config.example.sh;
+          IPFS_NS_MAP=$(cat ./fixtures/dnslinks.json | jq -r 'to_entries | map("\(.key).example.com:\(.value)") | join(",")')
+          echo "IPFS_NS_MAP=${IPFS_NS_MAP}" >> $GITHUB_ENV
+        # note: the IPFS_NS_MAP set above will be passed the daemon:
       - uses: ipfs/start-ipfs-daemon-action@v1
       - name: Provision Kubo Gateway
         run: |
