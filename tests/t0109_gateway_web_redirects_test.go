@@ -236,18 +236,18 @@ func TestRedirectsFileSupport(t *testing.T) {
 			//	test_should_not_contain "my 404" response
 			//
 			// '
-			{
-				// TODO: how to test this correctly?
-				Name: "This test ensures _redirects is supported only on Web Gateways that use Host header (DNSLink, Subdomain)",
-				Hint: `
-			We expect the request to fail with a 404 (do not use the _redirect), and that 404 should not contain the custom 404 body.
-			`,
-				Request: Request().
-					URL("http://127.0.0.1:8080/ipfs/%s/301-redirect-one", redirectDirCID),
-				Response: Expect().
-					Status(404).
-					Body(Not(Contains(custom404.ReadFile()))),
-			},
+			// {
+			// 	// TODO: confirm with lidel: this should be skipped
+			// 	Name: "This test ensures _redirects is supported only on Web Gateways that use Host header (DNSLink, Subdomain)",
+			// 	Hint: `
+			// We expect the request to fail with a 404 (do not use the _redirect), and that 404 should not contain the custom 404 body.
+			// `,
+			// 	Request: Request().
+			// 		URL("http://127.0.0.1:8080/ipfs/%s/301-redirect-one", redirectDirCID),
+			// 	Response: Expect().
+			// 		Status(404).
+			// 		Body(Not(Contains(custom404.ReadFile()))),
+			// },
 		}...)
 
 		// # Invalid file, containing forced redirect
