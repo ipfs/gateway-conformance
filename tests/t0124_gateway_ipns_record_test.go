@@ -30,7 +30,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		// test_should_contain "Hello IPFS" curl_output_filename
 		// '
 		{
-			Name: "Create and Publish IPNS Key",
+			Name: "GET an IPNS record from the gateway",
 			Request: Request().
 				Path("ipns/%s", ipnsKey),
 			Response: Expect().
@@ -48,7 +48,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		// test_should_contain "Cache-Control: public, max-age=3155760000" curl_output_filename
 		// '
 		{
-			Name: "GET KEY with format=ipns-record and validate key",
+			Name: "GET KEY with format=ipns-record has expected HTTP headers and valid key",
 			Request: Request().
 				Path("ipns/%s", ipnsKey).
 				Query("format", "ipns-record"),
