@@ -23,7 +23,7 @@ func fqdnEncoding(domain string) string {
 }
 
 func TestGatewaySubdomains(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
+	fixture := car.MustOpenUnixfsCar("t0114/gateway_subdomains.car")
 
 	CIDVal := string(fixture.MustGetRawData("hello-CIDv1")) // hello
 	DirCID := fixture.MustGetCid("testdirlisting")
@@ -33,9 +33,9 @@ func TestGatewaySubdomains(t *testing.T) {
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
 	CIDWikipedia := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
 
-	dnsLinks := dnslink.MustOpenDNSLink("t0114-gateway_subdomains.yml")
-	wikipediaDnsLink := dnsLinks.Get("wikipedia")
-	fqdnDnsLink := dnsLinks.Get("fqdn")
+	dnsLinks := dnslink.MustOpenDNSLink("t0114/gateway_subdomains.yml")
+	wikipediaDnsLink := dnsLinks.MustGet("wikipedia")
+	fqdnDnsLink := dnsLinks.MustGet("fqdn")
 
 	tests := SugarTests{}
 

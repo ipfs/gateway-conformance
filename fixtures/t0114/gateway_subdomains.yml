@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../fixture.schema.json
+dnslinks:
+  wikipedia:
+    subdomain: en.wikipedia-on-ipfs.org.ipns
+    # cid of a wikipedia image
+    path: /ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco
+  fqdn:
+    subdomain: dnslink-test
+    # this is the cid of the string "hello"
+    path: /ipfs/bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am
