@@ -109,3 +109,71 @@ func TestTemplatingWithEmptyNames(t *testing.T) {
 		),
 	)
 }
+
+func TestTemplatingWithEscaping(t *testing.T) {
+	assert.Equal(t,
+		"{}/{{}}/{{{}}}",
+		Templated(
+			"{}/{{{}}}/{{{{}}}}",
+		),
+	)
+
+	assert.Equal(t,
+		"{name}/{{name}}/{{{name}}}",
+		Templated(
+			"{name}/{{{name}}}/{{{{name}}}}",
+		),
+	)
+
+	assert.Equal(t,
+		"{name}/foo/{{name}}/{{{name}}}",
+		Templated(
+			"{name}/{{name}}/{{{name}}}/{{{{name}}}}",
+			"foo",
+		),
+	)
+
+	assert.Equal(t,
+		"foo/{first}/{{}}/{{another}}/bar/{{{escaped}}}/{{first}}/baz",
+		Templated(
+			"{{first}}/{first}/{{{}}}/{{{another}}}/{{}}/{{{{escaped}}}}/{{{first}}}/{{two}}",
+			"foo",
+			"bar",
+			"baz",
+		),
+	)
+
+	assert.Equal(t,
+		"{{foo",
+		Templated(
+			"{{{{name}}",
+			"foo",
+		),
+	)
+
+	assert.Equal(t,
+		"foo}}",
+		Templated(
+			"{{name}}}}",
+			"foo",
+		),
+	)
+
+	assert.Equal(t,
+		"{{foo",
+		Templated(
+			"{{{{}}",
+			"foo",
+		),
+	)
+
+	assert.Equal(t,
+		"{name}}/{{foo/{barname}}}/{{{name}}}",
+		Templated(
+			"{name}}/{{{{name}}/{{{}}name}}}/{{{{name}}}}",
+			"foo",
+			"bar",
+		),
+	)
+
+}
