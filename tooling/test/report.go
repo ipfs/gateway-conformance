@@ -59,6 +59,9 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 			case *http.Request:
 				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
+				if v == nil {
+					return "nil"
+				}
 				// TODO: we have to disable the body dump because
 				// it triggers an error:
 				// "http: ContentLength=6 with Body length 0"
