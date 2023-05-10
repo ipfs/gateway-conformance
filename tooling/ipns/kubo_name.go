@@ -7,7 +7,6 @@ package ipns
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -16,7 +15,6 @@ import (
 	"github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/dagcbor"
 	"github.com/ipld/go-ipld-prime/codec/dagjson"
-	ic "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/peer"
 	mbase "github.com/multiformats/go-multibase"
 )
@@ -24,15 +22,15 @@ import (
 // IpnsInspectEntry contains the deserialized values from an IPNS Entry:
 // https://github.com/ipfs/specs/blob/main/ipns/IPNS.md#record-serialization-format
 type IpnsInspectEntry struct {
-	Value        string                     `json:"value"`
+	Value        string                          `json:"value"`
 	ValidityType *ipns_pb.IpnsEntry_ValidityType `json:"validityType"`
-	Validity     *time.Time                 `json:"validity"`
-	Sequence     uint64                     `json:"sequence"`
-	TTL          *uint64                    `json:"ttl"`
-	PublicKey    string                     `json:"publicKey"`
-	SignatureV1  string                     `json:"signatureV1"`
-	SignatureV2  string                     `json:"signatureV2"`
-	Data         interface{}                `json:"data"`
+	Validity     *time.Time                      `json:"validity"`
+	Sequence     uint64                          `json:"sequence"`
+	TTL          *uint64                         `json:"ttl"`
+	PublicKey    string                          `json:"publicKey"`
+	SignatureV1  string                          `json:"signatureV1"`
+	SignatureV2  string                          `json:"signatureV2"`
+	Data         interface{}                     `json:"data"`
 }
 
 func unmarshalIPNSEntry(data []byte) (*ipns_pb.IpnsEntry, error) {
@@ -90,7 +88,6 @@ func unmarshalIPNSRecord(entry *ipns_pb.IpnsEntry) (*IpnsInspectEntry, error) {
 		result.Validity = &validity
 	}
 
-
 	return &result, nil
 }
 
@@ -98,50 +95,4 @@ type IpnsInspectValidation struct {
 	Valid     bool
 	Reason    string
 	PublicKey peer.ID
-}
-
-func verify(key string, entry *ipns_pb.IpnsEntry) (*IpnsInspectValidation, error) {
-	id, err := peer.Decode(key)
-	if err != nil {
-		return nil, err
-	}
-
-	validation := &IpnsInspectValidation{
-		PublicKey: id,
-	}
-
-	pub, err := id.ExtractPublicKey()
-	if err != nil {
-		// Make sure it works with all those RSA that cannot be embedded into the
-		// Peer ID.
-		if len(entry.PubKey) > 0 {
-			pub, err = ic.UnmarshalPublicKey(entry.PubKey)
-			if err != nil {
-				return nil, err
-			}
-
-			// Verify the public key matches the name we are verifying.
-			entryID, err := peer.IDFromPublicKey(pub)
-
-			if err != nil {
-				return nil, err
-			}
-
-			if id != entryID {
-				return nil, fmt.Errorf("record public key does not match the verified name")
-			}
-		}
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	err = ipns.Validate(pub, entry)
-	if err == nil {
-		validation.Valid = true
-	} else {
-		validation.Reason = err.Error()
-	}
-
-	return validation, nil
 }

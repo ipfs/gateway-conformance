@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
-	. "github.com/ipfs/gateway-conformance/tooling/check"
-	"github.com/ipfs/gateway-conformance/tooling/ipns"
-	"github.com/ipfs/gateway-conformance/tooling/test"
+	. "github.com/ipfs/gateway-conformance/tooling/ipns"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -19,7 +18,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 	// ipfs dag import ../t0124-gateway-ipns-record/fixtures.car &&
 	// ipfs routing put /ipns/${IPNS_KEY} ../t0124-gateway-ipns-record/${IPNS_KEY}.ipns-record
 	// '
-	ipns := ipns.MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
+	ipns := MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
 	ipnsKey := ipns.Key()
 
 	tests := SugarTests{
@@ -57,7 +56,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=3155760000"),
 				).
 				Body(
-					IsIPNSKey().
+					IsIPNSKey(ipnsKey).
 						IsValid().
 						PointsTo("/ipfs/%s", fileCID.String()),
 				),
@@ -85,7 +84,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=3155760000"),
 				).
 				Body(
-					IsIPNSKey().
+					IsIPNSKey(ipnsKey).
 						IsValid().
 						PointsTo("/ipfs/%s", fileCID.String()),
 				),
@@ -109,5 +108,6 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests)
+	RunIfSpecsAreEnabled(t, tests,
+		specs.IPNSResolver)
 }

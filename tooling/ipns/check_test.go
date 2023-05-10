@@ -1,4 +1,4 @@
-package check
+package ipns
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestIpnsCanOpenARecord(t *testing.T) {
-	path := "../../fixtures/t0124/k51qzi5uqu5dhjjqhpcuvdnskq4mz84a2xg1rpqzi6s5460q2612egkfjsk42x.ipns-record"
+	path := "./_fixtures/k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki.ipns-record"
 
 	// read file:
 	data, err := os.ReadFile(path)
@@ -16,7 +16,7 @@ func TestIpnsCanOpenARecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check := IsIPNSKey().IsValid()
+	check := IsIPNSKey("k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki").IsValid()
 	// ipfs name inspect --verify $IPNS_KEY < curl_output_filename > verify_output &&
 	output := check.Check(data)
 
