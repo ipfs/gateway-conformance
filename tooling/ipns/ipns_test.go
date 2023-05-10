@@ -34,17 +34,16 @@ func TestExtractPath(t *testing.T) {
 }
 
 func TestLoadIPNSRecord(t *testing.T) {
-	path := "../../fixtures/t0124/k51qzi5uqu5dhjjqhpcuvdnskq4mz84a2xg1rpqzi6s5460q2612egkfjsk42x.ipns-record"
-	ipns, err := OpenIPNSRecord(path)
+	path := "../../fixtures/t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record"
+	ipns, err := OpenIPNSRecordWithKey(path)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "k51qzi5uqu5dhjjqhpcuvdnskq4mz84a2xg1rpqzi6s5460q2612egkfjsk42x", ipns.Key())
+	assert.Equal(t, "k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab", ipns.Key())
 	assert.Equal(t, ipns.Value(), "/ipfs/bafkreidfdrlkeq4m4xnxuyx6iae76fdm4wgl5d4xzsb77ixhyqwumhz244")
-	assert.True(t, ipns.Entry.Validity.After(YEAR_100))
+	assert.True(t, ipns.Validity().After(YEAR_100))
 
-	verify, err := ipns.Verify()
-	assert.Nil(t, err)
-	assert.True(t, verify)
+	err = ipns.Valid()
+	assert.NoError(t, err)
 }
 
 func TestLoadTestRecord(t *testing.T) {
@@ -52,15 +51,14 @@ func TestLoadTestRecord(t *testing.T) {
 	// ipfs name publish --allow-offline -t 876000h --key=self "/ipfs/$( echo "helloworld" | ipfs add --inline -q )"
 	// ipfs routing get /ipns/${K} > ${K}.ipns-record
 
-	path := "../../k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki.ipns-record"
-	ipns, err := OpenIPNSRecord(path)
+	path := "./_fixtures/k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki.ipns-record"
+	ipns, err := OpenIPNSRecordWithKey(path)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki", ipns.Key())
 	assert.Equal(t, ipns.Value(), "/ipfs/bafyaaeykceeaeeqlnbswy3dpo5xxe3debimaw")
-	assert.True(t, ipns.Entry.Validity.After(YEAR_100))
+	assert.True(t, ipns.Validity().After(YEAR_100))
 
-	verify, err := ipns.Verify()
-	assert.Nil(t, err)
-	assert.True(t, verify)
+	err = ipns.Valid()
+	assert.NoError(t, err)
 }

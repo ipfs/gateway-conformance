@@ -1,47 +1,50 @@
 package ipns
 
 import (
+	"time"
+
+	"github.com/ipfs/boxo/ipns"
 	ipns_pb "github.com/ipfs/boxo/ipns/pb"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 type IpnsRecord struct {
-	Pb    *ipns_pb.IpnsEntry
-	Entry *IpnsInspectEntry
+	pb  *ipns_pb.IpnsEntry
+	key string
+	validity time.Time
 }
 
-func UnmarshalIpnsRecord(data []byte) (*IpnsRecord, error) {
-	pb, err := unmarshalIPNSEntry(data)
+func UnmarshalIpnsRecord(data []byte, pubKey string) (*IpnsRecord, error) {
+	pb, err := ipns.UnmarshalIpnsEntry(data)
 	if err != nil {
 		return nil, err
 	}
 
-	entry, err := unmarshalIPNSRecord(pb)
+	validity, err := ipns.GetEOL(pb)
 	if err != nil {
 		return nil, err
 	}
 
-	return &IpnsRecord{Pb: pb, Entry: entry}, nil
-}
-
-func (i *IpnsRecord) WithKey(key string) *IpnsRecord {
-	i.Entry.PublicKey = key
-	return i
+	return &IpnsRecord{pb: pb, key: pubKey, validity: validity}, nil
 }
 
 func (i *IpnsRecord) Value() string {
-	return i.Entry.Value
+	return string(i.pb.Value)
 }
 
 func (i *IpnsRecord) Key() string {
-	return i.Entry.PublicKey
+	return i.key
 }
 
-func (i *IpnsRecord) Verify() (bool, error) {
-	result, err := verify(i.Entry.PublicKey, i.Pb)
+func (i *IpnsRecord) Validity() time.Time {
+	return i.validity
+}
 
+func (i *IpnsRecord) Valid() error {
+	id, err := peer.Decode(i.key)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return result.Valid, nil
+	return ipns.ValidateWithPeerID(id, i.pb)
 }

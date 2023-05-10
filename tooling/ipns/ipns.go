@@ -27,21 +27,6 @@ func extractPubkeyFromPath(path string) (string, error) {
 	return matches[1], nil
 }
 
-
-func OpenIPNSRecord(absPath string) (*IpnsRecord, error) {
-	data, err := os.ReadFile(absPath)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := UnmarshalIpnsRecord(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
-}
-
 func OpenIPNSRecordWithKey(absPath string) (*IpnsRecord, error) {
 	// name is [pubkey](_anything)?.ipns-record
 	pubkey, err := extractPubkeyFromPath(absPath)
@@ -49,12 +34,17 @@ func OpenIPNSRecordWithKey(absPath string) (*IpnsRecord, error) {
 		return nil, err
 	}
 
-	r, err := OpenIPNSRecord(absPath)
+	data, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, err
 	}
-	
-	return r.WithKey(pubkey), nil
+
+	r, err := UnmarshalIpnsRecord(data, pubkey)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func MustOpenIPNSRecordWithKey(file string) *IpnsRecord {
