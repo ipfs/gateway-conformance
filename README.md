@@ -180,23 +180,29 @@ golang's default string formating package is similar to C. Format strings might 
 
 These verbs collides with URL-escaping a lot, strings like `/ipfs/Qm.../%c4%85/%c4%99` might trigger weird errors. We implemented a minimal templating library that is used almost everywhere in the test.
 
-It uses `{{}}` as a replacement for `%s`. Other verbs are not supported.
+It uses `{{name}}` as a replacement for `%s`. Other verbs are not supported.
+
 
 ```golang
-Templated("this is a {{}}", "string") // => "this is a string"
-Templated("{{}} is a {{}}", "this", "string") // => "this is a string"
+Fmt("{{action}} the {{target}}", "pet", "cat") // => "pet the cat"
 ```
 
-You may name templates with `{{name}}`.
+Backticks enable use of verbatim strings, without having to deal with golang-specific escaping of things like double quotes:
 
 ```golang
-Templated("/ipfs/{{cid}}/%c4%85/%c4%99", fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
+Fmt(`Etag: W"{{etag-value}}"`, "weak-key") // => "ETag: W/\"weak-key\""
+```
+
+It is required to always provide a meaningful `{{name}}`:
+
+```golang
+Fmt("/ipfs/{{cid}}/%c4%85/%c4%99", fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
 ```
 
 Values are replaced in the order they are defined, and you may reuse named values
 
 ```golang
-Templated("<a href=\"{{cid}}\">{{}}}</a><a href=\"{{cid}}/index.html\">index</a>", fixture.myCID, "Link Title!") // => '<a href="Qm...">Link Title!</a><a href="Qm..../index.html">index</a>'
+Fmt("<a href=\"{{cid}}\">{{label}}}</a><a href=\"{{cid}}/index.html\">index</a>", fixture.myCID, "Link Title!") // => '<a href="Qm...">Link Title!</a><a href="Qm..../index.html">index</a>'
 ```
 
 You may escape `{{}}` by using more than two opening or closing braces,
