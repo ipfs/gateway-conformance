@@ -35,7 +35,12 @@ jobs:
       - uses: ipfs/start-ipfs-daemon-action@v1
       - name: Provision Kubo Gateway
         run: |
-          find ./fixtures -name '*.car' -exec ipfs dag import {} \+
+          # Import car files
+          cars=$(find ./fixtures -name '*.car')
+          for car in $cars
+          do
+              ipfs dag import "$car"
+          done
 
           # Import ipns records
           records=$(find ./fixtures -name '*.ipns-record')
