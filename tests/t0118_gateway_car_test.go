@@ -20,7 +20,7 @@ func TestGatewayCar(t *testing.T) {
 				we will get a CAR that is a deterministic array of bytes.
 			`,
 			Request: Request().
-				Path("ipfs/{{}}/subdir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/subdir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.car"),
 				),
@@ -35,7 +35,7 @@ func TestGatewayCar(t *testing.T) {
 						IsEmpty(),
 					Header("Content-Disposition").
 						Hint(`Expected content disposition to be attachment; filename="<cid>.car"`).
-						Contains(`attachment; filename="{{}}.car"`, fixture.MustGetCid("subdir", "ascii.txt")),
+						Contains(`attachment; filename="{{cid}}.car"`, fixture.MustGetCid("subdir", "ascii.txt")),
 					Header("X-Content-Type-Options").
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to calculate total size").
 						Equals("nosniff"),

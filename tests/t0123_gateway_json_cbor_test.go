@@ -26,7 +26,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 			## and we want to avoid surprises like https://github.com/protocol/bifrost-infra/issues/2290
 			`,
 			Request: Request().
-				Path("ipfs/{{}}", fileJSONCID).
+				Path("ipfs/{{cid}}", fileJSONCID).
 				Headers(
 					Header("Accept", "application/json"),
 				),
@@ -47,7 +47,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 			## and we want to avoid surprises like https://github.com/protocol/bifrost-infra/issues/2290
 			`,
 			Request: Request().
-				Path("ipfs/{{}}", fileJSONCID).
+				Path("ipfs/{{cid}}", fileJSONCID).
 				Headers(
 					Header("Accept", "application/json"),
 				),
@@ -102,19 +102,19 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS file as {{}} with format=dag-{{}} converts to the expected Content-Type", row.Name, row.Format),
+				Name: Fmt("GET UnixFS file as {{name}} with format=dag-{{format}} converts to the expected Content-Type", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", fileCID).
+					Path("ipfs/{{cid}}", fileCID).
 					Query("format", "dag-"+row.Format),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{}}", row.Format),
+							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, fileCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, fileCID, row.Format),
 						Header("Content-Type").
-							Not().Contains("application/{{}}", row.Format),
+							Not().Contains("application/{{format}}", row.Format),
 					).Body(
 					formatedFile,
 				),
@@ -130,18 +130,18 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS directory as {{}} with format=dag-{{}} converts to the expected Content-Type", row.Name, row.Format),
+				Name: Fmt("GET UnixFS directory as {{name}} with format=dag-{{format}} converts to the expected Content-Type", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}?format=dag-{{}}", dirCID, row.Format),
+					Path("ipfs/{{cid}}?format=dag-{{format}}", dirCID, row.Format),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{}}", row.Format),
+							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, dirCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dirCID, row.Format),
 						Header("Content-Type").
-							Not().Contains("application/{{}}", row.Format),
+							Not().Contains("application/{{format}}", row.Format),
 					).Body(
 					formatedDir,
 				),
@@ -155,21 +155,21 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS as {{}} with 'Accept: application/vnd.ipld.dag-{{}}' converts to the expected Content-Type", row.Name, row.Format),
+				Name: Fmt("GET UnixFS as {{name}} with 'Accept: application/vnd.ipld.dag-{{format}}' converts to the expected Content-Type", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", fileCID).
+					Path("ipfs/{{cid}}", fileCID).
 					Headers(
-						Header("Accept", "application/vnd.ipld.dag-{{}}", row.Format),
+						Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
 					),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, fileCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, fileCID, row.Format),
 						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{}}", row.Format),
+							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Type").
-							Not().Contains("application/{{}}", row.Format),
+							Not().Contains("application/{{format}}", row.Format),
 					),
 			},
 			/**
@@ -179,17 +179,17 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS as {{}} with 'Accept: foo, application/vnd.ipld.dag-{{}},bar' converts to the expected Content-Type", row.Name, row.Format),
+				Name: Fmt("GET UnixFS as {{name}} with 'Accept: foo, application/vnd.ipld.dag-{{format}},bar' converts to the expected Content-Type", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", fileCID).
+					Path("ipfs/{{cid}}", fileCID).
 					Headers(
-						Header("Accept", "foo, application/vnd.ipld.dag-{{}},bar", row.Format),
+						Header("Accept", "foo, application/vnd.ipld.dag-{{format}},bar", row.Format),
 					),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{}}", row.Format),
+							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 					),
 			},
 			/**
@@ -203,9 +203,9 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS with format={{}} (not dag-{{}}) is no-op (no conversion)", row.Format, row.Format),
+				Name: Fmt("GET UnixFS with format={{format}} (not dag-{{format}}) is no-op (no conversion)", row.Format, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}?format={{}}", fileCID, row.Format),
+					Path("ipfs/{{cid}}?format={{format}}", fileCID, row.Format),
 				Response: Expect().
 					Status(200).
 					Headers(
@@ -213,9 +213,9 @@ func TestDAgPbConversion(t *testing.T) {
 						Header("Content-Type").
 							Contains("text/plain"),
 						Header("Content-Type").
-							Not().Contains("application/{{}}", row.Format),
+							Not().Contains("application/{{format}}", row.Format),
 						Header("Content-Type").
-							Not().Contains("application/vnd.ipld.dag-{{}}", row.Format),
+							Not().Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 					).Body(
 					fileData,
 				),
@@ -231,11 +231,11 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS with 'Accept: application/{{}}' (not dag-{{}}) is no-op (no conversion)", row.Format, row.Format),
+				Name: Fmt("GET UnixFS with 'Accept: application/{{format}}' (not dag-{{format}}) is no-op (no conversion)", row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", fileCID).
+					Path("ipfs/{{cid}}", fileCID).
 					Headers(
-						Header("Accept", "application/{{}}", row.Format),
+						Header("Accept", "application/{{format}}", row.Format),
 					),
 				Response: Expect().
 					Status(200).
@@ -244,9 +244,9 @@ func TestDAgPbConversion(t *testing.T) {
 						Header("Content-Type").
 							Contains("text/plain"),
 						Header("Content-Type").
-							Not().Contains("application/{{}}", row.Format),
+							Not().Contains("application/{{format}}", row.Format),
 						Header("Content-Type").
-							Not().Contains("application/vnd.ipld.dag-{{}}", row.Format),
+							Not().Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 					).Body(
 					fileData,
 				),
@@ -271,8 +271,8 @@ func TestPlainCodec(t *testing.T) {
 	}
 
 	for _, row := range table {
-		plain := car.MustOpenUnixfsCar(Fmt("t0123/plain.{{}}.car", row.Format)).MustGetRoot()
-		plainOrDag := car.MustOpenUnixfsCar(Fmt("t0123/plain-that-can-be-dag.{{}}.car", row.Format)).MustGetRoot()
+		plain := car.MustOpenUnixfsCar(Fmt("t0123/plain.{{format}}.car", row.Format)).MustGetRoot()
+		plainOrDag := car.MustOpenUnixfsCar(Fmt("t0123/plain-that-can-be-dag.{{format}}.car", row.Format)).MustGetRoot()
 		formatted := plainOrDag.Formatted("dag-" + row.Format)
 
 		plainCID := plain.Cid()
@@ -291,19 +291,19 @@ func TestPlainCodec(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt(`GET {{}} without Accept or format= has expected "{{}}" Content-Type and body as-is`, row.Name, row.Format),
+				Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
 				Hint: `
 				No explicit format, just codec in CID
 				`,
 				Request: Request().
-					Path("ipfs/{{}}", plainCID),
+					Path("ipfs/{{cid}}", plainCID),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(Fmt(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format)),
+							Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
 						Header("Content-Type").
-							Contains(Fmt("application/{{}}", row.Format)),
+							Contains(Fmt("application/{{format}}", row.Format)),
 					).Body(
 					plain.RawData(),
 				),
@@ -320,20 +320,20 @@ func TestPlainCodec(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET {{}} with ?format= has expected {{}} Content-Type and body as-is", row.Name, row.Format),
+				Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 				Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
 				Request: Request().
-					Path("ipfs/{{}}", plainCID).
+					Path("ipfs/{{cid}}", plainCID).
 					Query("format", row.Format),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
-							Contains("application/{{}}", row.Format),
+							Contains("application/{{format}}", row.Format),
 					).Body(
 					plain.RawData(),
 				),
@@ -350,20 +350,20 @@ func TestPlainCodec(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET {{}} with Accept has expected {{}} Content-Type and body as-is", row.Name, row.Format),
+				Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 				Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
 				Request: Request().
-					Path("ipfs/{{}}", plainCID).
-					Header("Accept", Fmt("application/{{}}", row.Format)),
+					Path("ipfs/{{cid}}", plainCID).
+					Header("Accept", Fmt("application/{{format}}", row.Format)),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
-							Contains("application/{{}}", row.Format),
+							Contains("application/{{format}}", row.Format),
 					).Body(
 					plain.RawData(),
 				),
@@ -383,21 +383,21 @@ func TestPlainCodec(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET {{}} with format=dag-{{}} interprets {{}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format, row.Format),
+				Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
 				Hint: `
 				Explicit dag-* format passed, attempt to parse as dag* variant
 				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
 				`,
 				Request: Request().
-					Path("ipfs/{{}}", plainOrDagCID).
-					Query("format", Fmt("dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", plainOrDagCID).
+					Query("format", Fmt("dag-{{format}}", row.Format)),
 				Response: Expect().
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainOrDagCID, row.Format),
+							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
 						Header("Content-Type").
-							Contains("application/vnd.ipld.dag-{{}}", row.Format),
+							Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 					).Body(
 					row.Checker(formatted),
 				),
@@ -427,7 +427,7 @@ func TestPathing(t *testing.T) {
 		{
 			Name: "GET DAG-JSON traversal returns 501 if there is path remainder",
 			Request: Request().
-				Path("ipfs/{{}}/foo", dagJSONTraversalCID).
+				Path("ipfs/{{cid}}/foo", dagJSONTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
 				Status(501).
@@ -444,7 +444,7 @@ func TestPathing(t *testing.T) {
 		{
 			Name: "GET DAG-JSON traverses multiple links",
 			Request: Request().
-				Path("ipfs/{{}}/foo/link/bar", dagJSONTraversalCID).
+				Path("ipfs/{{cid}}/foo/link/bar", dagJSONTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
 				Status(200).
@@ -464,7 +464,7 @@ func TestPathing(t *testing.T) {
 		{
 			Name: "GET DAG-CBOR traversal returns 501 if there is path remainder",
 			Request: Request().
-				Path("ipfs/{{}}/foo", dagCBORTraversalCID).
+				Path("ipfs/{{cid}}/foo", dagCBORTraversalCID).
 				Query("format", "dag-cbor"),
 			Response: Expect().
 				Status(501).
@@ -481,7 +481,7 @@ func TestPathing(t *testing.T) {
 		{
 			Name: "GET DAG-CBOR traverses multiple links",
 			Request: Request().
-				Path("ipfs/{{}}/foo/link/bar", dagCBORTraversalCID).
+				Path("ipfs/{{cid}}/foo/link/bar", dagCBORTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
 				Status(200).
@@ -512,7 +512,7 @@ func TestNativeDag(t *testing.T) {
 	}
 
 	for _, row := range table {
-		dagTraversal := car.MustOpenUnixfsCar(Fmt("t0123/dag-{{}}-traversal.car", row.Format)).MustGetRoot()
+		dagTraversal := car.MustOpenUnixfsCar(Fmt("t0123/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
 		dagTraversalCID := dagTraversal.Cid()
 		formatted := dagTraversal.Formatted("dag-" + row.Format)
 
@@ -527,10 +527,10 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{}} from /ipfs without explicit format returns the same payload as the raw block", row.Name),
+				Name: Fmt("GET {{name}} from /ipfs without explicit format returns the same payload as the raw block", row.Name),
 				Hint: `GET without explicit format and Accept: text/html returns raw block`,
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID),
+					Path("ipfs/{{cid}}", dagTraversalCID),
 				Response: Expect().
 					Status(200).
 					Body(
@@ -547,11 +547,11 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{}} from /ipfs with format=dag-{{}} returns the same payload as the raw block", row.Name, row.Format),
+				Name: Fmt("GET {{name}} from /ipfs with format=dag-{{format}} returns the same payload as the raw block", row.Name, row.Format),
 				Hint: `GET dag-cbor block via Accept and ?format and ensure both are the same as ipfs block get output`,
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Query("format", Fmt("dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Query("format", Fmt("dag-{{format}}", row.Format)),
 				Response: Expect().
 					Status(200).
 					Body(
@@ -574,10 +574,10 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{}} from /ipfs with application/vnd.ipld.dag-{{}} returns the same payload as the raw block", row.Name, row.Format),
+				Name: Fmt("GET {{name}} from /ipfs with application/vnd.ipld.dag-{{format}} returns the same payload as the raw block", row.Name, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Header("Accept", Fmt("application/vnd.ipld.dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Header("Accept", Fmt("application/vnd.ipld.dag-{{format}}", row.Format)),
 				Response: Expect().
 					Status(200).
 					Body(
@@ -595,14 +595,14 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{}} with format={{}} returns same payload as format=dag-{{}} but with plain Content-Type", row.Name, row.Format, row.Format),
+				Name: Fmt("GET {{name}} with format={{format}} returns same payload as format=dag-{{format}} but with plain Content-Type", row.Name, row.Format, row.Format),
 				Hint: `Make sure DAG-* can be requested as plain JSON or CBOR and response has plain Content-Type for interop purposes`,
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
+					Path("ipfs/{{cid}}", dagTraversalCID).
 					Query("format", row.Format),
 				Response: Expect().
 					Status(200).
-					Header(Header("Content-Type", "application/{{}}", row.Format)).
+					Header(Header("Content-Type", "application/{{format}}", row.Format)).
 					Body(
 						row.Checker(formatted),
 					),
@@ -616,13 +616,13 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{}} with Accept: application/{{}} returns same payload as application/vnd.ipld.dag-{{}} but with plain Content-Type", row.Name, row.Format, row.Format),
+				Name: Fmt("GET {{name}} with Accept: application/{{format}} returns same payload as application/vnd.ipld.dag-{{format}} but with plain Content-Type", row.Name, row.Format, row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Header("Accept", "application/{{}}", row.Format),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Header("Accept", "application/{{format}}", row.Format),
 				Response: Expect().
 					Status(200).
-					Header(Header("Content-Type", "application/{{}}", row.Format)).
+					Header(Header("Content-Type", "application/{{format}}", row.Format)).
 					Body(
 						row.Checker(formatted),
 					),
@@ -646,16 +646,16 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET response for application/vnd.ipld.dag-{{}} has expected Content-Type", row.Format),
+				Name: Fmt("GET response for application/vnd.ipld.dag-{{format}} has expected Content-Type", row.Format),
 				Hint: `Make sure expected HTTP headers are returned with the dag- block`,
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Header("Accept", Fmt("application/vnd.ipld.dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Header("Accept", Fmt("application/vnd.ipld.dag-{{format}}", row.Format)),
 				Response: Expect().
 					Headers(
-						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{}}", row.Format),
-						Header("Content-Length").Hint("includes Content-Length").Equals("{{}}", len(dagTraversal.RawData())),
-						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, dagTraversalCID, row.Format),
+						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
+						Header("Content-Length").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
+						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dagTraversalCID, row.Format),
 						Header("X-Content-Type-Options").Hint("includes nosniff hint").Contains("nosniff"),
 					),
 			},
@@ -666,16 +666,16 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET for application/vnd.ipld.dag-{{}} with query filename includes Content-Disposition with custom filename", row.Format),
+				Name: Fmt("GET for application/vnd.ipld.dag-{{format}} with query filename includes Content-Disposition with custom filename", row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Query("filename", Fmt("foobar.{{}}", row.Format)).
-					Header("Accept", Fmt("application/vnd.ipld.dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Query("filename", Fmt("foobar.{{format}}", row.Format)).
+					Header("Accept", Fmt("application/vnd.ipld.dag-{{format}}", row.Format)),
 				Response: Expect().
 					Headers(
 						Header("Content-Disposition").
 							Hint("includes Content-Disposition").
-							Contains(`{{}}; filename="foobar.{{}}"`, row.Disposition, row.Format),
+							Contains(`{{disposition}}; filename="foobar.{{format}}"`, row.Disposition, row.Format),
 					),
 			},
 			/**
@@ -685,17 +685,17 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET for application/vnd.ipld.dag-{{}} with ?download=true forces Content-Disposition: attachment", row.Format),
+				Name: Fmt("GET for application/vnd.ipld.dag-{{format}} with ?download=true forces Content-Disposition: attachment", row.Format),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Query("filename", Fmt("foobar.{{}}", row.Format)).
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Query("filename", Fmt("foobar.{{format}}", row.Format)).
 					Query("download", "true").
-					Header("Accept", Fmt("application/vnd.ipld.dag-{{}}", row.Format)),
+					Header("Accept", Fmt("application/vnd.ipld.dag-{{format}}", row.Format)),
 				Response: Expect().
 					Headers(
 						Header("Content-Disposition").
 							Hint("includes Content-Disposition").
-							Contains(`attachment; filename="foobar.{{}}"`, row.Format),
+							Contains(`attachment; filename="foobar.{{format}}"`, row.Format),
 					),
 			},
 			/**
@@ -714,14 +714,14 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("Cache control HTTP headers ({{}})", row.Format),
+				Name: Fmt("Cache control HTTP headers ({{format}})", row.Format),
 				Hint: `(basic checks, detailed behavior is tested in t0116-gateway-cache.sh)`,
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
-					Header("Accept", Fmt("application/vnd.ipld.dag-{{}}", row.Format)),
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Header("Accept", Fmt("application/vnd.ipld.dag-{{format}}", row.Format)),
 				Response: Expect().
 					Headers(
-						Header("Etag").Hint("includes Etag").Contains("{{}}.dag-{{}}", dagTraversalCID, row.Format),
+						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-{{format}}", dagTraversalCID, row.Format),
 						Header("X-Ipfs-Path").Hint("includes X-Ipfs-Path").Exists(),
 						Header("X-Ipfs-Roots").Hint("includes X-Ipfs-Roots").Exists(),
 						Header("Cache-Control").Hint("includes Cache-Control").Contains("public, max-age=29030400, immutable"),
@@ -737,14 +737,14 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("HEAD {{}} with no explicit format returns HTTP 200", row.Name),
+				Name: Fmt("HEAD {{name}} with no explicit format returns HTTP 200", row.Name),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
+					Path("ipfs/{{cid}}", dagTraversalCID).
 					Method("HEAD"),
 				Response: Expect().
 					Status(200).
 					Headers(
-						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-{{}}", row.Format),
+						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Length").Hint("includes Content-Length").Exists(),
 					),
 			},
@@ -758,15 +758,15 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("HEAD {{}} with an explicit DAG-JSON format returns HTTP 200", row.Name),
+				Name: Fmt("HEAD {{name}} with an explicit DAG-JSON format returns HTTP 200", row.Name),
 				Request: Request().
-					Path("ipfs/{{}}", dagTraversalCID).
+					Path("ipfs/{{cid}}", dagTraversalCID).
 					Query("format", "dag-json").
 					Method("HEAD"),
 				Response: Expect().
 					Status(200).
 					Headers(
-						Header("Etag").Hint("includes Etag").Contains("{{}}.dag-json", dagTraversalCID),
+						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-json", dagTraversalCID),
 						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-json"),
 						Header("Content-Length").Hint("includes Content-Length").Exists(),
 					),
@@ -780,9 +780,9 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("HEAD {{}} with only-if-cached for missing block returns HTTP 412 Precondition Failed", row.Name),
+				Name: Fmt("HEAD {{name}} with only-if-cached for missing block returns HTTP 412 Precondition Failed", row.Name),
 				Request: Request().
-					Path("ipfs/{{}}", missingCID).
+					Path("ipfs/{{cid}}", missingCID).
 					Header("Cache-Control", "only-if-cached").
 					Method("HEAD"),
 				Response: Expect().
@@ -797,7 +797,7 @@ func TestNativeDag(t *testing.T) {
 			  ipfs name publish --key ${format}_test_key --allow-offline -Q "/ipfs/$CID" > name_publish_out &&
 			  test_check_peerid "${IPNS_ID}" &&
 			  ipfs name resolve "${IPNS_ID}" > output &&
-			  printf "/ipfs/{{}}\n" "$CID" > expected &&
+			  printf "/ipfs/{{cid}}\n" "$CID" > expected &&
 			  test_cmp expected output
 			  '
 			*/
