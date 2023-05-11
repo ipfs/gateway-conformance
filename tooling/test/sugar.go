@@ -25,17 +25,17 @@ func Request() RequestBuilder {
 }
 
 func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
-	r.Path_ = tmpl.Templated(path, args...)
+	r.Path_ = tmpl.Fmt(path, args...)
 	return r
 }
 
 func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
-	r.URL_ = tmpl.Templated(path, args...)
+	r.URL_ = tmpl.Fmt(path, args...)
 	return r
 }
 
 func (r RequestBuilder) Query(key, value string, args ...any) RequestBuilder {
-	r.Query_.Add(key, tmpl.Templated(value, args...))
+	r.Query_.Add(key, tmpl.Fmt(value, args...))
 	return r
 }
 
@@ -48,7 +48,7 @@ func (r RequestBuilder) GetURL() string {
 }
 
 func (r RequestBuilder) Proxy(path string, args ...any) RequestBuilder {
-	r.Proxy_ = tmpl.Templated(path, args...)
+	r.Proxy_ = tmpl.Fmt(path, args...)
 	return r
 }
 
@@ -72,7 +72,7 @@ func (r RequestBuilder) Header(k, v string, rest ...any) RequestBuilder {
 		r.Headers_ = make(map[string]string)
 	}
 
-	r.Headers_[k] = tmpl.Templated(v, rest...)
+	r.Headers_[k] = tmpl.Fmt(v, rest...)
 	return r
 }
 
@@ -171,7 +171,7 @@ func Header(key string, rest ...any) HeaderBuilder {
 	if len(rest) > 0 {
 		// check if rest[0] is a string
 		if value, ok := rest[0].(string); ok {
-			value := tmpl.Templated(value, rest[1:]...)
+			value := tmpl.Fmt(value, rest[1:]...)
 			return HeaderBuilder{Key_: key, Value_: value, Check_: check.IsEqual(value)}
 		} else {
 			panic("rest[0] must be a string")

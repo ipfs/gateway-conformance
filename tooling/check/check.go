@@ -114,7 +114,7 @@ type CheckIsEqual[T comparable] struct {
 
 func IsEqual(value string, rest ...any) CheckIsEqual[string] {
 	return CheckIsEqual[string]{
-		Value: tmpl.Templated(value, rest...),
+		Value: tmpl.Fmt(value, rest...),
 	}
 }
 
@@ -175,7 +175,7 @@ type CheckContains struct {
 
 func Contains(value string, rest ...any) Check[string] {
 	return &CheckContains{
-		Value: tmpl.Templated(value, rest...),
+		Value: tmpl.Fmt(value, rest...),
 	}
 }
 
@@ -216,7 +216,7 @@ func (c *CheckRegexpMatch) Check(v string) CheckOutput {
 }
 
 func Matches(value string, rest ...any) Check[string] {
-	str := tmpl.Templated(value, rest...)
+	str := tmpl.Fmt(value, rest...)
 
 	return &CheckRegexpMatch{
 		Value: regexp.MustCompile(str),

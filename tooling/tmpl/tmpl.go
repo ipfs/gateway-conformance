@@ -32,7 +32,7 @@ func countBraces(s string) (int, int) {
 }
 
 /**
- * templatedSafe is a function that takes a format string and a variadic
+ * fmtSafe is a function that takes a format string and a variadic
  * number of arguments and returns a string with the arguments interpolated
  * into the format string.
  *
@@ -55,7 +55,7 @@ func countBraces(s string) (int, int) {
  * first argument will be interpolated into the first {{}} in the format
  * string, the second argument will be interpolated into the second {{}}.
  */
-func templatedSafe(format string, args ...interface{}) (string, error) {
+func fmtSafe(format string, args ...interface{}) (string, error) {
 	re := regexp.MustCompile(`({){2,}(\w+)?(}){2,}`)
 	varNames := re.FindAllString(format, -1)
 
@@ -155,8 +155,8 @@ func templatedSafe(format string, args ...interface{}) (string, error) {
 	return result, nil
 }
 
-func Templated(format string, args ...interface{}) string {
-	x, err := templatedSafe(format, args...)
+func Fmt(format string, args ...interface{}) string {
+	x, err := fmtSafe(format, args...)
 	if err != nil {
 		panic(err)
 	}

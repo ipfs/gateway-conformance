@@ -39,7 +39,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		redirectDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, redirectDirCID, u.Host)
+		redirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, redirectDirCID, u.Host)
 
 		tests = append(tests, SugarTests{
 			// test_expect_success "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file" '
@@ -254,11 +254,11 @@ func TestRedirectsFileSupport(t *testing.T) {
 		// INVALID_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/forced | cut -d "/" -f3)
 		invalidRedirectsDirCID := fixture.MustGetNode("forced").Base32Cid()
 		// INVALID_REDIRECTS_DIR_HOSTNAME="${INVALID_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
-		invalidDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, invalidRedirectsDirCID, u.Host)
+		invalidDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, invalidRedirectsDirCID, u.Host)
 		// TOO_LARGE_REDIRECTS_DIR_CID=$(ipfs resolve -r /ipfs/$CAR_ROOT_CID/too-large | cut -d "/" -f3)
 		tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").Base32Cid()
 		// TOO_LARGE_REDIRECTS_DIR_HOSTNAME="${TOO_LARGE_REDIRECTS_DIR_CID}.ipfs.localhost:$GWAY_PORT"
-		tooLargeDirBaseURL := Templated("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, tooLargeRedirectsDirCID, u.Host)
+		tooLargeDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, tooLargeRedirectsDirCID, u.Host)
 
 		tests = append(tests, SugarTests{
 			// # if accessing a path that doesn't exist, read _redirects and fail parsing, and return error
@@ -323,7 +323,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dnsLinkBaseUrl := Templated("{{scheme}}://{{dnslink}}.{{host}}", u.Scheme, dnsLink, u.Host)
+	dnsLinkBaseUrl := Fmt("{{scheme}}://{{dnslink}}.{{host}}", u.Scheme, dnsLink, u.Host)
 
 	tests := SugarTests{
 		// # make sure test setup is valid (fail if CoreAPI is unable to resolve)

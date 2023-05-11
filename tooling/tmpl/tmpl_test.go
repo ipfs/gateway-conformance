@@ -7,7 +7,7 @@ import (
 )
 
 func TestBasicTemplating(t *testing.T) {
-	x, err := templatedSafe(
+	x, err := fmtSafe(
 		"{{first}} is {{second}} templated.",
 		"this",
 		"basic",
@@ -16,14 +16,14 @@ func TestBasicTemplating(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "this is basic templated.", x)
 
-	x, err = templatedSafe(
+	x, err = fmtSafe(
 		"This is a regular string.",
 	)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "This is a regular string.", x)
 
-	x, err = templatedSafe(
+	x, err = fmtSafe(
 		"{{first}} is {{second}} templated.",
 		"this",
 	)
@@ -31,7 +31,7 @@ func TestBasicTemplating(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, "", x)
 
-	x, err = templatedSafe(
+	x, err = fmtSafe(
 		"{{first}} is {{second}} templated.",
 		"this",
 		"basic",
@@ -43,7 +43,7 @@ func TestBasicTemplating(t *testing.T) {
 }
 
 func TestTemplatedWrapper(t *testing.T) {
-	x := Templated(
+	x := Fmt(
 		"{{first}} is {{second}} templated.",
 		"this",
 		"basic",
@@ -52,14 +52,14 @@ func TestTemplatedWrapper(t *testing.T) {
 	assert.Equal(t, "this is basic templated.", x)
 
 	assert.Panics(t, func() {
-		Templated(
+		Fmt(
 			"{{first}} is {{second}} templated.",
 			"this",
 		)
 	})
 
 	assert.Panics(t, func() {
-		Templated(
+		Fmt(
 			"{{first}} is {{second}} templated.",
 			"this",
 			"basic",
@@ -71,7 +71,7 @@ func TestTemplatedWrapper(t *testing.T) {
 func TestTemplatingWithReuseArguments(t *testing.T) {
 	assert.Equal(t,
 		"foo/foo/bar",
-		Templated(
+		Fmt(
 			"{{first}}/{{first}}/{{another}}",
 			"foo",
 			"bar",
@@ -80,7 +80,7 @@ func TestTemplatingWithReuseArguments(t *testing.T) {
 
 	assert.Equal(t,
 		"foo/bar/foo/bar/foo/foo",
-		Templated(
+		Fmt(
 			"{{first}}/{{another}}/{{first}}/{{another}}/{{first}}/{{first}}",
 			"foo",
 			"bar",
@@ -91,7 +91,7 @@ func TestTemplatingWithReuseArguments(t *testing.T) {
 func TestTemplatingWithEmptyNames(t *testing.T) {
 	assert.Equal(t,
 		"foo/bar/baz",
-		Templated(
+		Fmt(
 			"{{first}}/{{}}/{{another}}",
 			"foo",
 			"bar",
@@ -101,7 +101,7 @@ func TestTemplatingWithEmptyNames(t *testing.T) {
 
 	assert.Equal(t,
 		"foo/bar/baz",
-		Templated(
+		Fmt(
 			"{{}}/{{}}/{{}}",
 			"foo",
 			"bar",
@@ -113,21 +113,21 @@ func TestTemplatingWithEmptyNames(t *testing.T) {
 func TestTemplatingWithEscaping(t *testing.T) {
 	assert.Equal(t,
 		"{}/{{}}/{{{}}}",
-		Templated(
+		Fmt(
 			"{}/{{{}}}/{{{{}}}}",
 		),
 	)
 
 	assert.Equal(t,
 		"{name}/{{name}}/{{{name}}}",
-		Templated(
+		Fmt(
 			"{name}/{{{name}}}/{{{{name}}}}",
 		),
 	)
 
 	assert.Equal(t,
 		"{name}/foo/{{name}}/{{{name}}}",
-		Templated(
+		Fmt(
 			"{name}/{{name}}/{{{name}}}/{{{{name}}}}",
 			"foo",
 		),
@@ -135,7 +135,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 
 	assert.Equal(t,
 		"foo/{first}/{{}}/{{another}}/bar/{{{escaped}}}/{{first}}/baz",
-		Templated(
+		Fmt(
 			"{{first}}/{first}/{{{}}}/{{{another}}}/{{}}/{{{{escaped}}}}/{{{first}}}/{{two}}",
 			"foo",
 			"bar",
@@ -145,7 +145,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 
 	assert.Equal(t,
 		"{{foo",
-		Templated(
+		Fmt(
 			"{{{{name}}",
 			"foo",
 		),
@@ -153,7 +153,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 
 	assert.Equal(t,
 		"foo}}",
-		Templated(
+		Fmt(
 			"{{name}}}}",
 			"foo",
 		),
@@ -161,7 +161,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 
 	assert.Equal(t,
 		"{{foo",
-		Templated(
+		Fmt(
 			"{{{{}}",
 			"foo",
 		),
@@ -169,7 +169,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 
 	assert.Equal(t,
 		"{name}}/{{foo/{barname}}}/{{{name}}}",
-		Templated(
+		Fmt(
 			"{name}}/{{{{name}}/{{{}}name}}}/{{{{name}}}}",
 			"foo",
 			"bar",

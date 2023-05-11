@@ -138,7 +138,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Templated("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Fmt("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -148,7 +148,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/{{}}/root2/root3/root4/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Templated("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4"))),
+					Header("If-None-Match", Fmt("\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -158,7 +158,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Templated("\"fakeEtag1\", \"fakeEtag2\", \"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Fmt("\"fakeEtag1\", \"fakeEtag2\", \"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -168,7 +168,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/{{}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Templated("W/\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
+					Header("If-None-Match", Fmt("W/\"{{}}\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
 			Response: Expect().
 				Status(304),
@@ -188,7 +188,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("ipfs/{{}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Templated("W/\"{{}}\"", fixture.MustGetCid("root2", "root3"))),
+					Header("If-None-Match", Fmt("W/\"{{}}\"", fixture.MustGetCid("root2", "root3"))),
 				),
 			Response: Expect().
 				Status(304),

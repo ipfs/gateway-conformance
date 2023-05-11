@@ -32,7 +32,7 @@ func TestGatewaySubdomains(t *testing.T) {
 
 	// sugar: nicer looking sprintf call
 	URL := func(path string, args ...interface{}) string {
-		return tmpl.Templated(path, args...)
+		return tmpl.Fmt(path, args...)
 	}
 
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)

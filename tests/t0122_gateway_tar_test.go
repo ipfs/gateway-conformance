@@ -122,7 +122,7 @@ func TestGatewayTar(t *testing.T) {
 				Body(
 					IsTarFile().
 						HasFileWithContent(
-							tmpl.Templated("{{}}/ą/ę/file-źł.txt", dirCID),
+							tmpl.Fmt("{{}}/ą/ę/file-źł.txt", dirCID),
 							"I am a txt file on path with utf8\n",
 						),
 				),
