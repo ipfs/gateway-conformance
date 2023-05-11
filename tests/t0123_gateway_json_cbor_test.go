@@ -203,7 +203,7 @@ func TestDAgPbConversion(t *testing.T) {
 			'
 			*/
 			{
-				Name: Fmt("GET UnixFS with format={{format}} (not dag-{{format}}) is no-op (no conversion)", row.Format, row.Format),
+				Name: Fmt("GET UnixFS with format={{format}} (not dag-{{format}}) is no-op (no conversion)", row.Format),
 				Request: Request().
 					Path("ipfs/{{cid}}?format={{format}}", fileCID, row.Format),
 				Response: Expect().
@@ -595,7 +595,7 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{name}} with format={{format}} returns same payload as format=dag-{{format}} but with plain Content-Type", row.Name, row.Format, row.Format),
+				Name: Fmt("GET {{name}} with format={{format}} returns same payload as format=dag-{{format}} but with plain Content-Type", row.Name, row.Format),
 				Hint: `Make sure DAG-* can be requested as plain JSON or CBOR and response has plain Content-Type for interop purposes`,
 				Request: Request().
 					Path("ipfs/{{cid}}", dagTraversalCID).
@@ -616,7 +616,7 @@ func TestNativeDag(t *testing.T) {
 			  '
 			*/
 			{
-				Name: Fmt("GET {{name}} with Accept: application/{{format}} returns same payload as application/vnd.ipld.dag-{{format}} but with plain Content-Type", row.Name, row.Format, row.Format),
+				Name: Fmt("GET {{name}} with Accept: application/{{format}} returns same payload as application/vnd.ipld.dag-{{format}} but with plain Content-Type", row.Name, row.Format),
 				Request: Request().
 					Path("ipfs/{{cid}}", dagTraversalCID).
 					Header("Accept", "application/{{format}}", row.Format),

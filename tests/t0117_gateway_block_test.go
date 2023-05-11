@@ -36,7 +36,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
 			Request: Request().
-				Path("ipfs/{{cid}}//dir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -48,7 +48,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Content-Length").
 						Equals("{{cid}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
-						Matches(`attachment;\s*filename="{{cid}}\\.bin`, fixture.MustGetCid("dir", "ascii.txt")),
+						Matches(`attachment;\s*filename="{{cid}}\.bin`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-Content-Type-Options").
 						Equals("nosniff"),
 				).
@@ -57,7 +57,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header with custom filename",
 			Request: Request().
-				Path("ipfs/{{cid}}//dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -71,7 +71,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected caching headers",
 			Request: Request().
-				Path("ipfs/{{cid}}//dir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -81,7 +81,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("ETag").
 						Equals(`"{{cid}}.raw"`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-IPFS-Path").
-						Equals("/ipfs/{{cid}}//dir/ascii.txt", fixture.MustGetCid()),
+						Equals("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()),
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid()),
 					Header("Cache-Control").
