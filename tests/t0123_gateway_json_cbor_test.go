@@ -112,7 +112,7 @@ func TestDAgPbConversion(t *testing.T) {
 						Header("Content-Type").
 							Equals("application/vnd.ipld.dag-{{}}", row.Format),
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, fileCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, fileCID, row.Format),
 						Header("Content-Type").
 							Not().Contains("application/{{}}", row.Format),
 					).Body(
@@ -139,7 +139,7 @@ func TestDAgPbConversion(t *testing.T) {
 						Header("Content-Type").
 							Equals("application/vnd.ipld.dag-{{}}", row.Format),
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, dirCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, dirCID, row.Format),
 						Header("Content-Type").
 							Not().Contains("application/{{}}", row.Format),
 					).Body(
@@ -165,7 +165,7 @@ func TestDAgPbConversion(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, fileCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, fileCID, row.Format),
 						Header("Content-Type").
 							Equals("application/vnd.ipld.dag-{{}}", row.Format),
 						Header("Content-Type").
@@ -301,7 +301,7 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains(Fmt("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, plainCID, row.Format)),
+							Contains(Fmt(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format)),
 						Header("Content-Type").
 							Contains(Fmt("application/{{}}", row.Format)),
 					).Body(
@@ -331,7 +331,7 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, plainCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
 							Contains("application/{{}}", row.Format),
 					).Body(
@@ -361,7 +361,7 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, plainCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainCID, row.Format),
 						Header("Content-Type").
 							Contains("application/{{}}", row.Format),
 					).Body(
@@ -395,7 +395,7 @@ func TestPlainCodec(t *testing.T) {
 					Status(200).
 					Headers(
 						Header("Content-Disposition").
-							Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, plainOrDagCID, row.Format),
+							Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, plainOrDagCID, row.Format),
 						Header("Content-Type").
 							Contains("application/vnd.ipld.dag-{{}}", row.Format),
 					).Body(
@@ -655,7 +655,7 @@ func TestNativeDag(t *testing.T) {
 					Headers(
 						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{}}", row.Format),
 						Header("Content-Length").Hint("includes Content-Length").Equals("{{}}", len(dagTraversal.RawData())),
-						Header("Content-Disposition").Hint("includes Content-Disposition").Contains("{{}}; filename=\"{{}}.{{}}\"", row.Disposition, dagTraversalCID, row.Format),
+						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{}}; filename="{{}}.{{}}"`, row.Disposition, dagTraversalCID, row.Format),
 						Header("X-Content-Type-Options").Hint("includes nosniff hint").Contains("nosniff"),
 					),
 			},
@@ -675,7 +675,7 @@ func TestNativeDag(t *testing.T) {
 					Headers(
 						Header("Content-Disposition").
 							Hint("includes Content-Disposition").
-							Contains("{{}}; filename=\"foobar.{{}}\"", row.Disposition, row.Format),
+							Contains(`{{}}; filename="foobar.{{}}"`, row.Disposition, row.Format),
 					),
 			},
 			/**
@@ -695,7 +695,7 @@ func TestNativeDag(t *testing.T) {
 					Headers(
 						Header("Content-Disposition").
 							Hint("includes Content-Disposition").
-							Contains("attachment; filename=\"foobar.{{}}\"", row.Format),
+							Contains(`attachment; filename="foobar.{{}}"`, row.Format),
 					),
 			},
 			/**

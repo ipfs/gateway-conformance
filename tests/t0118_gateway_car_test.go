@@ -34,8 +34,8 @@ func TestGatewayCar(t *testing.T) {
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to calculate total size").
 						IsEmpty(),
 					Header("Content-Disposition").
-						Hint("Expected content disposition to be attachment; filename=\"<cid>.car\"").
-						Contains("attachment; filename=\"{{}}.car\"", fixture.MustGetCid("subdir", "ascii.txt")),
+						Hint(`Expected content disposition to be attachment; filename="<cid>.car"`).
+						Contains(`attachment; filename="{{}}.car"`, fixture.MustGetCid("subdir", "ascii.txt")),
 					Header("X-Content-Type-Options").
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to calculate total size").
 						Equals("nosniff"),

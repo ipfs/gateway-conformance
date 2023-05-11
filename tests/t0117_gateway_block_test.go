@@ -48,7 +48,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Content-Length").
 						Equals("{{}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
-						Matches("attachment;\\s*filename=\"{{}}\\.bin", fixture.MustGetCid("dir", "ascii.txt")),
+						Matches(`attachment;\s*filename="{{}}\\.bin`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-Content-Type-Options").
 						Equals("nosniff"),
 				).
@@ -65,7 +65,7 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").
-						Matches("attachment;\\s*filename=\"foobar\\.bin"),
+						Matches(`attachment;\s*filename="foobar\.bin`),
 				),
 		},
 		{
@@ -79,7 +79,7 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("ETag").
-						Equals("\"{{}}.raw\"", fixture.MustGetCid("dir", "ascii.txt")),
+						Equals(`"{{}}.raw"`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-IPFS-Path").
 						Equals("/ipfs/{{}}/dir/ascii.txt", fixture.MustGetCid()),
 					Header("X-IPFS-Roots").

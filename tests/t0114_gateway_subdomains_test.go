@@ -142,8 +142,8 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(200).
 				Body(And(
 					// TODO: implement html expectations
-					Contains("<a href=\"/hello\">hello</a>"),
-					Contains("<a href=\"/ipfs\">ipfs</a>"),
+					Contains(`<a href="/hello">hello</a>`),
+					Contains(`<a href="/ipfs">ipfs</a>`),
 				)),
 		))
 
@@ -155,8 +155,8 @@ func TestGatewaySubdomains(t *testing.T) {
 				Status(200).
 				Body(And(
 					// TODO: implement html expectations
-					Contains("<a href=\"/ipfs/ipns/..\">..</a>"),
-					Contains("<a href=\"/ipfs/ipns/bar\">bar</a>"),
+					Contains(`<a href="/ipfs/ipns/..">..</a>`),
+					Contains(`<a href="/ipfs/ipns/bar">bar</a>`),
 				)),
 		))
 
@@ -181,7 +181,7 @@ func TestGatewaySubdomains(t *testing.T) {
 				Body(
 					And(
 						Contains("Index of"),
-						Contains("/ipfs/<a href=\"//{{}}/ipfs/{{}}\">{{}}</a>/<a href=\"//{{}}/ipfs/{{}}/ipfs\">ipfs</a>/<a href=\"//{{}}/ipfs/{{}}/ipfs/ipns\">ipns</a>",
+						Contains(`/ipfs/<a href="//{{}}/ipfs/{{}}">{{}}</a>/<a href="//{{}}/ipfs/{{}}/ipfs">ipfs</a>/<a href="//{{}}/ipfs/{{}}/ipfs/ipns">ipns</a>`,
 							u.Host, DirCID, DirCID, u.Host, DirCID, u.Host, DirCID),
 					),
 				),
@@ -223,7 +223,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			"error message should include original CID (and it should be case-sensitive, as we can't assume everyone uses base32)",
 			URL("{{}}://{{}}/ipfs/QmInvalidCID", u.Scheme, u.Host),
 			Expect().
-				Body(Contains("invalid path \"/ipfs/QmInvalidCID\"")),
+				Body(Contains(`invalid path "/ipfs/QmInvalidCID"`)),
 		))
 
 		with(testGatewayWithManyProtocols(t,

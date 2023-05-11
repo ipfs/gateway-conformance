@@ -67,7 +67,7 @@ func TestGatewayTar(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").Contains("attachment;"),
-					Header("Etag").Contains("W/\"{{}}.x-tar", fileCID),
+					Header("Etag").Contains(`W/"{{}}.x-tar`, fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
 				).Body(
 				IsTarFile().
@@ -97,7 +97,7 @@ func TestGatewayTar(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").Contains("attachment;"),
-					Header("Etag").Contains("W/\"{{}}.x-tar", fileCID),
+					Header("Etag").Contains(`W/"{{}}.x-tar`, fileCID),
 					Header("Content-Type").Contains("application/x-tar"),
 				).Body(
 				IsTarFile(),
@@ -143,7 +143,7 @@ func TestGatewayTar(t *testing.T) {
 				Status(200).
 				Headers(
 					// Note: golang's compiler assumes the "weird" string is a format string, we use `"{{}}"` to move it out of the way.
-					Header("Content-Disposition").Contains("{{}}", "attachment; filename=\"test____.tar\"; filename*=UTF-8''test%D1%82%D0%B5%D1%81%D1%82.tar"),
+					Header("Content-Disposition").Contains("{{}}", `attachment; filename="test____.tar"; filename*=UTF-8''test%D1%82%D0%B5%D1%81%D1%82.tar`),
 				),
 		},
 		/**

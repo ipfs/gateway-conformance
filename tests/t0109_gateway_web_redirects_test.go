@@ -167,7 +167,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Status(404).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"{{}}\"", custom404.Cid().String()),
+						Header("Etag").Equals(`"{{}}"`, custom404.Cid().String()),
 					).
 					Body(Contains(custom404.ReadFile())),
 			},
@@ -187,7 +187,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Status(410).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"{{}}\"", custom410.Cid().String()),
+						Header("Etag").Equals(`"{{}}"`, custom410.Cid().String()),
 					).
 					Body(Contains(custom410.ReadFile())),
 			},
@@ -209,7 +209,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Status(451).
 					Headers(
 						Header("Cache-Control").Equals("public, max-age=29030400, immutable"),
-						Header("Etag").Equals("\"{{}}\"", custom451.Cid().String()),
+						Header("Etag").Equals(`"{{}}"`, custom451.Cid().String()),
 					).
 					Body(Contains(custom451.ReadFile())),
 			},
@@ -278,7 +278,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Body(
 						And(
 							Contains("could not parse _redirects:"),
-							Contains("forced redirects (or \"shadowing\") are not supported"),
+							Contains(`forced redirects (or "shadowing") are not supported`),
 						),
 					),
 			},
@@ -368,7 +368,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 			Response: Expect().
 				Status(404).
 				Headers(
-					Header("Etag", "\"Qmd9GD7Bauh6N2ZLfNnYS3b7QVAijbud83b8GE8LPMNBBP\""),
+					Header("Etag", `"Qmd9GD7Bauh6N2ZLfNnYS3b7QVAijbud83b8GE8LPMNBBP"`),
 					Header("Cache-Control").Not().Contains("public, max-age=29030400, immutable"),
 					Header("Cache-Control").Not().Contains("immutable"),
 					Header("Date").Exists(),
