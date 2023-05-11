@@ -88,26 +88,25 @@ func TestTemplatingWithReuseArguments(t *testing.T) {
 	)
 }
 
-func TestTemplatingWithEmptyNames(t *testing.T) {
-	assert.Equal(t,
-		"foo/bar/baz",
+func TestTemplatingWithEmptyNamesFails(t *testing.T) {
+	v, err := fmtSafe(
+		"{{first}}/{{}}/{{another}}",
+		"foo",
+		"bar",
+		"baz",
+	)
+
+	assert.Error(t, err)
+	assert.Equal(t, "", v)
+
+	assert.Panics(t, func() {
 		Fmt(
 			"{{first}}/{{}}/{{another}}",
 			"foo",
 			"bar",
 			"baz",
-		),
-	)
-
-	assert.Equal(t,
-		"foo/bar/baz",
-		Fmt(
-			"{{}}/{{}}/{{}}",
-			"foo",
-			"bar",
-			"baz",
-		),
-	)
+		)
+	})
 }
 
 func TestTemplatingWithEscaping(t *testing.T) {

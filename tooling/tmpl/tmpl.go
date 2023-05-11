@@ -42,25 +42,18 @@ func countBraces(s string) (int, int) {
  * T("{{first}}/{{first}}/{{second}}", "foo", "bar")
  * => "foo/foo/bar"
  *
- * T("{{}}/{{}}/{{}}", "foo", "bar", "baz")
- * => "foo/bar/baz"
- *
- * T("{{first}}/{{}}/{{first}}/{{}}", "foo", "bar", "baz")
- * => "foo/bar/foo/baz"
- *
  * The format string is a Go template string, so arguments are interpolated
  * into the format string using the {{name}} syntax.
  *
  * The variables will be replaced in the order they are provided, so the
- * first argument will be interpolated into the first {{}} in the format
- * string, the second argument will be interpolated into the second {{}}.
+ * first argument will be interpolated into the first {{name}} in the format
+ * string, the second argument will be interpolated into the second {{name}},
+ * and so on.
  */
 func fmtSafe(format string, args ...interface{}) (string, error) {
 	re := regexp.MustCompile(`({){2,}(\w+)?(}){2,}`)
 	varNames := re.FindAllString(format, -1)
-
 	data := make(map[string]interface{})
-	anonymousArgs := make([]interface{}, 0)
 
 	for _, varName := range varNames {
 		left, right := countBraces(varName)
@@ -95,7 +88,7 @@ func fmtSafe(format string, args ...interface{}) (string, error) {
 
 		// If the variable name is empty, we have an anonymous argument.
 		if name == "" {
-			anonymousArgs = append(anonymousArgs, args[0])
+			return "", fmt.Errorf("invalid format string: %s - missing template name", format)
 		} else {
 			data[name] = args[0]
 		}
@@ -130,15 +123,16 @@ func fmtSafe(format string, args ...interface{}) (string, error) {
 
 		r := match
 
-		// If the variable name is empty, we have an anonymous argument.
+		// should never happen
 		if name == "" {
-			value := anonymousArgs[0]
-			anonymousArgs = anonymousArgs[1:]
-			r = fmt.Sprintf("%v", value)
+			panic(fmt.Errorf("invalid format string: %s - missing template name", format))
 		}
 
 		if value, ok := data[name]; ok {
 			r = fmt.Sprintf("%v", value)
+		} else {
+			// should never happen
+			panic(fmt.Errorf("invalid format string: %s - missing template value for %s", format, name))
 		}
 
 		// add the missing braces if we've been too greedy and matched {{var}}}}}}
