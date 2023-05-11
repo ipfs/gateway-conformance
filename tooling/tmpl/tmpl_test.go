@@ -86,6 +86,14 @@ func TestTemplatingWithReuseArguments(t *testing.T) {
 			"bar",
 		),
 	)
+
+	assert.Equal(t,
+		"http://Qm.ipfs.example.com/ipfs/Qm",
+		Fmt(
+			"{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/{{cid}}",
+			"http", "Qm", "example.com",
+		),
+	)
 }
 
 func TestTemplatingWithEmptyNamesFails(t *testing.T) {

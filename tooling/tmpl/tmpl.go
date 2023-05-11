@@ -76,14 +76,14 @@ func fmtSafe(format string, args ...interface{}) (string, error) {
 		// We add the additional braces later.
 		name := strings.Trim(varName, "{} ")
 
-		if len(args) == 0 {
-			return "", fmt.Errorf("not enough arguments for format string: %s", format)
-		}
-
 		// you may reuse the same variable name multiple time, we use the first value.
 		// {{cid}}/something/something/{{cid}}/{{suffix}}
 		if _, ok := data[name]; ok {
 			continue
+		}
+
+		if len(args) == 0 {
+			return "", fmt.Errorf("not enough arguments for format string: %s", format)
 		}
 
 		// If the variable name is empty, we have an anonymous argument.

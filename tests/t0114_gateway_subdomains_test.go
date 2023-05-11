@@ -120,7 +120,7 @@ func TestGatewaySubdomains(t *testing.T) {
 		with(testGatewayWithManyProtocols(t,
 			"request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404",
 			"ensure /ipfs/ namespace is not mounted on subdomain",
-			URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/{{cid}}", u.Scheme, CIDv1, u.Host, CIDv1),
+			URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/{{cid}}", u.Scheme, CIDv1, u.Host),
 			Expect().
 				Status(404),
 		))
