@@ -1,4 +1,4 @@
-name: Test
+name: Test Master
 
 on:
   workflow_dispatch:
@@ -22,7 +22,9 @@ jobs:
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
           output: fixtures
-      - uses: ipfs/download-ipfs-distribution-action@v1
+      - uses: protocol/cache-go-action@v1
+      - run: go install github.com/ipfs/kubo/cmd/ipfs@master
+        shell: bash
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
