@@ -224,20 +224,20 @@ func TestGatewayCache(t *testing.T) {
 func TestGatewayCacheWithIPNS(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0116/gateway-cache.car")
 	ipns := ipns.MustOpenIPNSRecordWithKey("t0116/k51qzi5uqu5dlxdsdu5fpuu7h69wu4ohp32iwm9pdt9nq3y5rpn3ln9j12zfhe.ipns-record")
-	ipnsId := ipns.Key()
+	ipnsKey := ipns.Key()
 
 	tests := SugarTests{
 		{
 			Name: "GET for /ipns/ unixfs dir listing succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/", ipnsId),
+				Path("ipns/%s/root2/root3/", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/", ipnsId),
+						Equals("/ipns/%s/root2/root3/", ipnsKey),
 					Header("X-Ipfs-Roots").
 						Equals("%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
 					Header("Etag").
@@ -247,14 +247,14 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs dir with index.html succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId),
+				Path("ipns/%s/root2/root3/root4/", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/", ipnsId),
+						Equals("/ipns/%s/root2/root3/root4/", ipnsKey),
 					Header("X-Ipfs-Roots").
 						Equals("%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
 					Header("Etag").
@@ -264,14 +264,14 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs file succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsId),
+				Path("ipns/%s/root2/root3/root4/index.html", ipnsKey),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						IsEmpty(),
 					Header("X-Ipfs-Path").
-						Equals("/ipns/%s/root2/root3/root4/index.html", ipnsId),
+						Equals("/ipns/%s/root2/root3/root4/index.html", ipnsKey),
 					Header("X-Ipfs-Roots").
 						Equals("%s,%s,%s,%s,%s", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 					Header("Etag").
@@ -281,7 +281,7 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId).
+				Path("ipns/%s/root2/root3/root4/", ipnsKey).
 				Query("format", "dag-json"),
 			Response: Expect().
 				Status(200).
@@ -293,7 +293,7 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ unixfs dir as JSON succeeds",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/", ipnsId).
+				Path("ipns/%s/root2/root3/root4/", ipnsKey).
 				Query("format", "json"),
 			Response: Expect().
 				Status(200).
@@ -305,7 +305,7 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 		{
 			Name: "GET for /ipns/ file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
-				Path("ipns/%s/root2/root3/root4/index.html", ipnsId).
+				Path("ipns/%s/root2/root3/root4/index.html", ipnsKey).
 				Headers(
 					Header("If-None-Match", fmt.Sprintf("\"%s\"", fixture.MustGetCid("root2", "root3", "root4", "index.html"))),
 				),
