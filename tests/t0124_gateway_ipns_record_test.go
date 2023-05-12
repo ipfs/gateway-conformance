@@ -73,7 +73,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		// test_should_contain "Cache-Control: public, max-age=3155760000" curl_output_filename
 		// '
 		{
-			Name: "GET KEY with 'Accept: application/vnd.ipfs.ipns-record' and validate key",
+			Name: "GET KEY with 'Accept: application/vnd.ipfs.ipns-record' has expected HTTP headers and valid key",
 			Request: Request().
 				Path("ipns/%s", ipnsKey).
 				Header("Accept", "application/vnd.ipfs.ipns-record"),
