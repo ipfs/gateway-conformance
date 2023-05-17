@@ -16,7 +16,7 @@ func TestIpnsCanOpenARecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check := IsIPNSKey("k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki").IsValid()
+	check := IsIPNSRecord("k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki").IsValid()
 	// ipfs name inspect --verify $IPNS_KEY < curl_output_filename > verify_output &&
 	output := check.Check(data)
 

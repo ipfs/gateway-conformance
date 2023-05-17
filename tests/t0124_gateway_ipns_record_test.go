@@ -19,7 +19,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 	// ipfs routing put /ipns/${IPNS_KEY} ../t0124-gateway-ipns-record/${IPNS_KEY}.ipns-record
 	// '
 	ipns := MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
-	ipnsKey := ipns.Key()
+	ipnsName := ipns.Key()
 
 	tests := SugarTests{
 		// test_expect_success "Create and Publish IPNS Key" '
@@ -29,7 +29,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET an IPNS record from the gateway",
 			Request: Request().
-				Path("ipns/%s", ipnsKey),
+				Path("ipns/%s", ipnsName),
 			Response: Expect().
 				Body(file.RawData()),
 		},
@@ -47,7 +47,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with format=ipns-record has expected HTTP headers and valid key",
 			Request: Request().
-				Path("ipns/%s", ipnsKey).
+				Path("ipns/%s", ipnsName).
 				Query("format", "ipns-record"),
 			Response: Expect().
 				Headers(
@@ -56,7 +56,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=3155760000"),
 				).
 				Body(
-					IsIPNSKey(ipnsKey).
+					IsIPNSRecord(ipnsName).
 						IsValid().
 						PointsTo("/ipfs/%s", fileCID.String()),
 				),
@@ -75,7 +75,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with 'Accept: application/vnd.ipfs.ipns-record' has expected HTTP headers and valid key",
 			Request: Request().
-				Path("ipns/%s", ipnsKey).
+				Path("ipns/%s", ipnsName).
 				Header("Accept", "application/vnd.ipfs.ipns-record"),
 			Response: Expect().
 				Headers(
@@ -84,7 +84,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=3155760000"),
 				).
 				Body(
-					IsIPNSKey(ipnsKey).
+					IsIPNSRecord(ipnsName).
 						IsValid().
 						PointsTo("/ipfs/%s", fileCID.String()),
 				),
@@ -97,7 +97,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with expliciy ?filename= succeeds with modified Content-Disposition header",
 			Request: Request().
-				Path("ipns/%s", ipnsKey).
+				Path("ipns/%s", ipnsName).
 				Query("format", "ipns-record").
 				Query("filename", "testтест.ipns-record"),
 			Response: Expect().

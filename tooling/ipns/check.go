@@ -6,33 +6,33 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
-var _ check.Check[[]byte] = &CheckIsIPNSKey{}
+var _ check.Check[[]byte] = &CheckIsIPNSRecord{}
 
-type CheckIsIPNSKey struct {
+type CheckIsIPNSRecord struct {
 	shouldBeValid bool
 	expectedValue string
-	pubKey         string
+	pubKey        string
 }
 
-func IsIPNSKey(keyId string) *CheckIsIPNSKey {
-	return &CheckIsIPNSKey{
+func IsIPNSRecord(keyId string) *CheckIsIPNSRecord {
+	return &CheckIsIPNSRecord{
 		shouldBeValid: true,
-		pubKey:         keyId,
+		pubKey:        keyId,
 		expectedValue: "",
 	}
 }
 
-func (c *CheckIsIPNSKey) IsValid() *CheckIsIPNSKey {
+func (c *CheckIsIPNSRecord) IsValid() *CheckIsIPNSRecord {
 	c.shouldBeValid = true
 	return c
 }
 
-func (c *CheckIsIPNSKey) PointsTo(value string, rest ...any) *CheckIsIPNSKey {
+func (c *CheckIsIPNSRecord) PointsTo(value string, rest ...any) *CheckIsIPNSRecord {
 	c.expectedValue = fmt.Sprintf(value, rest...)
 	return c
 }
 
-func (c *CheckIsIPNSKey) Check(recordPayload []byte) check.CheckOutput {
+func (c *CheckIsIPNSRecord) Check(recordPayload []byte) check.CheckOutput {
 	record, err := UnmarshalIpnsRecord(recordPayload, c.pubKey)
 
 	if err != nil {
