@@ -46,11 +46,11 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 		// Separate the base name and extension
 		base := filepath.Base(inputPath)
 		ext := filepath.Ext(inputPath)
-		name := base[0:len(base)-len(ext)]
+		name := base[0 : len(base)-len(ext)]
 
 		// Generate the new filename
 		newName := fmt.Sprintf("%s_%d%s", name, i, ext)
-		
+
 		outputPath := filepath.Join(outputDirectoryPath, newName)
 		dst, err := os.Create(outputPath)
 		if err != nil {

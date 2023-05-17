@@ -43,12 +43,12 @@ func TestGatewayCar(t *testing.T) {
 						Hint("CAR is streamed, gateway may not have the entire thing, unable to support range-requests. Partial downloads and resumes should be handled using IPLD selectors: https://github.com/ipfs/go-ipfs/issues/8769").
 						Equals("none"),
 				).Body(
-					IsCar().
-					 	HasRoot(fixture.MustGetCid("subdir", "ascii.txt")).
-						HasBlock(fixture.MustGetCid("subdir", "ascii.txt")).
-						Exactly().
-						InThatOrder(),	
-				),
+				IsCar().
+					HasRoot(fixture.MustGetCid("subdir", "ascii.txt")).
+					HasBlock(fixture.MustGetCid("subdir", "ascii.txt")).
+					Exactly().
+					InThatOrder(),
+			),
 		},
 	}
 

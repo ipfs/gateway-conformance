@@ -9,8 +9,8 @@ import (
 )
 
 type IpnsRecord struct {
-	pb  *ipns_pb.IpnsEntry
-	key string
+	pb       *ipns_pb.IpnsEntry
+	key      string
 	validity time.Time
 }
 
