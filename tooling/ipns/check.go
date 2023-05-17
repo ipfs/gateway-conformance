@@ -9,21 +9,28 @@ import (
 var _ check.Check[[]byte] = &CheckIsIPNSRecord{}
 
 type CheckIsIPNSRecord struct {
-	shouldBeValid bool
+	shouldBeValid *bool
 	expectedValue string
 	pubKey        string
 }
 
 func IsIPNSRecord(keyId string) *CheckIsIPNSRecord {
 	return &CheckIsIPNSRecord{
-		shouldBeValid: true,
+		shouldBeValid: nil,
 		pubKey:        keyId,
 		expectedValue: "",
 	}
 }
 
 func (c *CheckIsIPNSRecord) IsValid() *CheckIsIPNSRecord {
-	c.shouldBeValid = true
+	isValid := true
+	c.shouldBeValid = &isValid
+	return c
+}
+
+func (c *CheckIsIPNSRecord) IsInvalid() *CheckIsIPNSRecord {
+	isValid := false
+	c.shouldBeValid = &isValid
 	return c
 }
 
@@ -33,10 +40,14 @@ func (c *CheckIsIPNSRecord) PointsTo(value string, rest ...any) *CheckIsIPNSReco
 }
 
 func (c *CheckIsIPNSRecord) Check(recordPayload []byte) check.CheckOutput {
+	if c.shouldBeValid == nil {
+		panic("IsIPNSRecord() must be called with IsValid() or IsInvalid()")
+	}
+
 	record, err := UnmarshalIpnsRecord(recordPayload, c.pubKey)
 
 	if err != nil {
-		if c.shouldBeValid {
+		if *c.shouldBeValid {
 			return check.CheckOutput{
 				Success: false,
 				Reason:  fmt.Sprintf("IPNS key '%s' is not valid: %v", recordPayload, err),

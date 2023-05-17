@@ -49,7 +49,7 @@ func OpenIPNSRecordWithKey(absPath string) (*IpnsRecord, error) {
 
 func MustOpenIPNSRecordWithKey(file string) *IpnsRecord {
 	fixturePath := path.Join(fixtures.Dir(), file)
-	
+
 	ipnsRecord, err := OpenIPNSRecordWithKey(fixturePath)
 	if err != nil {
 		panic(err)

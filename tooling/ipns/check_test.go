@@ -22,3 +22,20 @@ func TestIpnsCanOpenARecord(t *testing.T) {
 
 	assert.True(t, output.Success)
 }
+
+func TestIpnsRequiresExplicitValidityCall(t *testing.T) {
+	path := "./_fixtures/k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki.ipns-record"
+
+	// read file:
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	check := IsIPNSRecord("k51qzi5uqu5dgh7y9l90nqs6tvnzcm9erbt8fhzg3fu79p5qt9zb2izvfu51ki")
+
+	assert.PanicsWithValue(t, "IsIPNSRecord() must be called with IsValid() or IsInvalid()",
+		func() {
+			check.Check(data)
+		})
+}
