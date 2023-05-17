@@ -190,28 +190,28 @@ Fmt("{{action}} the {{target}}", "pet", "cat") // => "pet the cat"
 Backticks enable use of verbatim strings, without having to deal with golang-specific escaping of things like double quotes:
 
 ```golang
-Fmt(`Etag: W"{{etag-value}}"`, "weak-key") // => "ETag: W/\"weak-key\""
+Fmt(`Etag: W/"{{etag-value}}"`, "weak-key") // => "ETag: W/\"weak-key\""
 ```
 
 It is required to always provide a meaningful `{{name}}`:
 
 ```golang
-Fmt("/ipfs/{{cid}}/%c4%85/%c4%99", fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
+Fmt(`/ipfs/{{cid}}/%c4%85/%c4%99`, fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
 ```
 
 Values are replaced in the order they are defined, and you may reuse named values
 
 ```golang
-Fmt("<a href=\"{{cid}}\">{{label}}}</a><a href=\"{{cid}}/index.html\">index</a>", fixture.myCID, "Link Title!") // => '<a href="Qm...">Link Title!</a><a href="Qm..../index.html">index</a>'
+Fmt(`<a href="{{cid}}">{{label}}}</a><a href="{{cid}}/index.html">index</a>`, fixture.myCID, "Link Title!") // => '<a href="Qm...">Link Title!</a><a href="Qm..../index.html">index</a>'
 ```
 
 You may escape `{{}}` by using more than two opening or closing braces,
 
 ```golang
-Templated("{}") // => "{}"
-Templated("{{{}}}") // => "{{}}"
-Templated("{{{{}}}}") // => "{{{}}}"
-Templated("{{{something}}}") // => {{something}}
+Fmt("{foo}") // => "{foo}"
+Fmt("{{{foo}}}") // => "{{foo}}"
+Fmt("{{{{foo}}}}") // => "{{{foo}}}"
+Fmt("{{{foo}}}") // => {{foo}}
 ```
 
 This templating is used almost everywhere in the test sugar, for example in request Path:
