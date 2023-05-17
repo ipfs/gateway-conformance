@@ -128,8 +128,8 @@ These fixtures are located in the `./fixtures` folders. We distribute tools for 
 
 **Fixtures:**
 
-- Blocks & Dags: These are served as CAR file(s).
-- IPNS Records: These are distributed as files containing raw protocol buffers payloads. The file name includes the public key in this format: `pubkey(_optional_suffix)?.ipns-record`. We may decide to [share CAR files](https://github.com/ipfs/specs/issues/369) in the future.
+- Blocks & Dags: These are served as [CAR](https://ipld.io/specs/transport/car/) file(s).
+- IPNS Records: These are distributed as files containing [IPNS Record](https://specs.ipfs.tech/ipns/ipns-record/#ipns-record) [serialized as protobuf](https://specs.ipfs.tech/ipns/ipns-record/#record-serialization-format). The file name includes the Multihash of the public key ([IPNS Name](https://specs.ipfs.tech/ipns/ipns-record/#ipns-name)) in this format: `pubkey(_optional_suffix)?.ipns-record`. We may decide to [share CAR files](https://github.com/ipfs/specs/issues/369) in the future.
 - DNS Links: These are distributed as `yml` configurations. You can use the `--merge` option to generate a consolidated `.json` file, which can be more convenient for use in a shell script.
 
 ## Examples
