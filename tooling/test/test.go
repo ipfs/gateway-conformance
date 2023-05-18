@@ -2,10 +2,12 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -126,6 +128,10 @@ func Run(t *testing.T, tests SugarTests) {
 
 			// send request
 			log.Debugf("Querying %s", url)
+			timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer cancel()
+			req = req.WithContext(timeout)
+
 			res, err = client.Do(req)
 			if err != nil {
 				localReport(t, "Querying %s failed: %s", url, err)

@@ -7,10 +7,13 @@
 - [Commands](#commands)
   - [test](#test)
     - [Inputs](#inputs)
+    - [Subdomain Testing and `subdomain-url`](#subdomain-testing-and-subdomain-url)
     - [Usage](#usage)
-  - [extract-fixtures](##extract-fixtures)
+  - [extract-fixtures](#extract-fixtures)
     - [Inputs](#inputs-1)
     - [Usage](#usage-1)
+- [Testing your gateway](#testing-your-gateway)
+  - [Provisioning the Gateway](#provisioning-the-gateway)
 - [Examples](#examples)
 - [FAQ](#faq)
 - [In Development](#in-development)
@@ -110,6 +113,24 @@ The `extract-fixtures` command is used to extract the test fixtures from the `ga
 ```bash
 docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures --output fixtures --merged false
 ```
+
+## Testing Your Gateway
+
+You can find the workflow that runs the gateway conformance test suite against Kubo in the file [.github/workflows/test.yml](.github/workflows/test.yml). This can serve as a good starting point when setting up your own test suite.
+
+We've also aimed to keep the [kubo-config.example.sh](kubo-config.example.sh) script and the [Makefile](Makefile) as straightforward as possible to provide useful examples to get started.
+
+### Provisioning the Gateway
+
+We make minimal assumptions about the capabilities of the gateway being tested. Which means that we don't require nor expect the gateway to be writable. Therefore, you need to provision the gateway with test fixtures before running the test suite.
+
+These fixtures are located in the `./fixtures` folders. We distribute tools for extracting them. Refer to the documentation for the `extract-fixtures` command for more details.
+
+**Fixtures:**
+
+- Blocks & Dags: These are served as [CAR](https://ipld.io/specs/transport/car/) file(s).
+- IPNS Records: These are distributed as files containing [IPNS Record](https://specs.ipfs.tech/ipns/ipns-record/#ipns-record) [serialized as protobuf](https://specs.ipfs.tech/ipns/ipns-record/#record-serialization-format). The file name includes the Multihash of the public key ([IPNS Name](https://specs.ipfs.tech/ipns/ipns-record/#ipns-name)) in this format: `pubkey(_optional_suffix)?.ipns-record`. We may decide to [share CAR files](https://github.com/ipfs/specs/issues/369) in the future.
+- DNS Links: These are distributed as `yml` configurations. You can use the `--merge` option to generate a consolidated `.json` file, which can be more convenient for use in a shell script.
 
 ## Examples
 

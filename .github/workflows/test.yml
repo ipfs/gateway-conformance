@@ -7,6 +7,10 @@ on:
 jobs:
   test:
     runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ['latest', 'master']
     defaults:
       run:
         shell: bash
@@ -14,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19.1
+          go-version: 1.20.4
       - uses: actions/checkout@v3
         with:
           path: 'gateway-conformance'
@@ -22,18 +26,33 @@ jobs:
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
           output: fixtures
-      - uses: ipfs/download-ipfs-distribution-action@v1
+      - uses: protocol/cache-go-action@v1
+      - run: go install github.com/ipfs/kubo/cmd/ipfs@${{ matrix.target }}
+        shell: bash
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
           source ./gateway-conformance/kubo-config.example.sh;
           IPFS_NS_MAP=$(cat ./fixtures/dnslinks.json | jq -r 'to_entries | map("\(.key).example.com:\(.value)") | join(",")')
           echo "IPFS_NS_MAP=${IPFS_NS_MAP}" >> $GITHUB_ENV
-        # note: the IPFS_NS_MAP set above will be passed the daemon:
+        # note: the IPFS_NS_MAP set above will be passed the daemon
       - uses: ipfs/start-ipfs-daemon-action@v1
       - name: Provision Kubo Gateway
         run: |
-          find ./fixtures -name '*.car' -exec ipfs dag import {} \;
+          # Import car files
+          cars=$(find ./fixtures -name '*.car')
+          for car in $cars
+          do
+              ipfs dag import "$car"
+          done
+
+          # Import ipns records
+          records=$(find ./fixtures -name '*.ipns-record')
+          for record in $records
+          do
+              key=$(basename -s .ipns-record "$record" | cut -d'_' -f1)
+              ipfs routing put --allow-offline "/ipns/$key" "$record"
+          done
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:

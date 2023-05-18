@@ -36,13 +36,22 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 	if err != nil {
 		return err
 	}
-	for _, inputPath := range inputPaths {
-		outputPath := filepath.Join(outputDirectoryPath, filepath.Base(inputPath))
+	for i, inputPath := range inputPaths {
 		src, err := os.Open(inputPath)
 		if err != nil {
 			return err
 		}
 		defer src.Close()
+
+		// Separate the base name and extension
+		base := filepath.Base(inputPath)
+		ext := filepath.Ext(inputPath)
+		name := base[0 : len(base)-len(ext)]
+
+		// Generate the new filename
+		newName := fmt.Sprintf("%s_%d%s", name, i, ext)
+
+		outputPath := filepath.Join(outputDirectoryPath, newName)
 		dst, err := os.Create(outputPath)
 		if err != nil {
 			return err
@@ -190,6 +199,13 @@ func main() {
 						if err != nil {
 							return err
 						}
+
+						// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
+						// merge the IPNS records into a car file.
+						err = copyFiles(fxs.IPNSRecords, directory)
+						if err != nil {
+							return err
+						}
 					} else {
 						err = copyFiles(fxs.CarFiles, directory)
 						if err != nil {
@@ -197,6 +213,11 @@ func main() {
 						}
 
 						err = copyFiles(fxs.ConfigFiles, directory)
+						if err != nil {
+							return err
+						}
+
+						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
 						}
