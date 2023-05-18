@@ -145,7 +145,8 @@ func Run(t *testing.T, tests SugarTests) {
 
 			for _, header := range test.Response.Headers_ {
 				t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
-					actual := res.Header.Get(header.Key_)
+					actual := res.Header.Values(header.Key_)
+					
 					c := header.Check_
 					if header.Not_ {
 						c = check.Not(c)

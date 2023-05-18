@@ -160,11 +160,11 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 }
 
 type HeaderBuilder struct {
-	Key_   string              `json:"key,omitempty"`
-	Value_ string              `json:"value,omitempty"`
-	Check_ check.Check[string] `json:"check,omitempty"`
-	Hint_  string              `json:"hint,omitempty"`
-	Not_   bool                `json:"not,omitempty"`
+	Key_   string                `json:"key,omitempty"`
+	Value_ string                `json:"value,omitempty"`
+	Check_ check.Check[[]string] `json:"check,omitempty"`
+	Hint_  string                `json:"hint,omitempty"`
+	Not_   bool                  `json:"not,omitempty"`
 }
 
 func Header(key string, rest ...any) HeaderBuilder {
@@ -172,7 +172,7 @@ func Header(key string, rest ...any) HeaderBuilder {
 		// check if rest[0] is a string
 		if value, ok := rest[0].(string); ok {
 			value := tmpl.Fmt(value, rest[1:]...)
-			return HeaderBuilder{Key_: key, Value_: value, Check_: check.IsEqual(value)}
+			return HeaderBuilder{Key_: key, Value_: value, Check_: check.IsUniqAnd(check.IsEqual(value))}
 		} else {
 			panic("rest[0] must be a string")
 		}
@@ -182,12 +182,12 @@ func Header(key string, rest ...any) HeaderBuilder {
 }
 
 func (h HeaderBuilder) Contains(value string, rest ...any) HeaderBuilder {
-	h.Check_ = check.Contains(value, rest...)
+	h.Check_ = check.IsUniqAnd(check.Contains(value, rest...))
 	return h
 }
 
 func (h HeaderBuilder) Matches(value string, rest ...any) HeaderBuilder {
-	h.Check_ = check.Matches(value, rest...)
+	h.Check_ = check.IsUniqAnd(check.Matches(value, rest...))
 	return h
 }
 
@@ -197,7 +197,12 @@ func (h HeaderBuilder) Hint(hint string) HeaderBuilder {
 }
 
 func (h HeaderBuilder) Equals(value string, args ...any) HeaderBuilder {
-	h.Check_ = check.IsEqual(value, args...)
+	h.Check_ = check.IsUniqAnd(check.IsEqual(value, args...))
+	return h
+}
+
+func (h HeaderBuilder) Has(values ...string) HeaderBuilder {
+	h.Check_ = check.Has(values...)
 	return h
 }
 
@@ -207,9 +212,9 @@ func (h HeaderBuilder) IsEmpty() HeaderBuilder {
 }
 
 func (h HeaderBuilder) Checks(f func(string) bool) HeaderBuilder {
-	h.Check_ = check.CheckFunc[string]{
+	h.Check_ = check.IsUniqAnd(check.CheckFunc[string]{
 		Fn: f,
-	}
+	})
 	return h
 }
 
