@@ -5,7 +5,6 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
-	"github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
@@ -45,5 +44,5 @@ func TestGatewaySymlink(t *testing.T) {
 		},
 	}
 
-	test.Run(t, tests)
+	Run(t, tests)
 }
