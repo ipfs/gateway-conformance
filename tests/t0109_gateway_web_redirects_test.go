@@ -237,7 +237,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 			//
 			// '
 			// {
-			// 	// TODO: confirm with lidel: this should be skipped
+			// 	// SKIPPED: Is it relevant to gateway specs?
 			// 	Name: "This test ensures _redirects is supported only on Web Gateways that use Host header (DNSLink, Subdomain)",
 			// 	Hint: `
 			// We expect the request to fail with a 404 (do not use the _redirect), and that 404 should not contain the custom 404 body.
@@ -333,7 +333,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		// ipfs cat /ipns/$DNSLINK_FQDN/_redirects > result &&
 		// test_should_contain \"index.html\" result
 		// "
-		// SKIPPED
+		// SKIPPED: This is related to Kubo and the CLI
 
 		// test_expect_success "request for $DNSLINK_FQDN/redirect-one redirects with default of 301, per _redirects file" '
 		// curl -sD - --resolve $DNSLINK_FQDN:$GWAY_PORT:127.0.0.1 "http://$DNSLINK_FQDN:$GWAY_PORT/redirect-one" > response &&
@@ -374,7 +374,6 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 					Header("Date").Exists(),
 				).
 				Body(
-					// TODO: I like the readable part here, maybe rewrite to load the file.
 					Contains("my 404"),
 				),
 		},
@@ -384,7 +383,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		// test_should_not_contain "301 Moved Permanently" response &&
 		// test_should_not_contain "Location:" response
 		// '
-		// TODO(lidel): this test seems to validate some kubo behavior not really gateway.
+		// SKIPPED: this test to validate kubo behavior, this is not part of gateway conformance.
 		// {
 		// 	Name: "request for $NO_DNSLINK_FQDN/redirect-one does not redirect, since DNSLink is disabled",
 		// 	Request: Request().
