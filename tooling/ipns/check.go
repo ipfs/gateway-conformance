@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 var _ check.Check[[]byte] = &CheckIsIPNSRecord{}
@@ -35,7 +36,7 @@ func (c *CheckIsIPNSRecord) IsInvalid() *CheckIsIPNSRecord {
 }
 
 func (c *CheckIsIPNSRecord) PointsTo(value string, rest ...any) *CheckIsIPNSRecord {
-	c.expectedValue = fmt.Sprintf(value, rest...)
+	c.expectedValue = tmpl.Fmt(value, rest...)
 	return c
 }
 
