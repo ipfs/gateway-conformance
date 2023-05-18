@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 var _ Check[[]byte] = &CheckIsTarFile{}
@@ -23,7 +25,7 @@ func IsTarFile() *CheckIsTarFile {
 }
 
 func (c *CheckIsTarFile) HasFile(format string, a ...interface{}) *CheckIsTarFile {
-	fileName := fmt.Sprintf(format, a...)
+	fileName := tmpl.Fmt(format, a...)
 	c.fileNames = append(c.fileNames, fileName)
 	return c
 }

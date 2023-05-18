@@ -16,7 +16,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with format=raw param returns a raw block",
 			Request: Request().
-				Path("ipfs/%s/dir", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir", fixture.MustGetCid()).
 				Query("format", "raw"),
 			Response: Expect().
 				Status(200).
@@ -25,7 +25,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns a raw block",
 			Request: Request().
-				Path("ipfs/%s/dir", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -36,7 +36,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
 			Request: Request().
-				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -46,9 +46,9 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Content-Type").
 						Equals("application/vnd.ipld.raw"),
 					Header("Content-Length").
-						Equals("%d", len(fixture.MustGetRawData("dir", "ascii.txt"))),
+						Equals("{{cid}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
-						Matches("attachment;\\s*filename=\"%s\\.bin", fixture.MustGetCid("dir", "ascii.txt")),
+						Matches(`attachment;\s*filename="{{cid}}\.bin`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-Content-Type-Options").
 						Equals("nosniff"),
 				).
@@ -57,7 +57,7 @@ func TestGatewayBlock(t *testing.T) {
 		{
 			Name: "GET with application/vnd.ipld.raw header and filename param returns expected Content-Disposition header with custom filename",
 			Request: Request().
-				Path("ipfs/%s/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt?filename=foobar.bin", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -65,13 +65,13 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").
-						Matches("attachment;\\s*filename=\"foobar\\.bin"),
+						Matches(`attachment;\s*filename="foobar\.bin`),
 				),
 		},
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected caching headers",
 			Request: Request().
-				Path("ipfs/%s/dir/ascii.txt", fixture.MustGetCid()).
+				Path("ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
 				),
@@ -79,9 +79,9 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("ETag").
-						Equals("\"%s.raw\"", fixture.MustGetCid("dir", "ascii.txt")),
+						Equals(`"{{cid}}.raw"`, fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-IPFS-Path").
-						Equals("/ipfs/%s/dir/ascii.txt", fixture.MustGetCid()),
+						Equals("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()),
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid()),
 					Header("Cache-Control").

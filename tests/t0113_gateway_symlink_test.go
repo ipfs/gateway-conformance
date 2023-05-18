@@ -17,7 +17,7 @@ func TestGatewaySymlink(t *testing.T) {
 		{
 			Name: "Test the directory listing",
 			Request: Request().
-				Path("ipfs/%s/", rootDirCID),
+				Path("ipfs/{{CID}}/", rootDirCID),
 			Response: Expect().
 				Body(
 					And(
@@ -29,7 +29,7 @@ func TestGatewaySymlink(t *testing.T) {
 		{
 			Name: "Test the directory raw query",
 			Request: Request().
-				Path("ipfs/%s", rootDirCID).
+				Path("ipfs/{{CID}}", rootDirCID).
 				Query("format", "raw"),
 			Response: Expect().
 				Status(200).
@@ -38,7 +38,7 @@ func TestGatewaySymlink(t *testing.T) {
 		{
 			Name: "Test the symlink",
 			Request: Request().
-				Path("ipfs/%s/bar", rootDirCID),
+				Path("ipfs/{{CID}}/bar", rootDirCID),
 			Response: Expect().
 				Status(200).
 				Bytes("foo"),
