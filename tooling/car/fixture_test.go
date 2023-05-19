@@ -41,11 +41,11 @@ func TestIssue54MustGetChildren(t *testing.T) {
 	f := MustOpenUnixfsCar("./_fixtures/issue-54.car")
 
 	// › npx ipfs-car ls ./issue-54.car --verbose
-	// QmcGQqMd8gPftxJGWbB5rvvysLFf6tYBtAooFKVSh8HiWX  -       .
-	// QmZ2HTe64vzoNr7EUeuKGVRJoDrvtnbc4tqpkWBrMtNkUa  -       ./sub2
-	// Qmf4EqZZpFPcy6oKsc84dGS5EpPdXYZ1hq39Gemadu6hfW  7       ./sub2/hello.txt
-	// Qmb7KRN5qCAwTYXAdTd5JHzXXQv3BDRJQhcEuMJzdiGix6  -       ./sub1
+	// QmT5W42oo38Bi4mL2aktaMyqu7tqj7xWCuZhmoTfo7XtiU  -       .
+	// QmUBzv8HDDtnivUvPGkqBmkCeMJKeAWhUZtb5D8ouGnATZ  -       ./sub1
 	// QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu  7       ./sub1/hello.txt
+	// QmVtAZGRHTCzSNt1vRgz1UESvcc57ebEcDYTaDJjVu1SrA  -       ./sub2
+	// Qmf4EqZZpFPcy6oKsc84dGS5EpPdXYZ1hq39Gemadu6hfW  7       ./sub2/hello.txt
 	cids := f.MustGetChildrenCids("sub1", "hello.txt")
 
 	// › ipfs dag get QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu | jq
@@ -80,7 +80,7 @@ func TestIssue54MustGetChildren(t *testing.T) {
 	// {
 	//   "Data": {
 	//     "/": {
-	//       "bytes": "CAUSHIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoIjCAAg"
+	//       "bytes": "CAE"
 	//     }
 	//   },
 	//   "Links": [
@@ -88,7 +88,7 @@ func TestIssue54MustGetChildren(t *testing.T) {
 	//       "Hash": {
 	//         "/": "QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu"
 	//       },
-	//       "Name": "DFhello.txt",
+	//       "Name": "hello.txt",
 	//       "Tsize": 117
 	//     }
 	//   ]
