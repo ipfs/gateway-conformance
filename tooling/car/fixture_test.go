@@ -36,3 +36,66 @@ func TestGetNodes(t *testing.T) {
 	assert.Equal(t, "bafybeiaq6e55xratife7s5cmzjcmwy4adzzlk74sbdpfcq72gus6cweeeq", cids[2])
 	assert.Equal(t, "bafkreihdhgb5vyuqu7jssreyo3h567obewtqq37fi5hr2w4um5icacry7m", cids[3])
 }
+
+func TestIssue54MustGetChildren(t *testing.T) {
+	f := MustOpenUnixfsCar("./_fixtures/issue-54.car")
+
+	// › npx ipfs-car ls ./issue-54.car --verbose
+	// QmT5W42oo38Bi4mL2aktaMyqu7tqj7xWCuZhmoTfo7XtiU  -       .
+	// QmUBzv8HDDtnivUvPGkqBmkCeMJKeAWhUZtb5D8ouGnATZ  -       ./sub1
+	// QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu  7       ./sub1/hello.txt
+	// QmVtAZGRHTCzSNt1vRgz1UESvcc57ebEcDYTaDJjVu1SrA  -       ./sub2
+	// Qmf4EqZZpFPcy6oKsc84dGS5EpPdXYZ1hq39Gemadu6hfW  7       ./sub2/hello.txt
+	cids := f.MustGetChildrenCids("sub1", "hello.txt")
+
+	// › ipfs dag get QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu | jq
+	// {
+	//   "Data": {
+	//     "/": {
+	//       "bytes": "CAIYByAFIAI"
+	//     }
+	//   },
+	//   "Links": [
+	//     {
+	//       "Hash": {
+	//         "/": "QmaATBg1yioWhYHhoA8XSUqD1Ya91KKCibWVD4USQXwaVZ"
+	//       },
+	//       "Name": "",
+	//       "Tsize": 13
+	//     },
+	//     {
+	//       "Hash": {
+	//         "/": "QmdQEnYhrhgFKPCq5eKc7xb1k7rKyb3fGMitUPKvFAscVK"
+	//       },
+	//       "Name": "",
+	//       "Tsize": 10
+	//     }
+	//   ]
+	// }
+	assert.Len(t, cids, 2)
+	assert.Equal(t, "QmaATBg1yioWhYHhoA8XSUqD1Ya91KKCibWVD4USQXwaVZ", cids[0])
+	assert.Equal(t, "QmdQEnYhrhgFKPCq5eKc7xb1k7rKyb3fGMitUPKvFAscVK", cids[1])
+
+	// › ipfs dag get 'Qmb7KRN5qCAwTYXAdTd5JHzXXQv3BDRJQhcEuMJzdiGix6' | jq
+	// {
+	//   "Data": {
+	//     "/": {
+	//       "bytes": "CAE"
+	//     }
+	//   },
+	//   "Links": [
+	//     {
+	//       "Hash": {
+	//         "/": "QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu"
+	//       },
+	//       "Name": "hello.txt",
+	//       "Tsize": 117
+	//     }
+	//   ]
+	// }
+	cids = f.MustGetChildrenCids("sub1")
+	assert.Len(t, cids, 3)
+	assert.Equal(t, "QmZgfvZtoFdbJy4JmpPHc1NCXyA7Snim2L8e6zKspiUzhu", cids[0])
+	assert.Equal(t, "QmaATBg1yioWhYHhoA8XSUqD1Ya91KKCibWVD4USQXwaVZ", cids[1])
+	assert.Equal(t, "QmdQEnYhrhgFKPCq5eKc7xb1k7rKyb3fGMitUPKvFAscVK", cids[2])
+}

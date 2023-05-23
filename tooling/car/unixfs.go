@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sort"
 	"strings"
 
 	"github.com/ipfs/boxo/blockservice"
@@ -100,33 +99,26 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 	return d.node, nil
 }
 
-func (d *UnixfsDag) listChildren(names ...string) ([][]string, error) {
+func (d *UnixfsDag) listChildren(names ...string) ([]*FixtureNode, error) {
 	node, err := d.getNode(names...)
 	if err != nil {
 		return nil, err
 	}
 
-	result := [][]string{}
+	result := []*FixtureNode{}
+	var recursive func(node format.Node) error
 
-	var recursive func(format.Node, []string) error
+	recursive = func(node format.Node) error {
+		result = append(result, &FixtureNode{node: node, dsvc: d.dsvc})
+		links := node.Links()
 
-	recursive = func(node format.Node, path []string) error {
-		result = append(result, path)
+		for _, link := range links {
+			node, err := link.GetNode(context.Background(), d.dsvc)
+			if err != nil {
+				return err
+			}
 
-		links, err := d.loadLinks(node)
-		if err != nil {
-			fmt.Println(err)
-		}
-		// ignore the error: we might descend through files.
-
-		var names []string
-		for name := range links {
-			names = append(names, name)
-		}
-		sort.Strings(names)
-
-		for _, name := range names {
-			err := recursive(links[name].mustGetNode(), append(path, name))
+			err = recursive(node)
 			if err != nil {
 				return err
 			}
@@ -135,7 +127,7 @@ func (d *UnixfsDag) listChildren(names ...string) ([][]string, error) {
 		return nil
 	}
 
-	err = recursive(node, names)
+	err = recursive(node)
 	if err != nil {
 		return nil, err
 	}
@@ -156,16 +148,10 @@ func (d *UnixfsDag) MustGetNode(names ...string) *FixtureNode {
 }
 
 func (d *UnixfsDag) MustGetChildren(names ...string) [](*FixtureNode) {
-	paths, err := d.listChildren(names...)
+	nodes, err := d.listChildren(names...)
 	if err != nil {
 		panic(err)
 	}
-
-	var nodes [](*FixtureNode)
-	for _, path := range paths {
-		nodes = append(nodes, d.MustGetNode(path...))
-	}
-
 	return nodes
 }
 
