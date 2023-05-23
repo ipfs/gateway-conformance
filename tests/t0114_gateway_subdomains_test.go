@@ -7,8 +7,11 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
+	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	"github.com/multiformats/go-multibase"
+	"github.com/multiformats/go-multicodec"
 )
 
 func TestGatewaySubdomains(t *testing.T) {
@@ -278,153 +281,200 @@ func TestGatewaySubdomains(t *testing.T) {
 func TestGatewaySubdomainAndIPNS(t *testing.T) {
 	tests := SugarTests{}
 
+	rsaFixture := ipns.MustOpenIPNSRecordWithKey("t0114/QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3.ipns-record")
+	ed25519Fixture := ipns.MustOpenIPNSRecordWithKey("t0114/12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d.ipns-record")
+
+	car := car.MustOpenUnixfsCar("t0114/fixtures.car")
+	helloCID := "bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am"
+	payload := string(car.MustGetRawData(helloCID))
+
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
 		SubdomainGatewayURL,
 		SubdomainLocalhostGatewayURL,
 	}
 
+	ipnsRecords := []*ipns.IpnsRecord{
+		rsaFixture,
+		ed25519Fixture,
+	}
+
 	for _, gatewayURL := range gatewayURLs {
-		_, err := url.Parse(gatewayURL)
+		u, err := url.Parse(gatewayURL)
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		for _, record := range ipnsRecords {
+			tests = append(tests, SugarTests{
+				// # /ipns/<libp2p-key>
+				// test_localhost_gateway_response_should_contain \
+				//   "request for localhost/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
+				//   "http://localhost:$GWAY_PORT/ipns/$RSA_IPNS_IDv0" \
+				//   "Location: http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
+				// test_localhost_gateway_response_should_contain \
+				//   "request for localhost/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
+				//   "http://localhost:$GWAY_PORT/ipns/$ED25519_IPNS_IDv0" \
+				//   "Location: http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
+				{
+					Name: "request for /ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain",
+					Request: Request().
+						DoNotFollowRedirects().
+						URL("{{url}}/ipns/{{cid}}", gatewayURL, record.IdV0()),
+					Response: Expect().
+						Status(301).
+						Headers(
+							Header("Location").
+								Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IdV1(), u.Host),
+						),
+				},
+				// # *.ipns.localhost
+				// # <libp2p-key>.ipns.localhost
+				// test_localhost_gateway_response_should_contain \
+				//   "request for {CIDv1-libp2p-key}.ipns.localhost returns expected payload" \
+				//   "http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT" \
+				//   "$CID_VAL"
+				// test_localhost_gateway_response_should_contain \
+				//   "request for {CIDv1-libp2p-key}.ipns.localhost returns expected payload" \
+				//   "http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT" \
+				//   "$CID_VAL"
+				{
+					Name: "request for {CIDv1-libp2p-key}.ipns.{gateway} returns expected payload",
+					Request: Request().
+						URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IdV1(), u.Host),
+					Response: Expect().
+						Status(200).
+						BodyWithHint("Request for {{cid}}.ipns.{{host}} returns expected payload", payload),
+				},
+				// test_localhost_gateway_response_should_contain \
+				//   "localhost request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
+				//   "http://${RSA_IPNS_IDv1_DAGPB}.ipns.localhost:$GWAY_PORT" \
+				//   "Location: http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
+				// test_localhost_gateway_response_should_contain \
+				//   "localhost request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
+				//   "http://${ED25519_IPNS_IDv1_DAGPB}.ipns.localhost:$GWAY_PORT" \
+				//   "Location: http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
+				{
+					Name: "request for {CIDv1-dag-pb}.ipns.{gateway} redirects to CID with libp2p-key multicodec",
+					Request: Request().
+						DoNotFollowRedirects().
+						URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IntoCID(multicodec.DagPb, multibase.Base36), u.Host),
+					Response: Expect().
+						Status(301).
+						Headers(
+							Header("Location").
+								Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IdV1(), u.Host),
+						),
+				},
+				// # example.com/ipns/<libp2p-key>
+				// test_hostname_gateway_response_should_contain \
+				//   "request for example.com/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
+				//   "example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT/ipns/$RSA_IPNS_IDv0" \
+				//   "Location: http://${RSA_IPNS_IDv1}.ipns.example.com/"
+				// test_hostname_gateway_response_should_contain \
+				//   "request for example.com/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
+				//   "example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT/ipns/$ED25519_IPNS_IDv0" \
+				//   "Location: http://${ED25519_IPNS_IDv1}.ipns.example.com/"
+				// Done above, thanks to the loop
+				//
+				// # *.ipns.example.com
+				// # ============================================================================
+
+				// # <libp2p-key>.ipns.example.com
+
+				// test_hostname_gateway_response_should_contain \
+				//   "request for {CIDv1-libp2p-key}.ipns.example.com returns expected payload" \
+				//   "${RSA_IPNS_IDv1}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "$CID_VAL"
+
+				// test_hostname_gateway_response_should_contain \
+				//   "request for {CIDv1-libp2p-key}.ipns.example.com returns expected payload" \
+				//   "${ED25519_IPNS_IDv1}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "$CID_VAL"
+
+				// test_hostname_gateway_response_should_contain \
+				//   "hostname request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
+				//   "${RSA_IPNS_IDv1_DAGPB}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "Location: http://${RSA_IPNS_IDv1}.ipns.example.com/"
+
+				// test_hostname_gateway_response_should_contain \
+				//   "hostname request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
+				//   "${ED25519_IPNS_IDv1_DAGPB}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "Location: http://${ED25519_IPNS_IDv1}.ipns.example.com/"
+				// # disable /ipns for the hostname by not whitelisting it
+				// ipfs config --json Gateway.PublicGateways '{
+				//   "example.com": {
+				//     "UseSubdomains": true,
+				//     "Paths": ["/ipfs"]
+				//   }
+				// }' || exit 1
+				// # restart daemon to apply config changes
+				// test_kill_ipfs_daemon
+				// test_launch_ipfs_daemon_without_network
+
+				// TODO: what to do with these?
+				// # refuse requests to Paths that were not explicitly whitelisted for the hostname
+				// test_hostname_gateway_response_should_contain \
+				//   "request for *.ipns.example.com returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
+				//   "${RSA_IPNS_IDv1}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "404 Not Found"
+
+				// test_hostname_gateway_response_should_contain \
+				//   "request for *.ipns.example.com returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
+				//   "${ED25519_IPNS_IDv1}.ipns.example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT" \
+				//   "404 Not Found"
+
+				// # refuse requests to Paths that were not explicitly whitelisted for the hostname
+				// test_hostname_gateway_response_should_contain \
+				//   "request for example.com/ipns/ returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
+				//   "example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT/ipns/$RSA_IPNS_IDv1" \
+				//   "404 Not Found"
+
+				// test_hostname_gateway_response_should_contain \
+				//   "request for example.com/ipns/ returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
+				//   "example.com" \
+				//   "http://127.0.0.1:$GWAY_PORT/ipns/$ED25519_IPNS_IDv1" \
+				//   "404 Not Found"
+			}...)
+		}
+
 		tests = append(tests, SugarTests{
-			// # /ipns/<libp2p-key>
-
-			// test_localhost_gateway_response_should_contain \
-			//   "request for localhost/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
-			//   "http://localhost:$GWAY_PORT/ipns/$RSA_IPNS_IDv0" \
-			//   "Location: http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
-
-			// test_localhost_gateway_response_should_contain \
-			//   "request for localhost/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
-			//   "http://localhost:$GWAY_PORT/ipns/$ED25519_IPNS_IDv0" \
-			//   "Location: http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
-
-			// # *.ipns.localhost
-
-			// # <libp2p-key>.ipns.localhost
-
-			// test_localhost_gateway_response_should_contain \
-			//   "request for {CIDv1-libp2p-key}.ipns.localhost returns expected payload" \
-			//   "http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT" \
-			//   "$CID_VAL"
-
-			// test_localhost_gateway_response_should_contain \
-			//   "request for {CIDv1-libp2p-key}.ipns.localhost returns expected payload" \
-			//   "http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT" \
-			//   "$CID_VAL"
-
-			// test_localhost_gateway_response_should_contain \
-			//   "localhost request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
-			//   "http://${RSA_IPNS_IDv1_DAGPB}.ipns.localhost:$GWAY_PORT" \
-			//   "Location: http://${RSA_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
-
-			// test_localhost_gateway_response_should_contain \
-			//   "localhost request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
-			//   "http://${ED25519_IPNS_IDv1_DAGPB}.ipns.localhost:$GWAY_PORT" \
-			//   "Location: http://${ED25519_IPNS_IDv1}.ipns.localhost:$GWAY_PORT/"
-
-			// # example.com/ipns/<libp2p-key>
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for example.com/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
-			//   "example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT/ipns/$RSA_IPNS_IDv0" \
-			//   "Location: http://${RSA_IPNS_IDv1}.ipns.example.com/"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for example.com/ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain" \
-			//   "example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT/ipns/$ED25519_IPNS_IDv0" \
-			//   "Location: http://${ED25519_IPNS_IDv1}.ipns.example.com/"
-
-			// # *.ipns.example.com
-			// # ============================================================================
-
-			// # <libp2p-key>.ipns.example.com
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for {CIDv1-libp2p-key}.ipns.example.com returns expected payload" \
-			//   "${RSA_IPNS_IDv1}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "$CID_VAL"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for {CIDv1-libp2p-key}.ipns.example.com returns expected payload" \
-			//   "${ED25519_IPNS_IDv1}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "$CID_VAL"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "hostname request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
-			//   "${RSA_IPNS_IDv1_DAGPB}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "Location: http://${RSA_IPNS_IDv1}.ipns.example.com/"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "hostname request for {CIDv1-dag-pb}.ipns.localhost redirects to CID with libp2p-key multicodec" \
-			//   "${ED25519_IPNS_IDv1_DAGPB}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "Location: http://${ED25519_IPNS_IDv1}.ipns.example.com/"
-
 			// ## Test subdomain handling of CIDs that do not fit in a single DNS Label (>63chars)
 			// ## https://github.com/ipfs/go-ipfs/issues/7318
 			// ## ============================================================================
-
 			// # local: *.localhost
 			// test_localhost_gateway_response_should_contain \
 			//   "request for a ED25519 libp2p-key at localhost/ipns/{b58mh} returns Location HTTP header for DNS-safe subdomain redirect in browsers" \
 			//   "http://localhost:$GWAY_PORT/ipns/$IPNS_ED25519_B58MH" \
 			//   "Location: http://${IPNS_ED25519_B36CID}.ipns.localhost:$GWAY_PORT/"
-
 			// # public subdomain gateway: *.example.com
-
 			// test_hostname_gateway_response_should_contain \
 			//   "request for a ED25519 libp2p-key at example.com/ipns/{b58mh} returns Location HTTP header for DNS-safe subdomain redirect in browsers" \
 			//   "example.com" \
 			//   "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ED25519_B58MH" \
 			//   "Location: http://${IPNS_ED25519_B36CID}.ipns.example.com"
-
-			// # disable /ipns for the hostname by not whitelisting it
-			// ipfs config --json Gateway.PublicGateways '{
-			//   "example.com": {
-			//     "UseSubdomains": true,
-			//     "Paths": ["/ipfs"]
-			//   }
-			// }' || exit 1
-			// # restart daemon to apply config changes
-			// test_kill_ipfs_daemon
-			// test_launch_ipfs_daemon_without_network
-
-			// # refuse requests to Paths that were not explicitly whitelisted for the hostname
-			// test_hostname_gateway_response_should_contain \
-			//   "request for *.ipns.example.com returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
-			//   "${RSA_IPNS_IDv1}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "404 Not Found"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for *.ipns.example.com returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
-			//   "${ED25519_IPNS_IDv1}.ipns.example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT" \
-			//   "404 Not Found"
-
-			// # refuse requests to Paths that were not explicitly whitelisted for the hostname
-			// test_hostname_gateway_response_should_contain \
-			//   "request for example.com/ipns/ returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
-			//   "example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT/ipns/$RSA_IPNS_IDv1" \
-			//   "404 Not Found"
-
-			// test_hostname_gateway_response_should_contain \
-			//   "request for example.com/ipns/ returns HTTP 404 Not Found when /ipns is not on Paths whitelist" \
-			//   "example.com" \
-			//   "http://127.0.0.1:$GWAY_PORT/ipns/$ED25519_IPNS_IDv1" \
-			//   "404 Not Found"
+			{
+				Name: "request for a ED25519 libp2p-key at example.com/ipns/{b58mh} returns Location HTTP header for DNS-safe subdomain redirect in browsers",
+				Request: Request().
+					DoNotFollowRedirects().
+					URL("{{url}}/ipns/{{cid}}", gatewayURL, ed25519Fixture.B58MH()),
+				Response: Expect().
+					Headers(
+						Header("Location").
+							Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, ed25519Fixture.IntoCID(multicodec.Libp2pKey, multibase.Base36), u.Host),
+					),
+			},
 		}...)
+
 	}
 
 	RunIfSpecsAreEnabled(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGateway, specs.IPNSResolver)

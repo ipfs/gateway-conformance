@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	mbase "github.com/multiformats/go-multibase"
+	"github.com/multiformats/go-multicodec"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,4 +63,31 @@ func TestLoadTestRecord(t *testing.T) {
 
 	err = ipns.Valid()
 	assert.NoError(t, err)
+}
+
+func TestIPNSFixtureVersionsConversion(t *testing.T) {
+	path := "./_fixtures/12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d.ipns-record"
+	record, err := OpenIPNSRecordWithKey(path)
+
+	assert.Nil(t, err)
+
+	// 12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d is a ED25519 key, which is using the identity hash.
+	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.Key())
+	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.IdV0()) // TODO: confirm with @lidel this makes sense.
+	assert.Equal(t, "k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam", record.IdV1())
+	assert.Equal(t, "k50rm9yjlt0jey4fqg6wafvqprktgbkpgkqdg27tpqje6iimzxewnhvtin9hhq", record.IntoCID(multicodec.DagPb, mbase.Base36))
+	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.B58MH())
+	assert.Equal(t, "k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam", record.IntoCID(multicodec.Libp2pKey, mbase.Base36))
+
+	path = "./_fixtures/QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3.ipns-record"
+	record, err = OpenIPNSRecordWithKey(path)
+
+	assert.Nil(t, err)
+
+	// QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3 is a RSA key, which is using sha256 hash.
+	assert.Equal(t, "QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3", record.Key())
+	assert.Equal(t, "QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3", record.IdV0())
+	assert.Equal(t, "k2k4r8m7xvggw5pxxk3abrkwyer625hg01hfyggrai7lk1m63fuihi7w", record.IdV1())
+	assert.Equal(t, "k2jmtxu61bnhrtj301lw7zizknztocdbeqhxgv76l2q9t36fn9jbzipo", record.IntoCID(multicodec.DagPb, mbase.Base36))
+	assert.Equal(t, "QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3", record.B58MH())
 }
