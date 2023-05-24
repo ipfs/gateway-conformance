@@ -2,10 +2,12 @@ package tests
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -13,6 +15,13 @@ import (
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 )
+
+func InlineDNS(s string) string {
+	// See spec at https://github.com/ipfs/specs/blob/main/src/http-gateways/subdomain-gateway.md#host-request-header
+	// Every - is replaced with --
+	// Every . is replaced with -
+	return strings.ReplaceAll(strings.ReplaceAll(s, "-", "--"), ".", "-")
+}
 
 func TestGatewaySubdomains(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
@@ -489,37 +498,61 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 		SubdomainLocalhostGatewayURL,
 	}
 
+	dnsLinks := dnslink.MustOpenDNSLink("t0114/dnslink.yml")
+	wikipedia := dnsLinks.MustGet("wikipedia")
+	dnsLinkTest := dnsLinks.MustGet("test")
+
 	for _, gatewayURL := range gatewayURLs {
-		_, err := url.Parse(gatewayURL)
+		u, err := url.Parse(gatewayURL)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		tests = append(tests, SugarTests{
 			// # /ipns/<dnslink-fqdn>
-
 			// test_localhost_gateway_response_should_contain \
 			//   "request for localhost/ipns/{fqdn} redirects to DNSLink in subdomain" \
 			//   "http://localhost:$GWAY_PORT/ipns/en.wikipedia-on-ipfs.org/wiki" \
 			//   "Location: http://en.wikipedia-on-ipfs.org.ipns.localhost:$GWAY_PORT/wiki"
-
+			{
+				Name: "request for /ipns/{fqdn} redirects to DNSLink in subdomain",
+				Request: Request().
+					DoNotFollowRedirects().
+					URL("{{url}}/ipns/{{fqdn}}/wiki/", gatewayURL, wikipedia),
+				Response: Expect().
+					// TODO: @lidel - some tests relie on dns inlining vs no inlining, I'm not sure how we want to port these.
+					// Is it two specs and we'll need users to run the test suite twice with different configuration?
+					// Is there a mainstream configuration to do this?
+					// It's not like specs are just additive (you cover spec 1 + spec 2 + ...)
+					// it seems that this inlining and subdomain specs are impacting each other
+					// (if you enabled inlining, then the redirect value will be different for every tests about subdomains)
+					Headers(
+						Header("Location").
+							Equals("{{scheme}}://{{fqdn}}.ipns.{{host}}/wiki/", u.Scheme, InlineDNS(wikipedia), u.Host),
+					),
+			},
 			// # <dnslink-fqdn>.ipns.localhost
-
 			// # DNSLink test requires a daemon in online mode with precached /ipns/ mapping
 			// test_kill_ipfs_daemon
 			// DNSLINK_FQDN="dnslink-test.example.com"
 			// export IPFS_NS_MAP="$DNSLINK_FQDN:/ipfs/$CIDv1"
 			// test_launch_ipfs_daemon
-
 			// test_localhost_gateway_response_should_contain \
 			//   "request for {dnslink}.ipns.localhost returns expected payload" \
 			//   "http://$DNSLINK_FQDN.ipns.localhost:$GWAY_PORT" \
 			//   "$CID_VAL"
-
+			{
+				Name: "request for {dnslink}.ipns.{gateway} returns expected payload",
+				Request: Request().
+					// TODO: Fix this `example.com` hardcoding, something is not right
+					// with the way we deal with dns linking and subdomains.
+					URL("{{scheme}}://{{fqdn}}.example.com.ipns.{{host}}", u.Scheme, dnsLinkTest, u.Host),
+				Response: Expect().
+					Body("hello\n"),
+			},
 			// ## ============================================================================
 			// ## Test DNSLink inlining on HTTP gateways
 			// ## ============================================================================
-
 			// # set explicit subdomain gateway config for the hostname
 			// ipfs config --json Gateway.PublicGateways '{
 			//   "localhost": {
@@ -563,14 +596,34 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   curl -H \"Host: example.com\" -H \"X-Forwarded-Proto: https\" -sD - \"http://127.0.0.1:$GWAY_PORT/ipns/en.wikipedia-on-ipfs.org/wiki\" > response &&
 			//   test_should_contain \"Location: https://en-wikipedia--on--ipfs-org.ipns.example.com/wiki\" response
 			//   "
-
+			{
+				Name: "request for example.com/ipns/{fqdn} with X-Forwarded-Proto redirects to TLS-safe label in subdomain",
+				Request: Request().
+					DoNotFollowRedirects().
+					Header("X-Forwarded-Proto", "https").
+					URL("{{url}}/ipns/{{wikipedia}}/wiki/", gatewayURL, wikipedia),
+				Response: Expect().
+					Headers(
+						Header("Location").
+							Equals("https://{{inlined}}.ipns.{{host}}/wiki/", InlineDNS(wikipedia), u.Host),
+					),
+			},
 			// # Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
 			// test_hostname_gateway_response_should_contain \
 			//   "request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path" \
 			//   "example.com" \
 			//   "http://127.0.0.1:$GWAY_PORT/ipns/?uri=ipns%3A%2F%2Fen.wikipedia-on-ipfs.org" \
 			//   "Location: /ipns/en.wikipedia-on-ipfs.org"
-
+			{
+				Name: "request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path",
+				Hint: "Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
+				Request: Request().
+					URL("{{url}}/ipns/?uri=ipns%3A%2F%2F{{dnslink}}", gatewayURL, wikipedia),
+				Response: Expect().
+					Headers(
+						Header("Location").Equals("/ipns/en.wikipedia-on-ipfs.org"),
+					),
+			},
 			// # DNSLink: <dnslink-fqdn>.ipns.example.com
 			// # (not really useful outside of localhost, as setting TLS for more than one
 			// # level of wildcard is a pain, but we support it if someone really wants it)
@@ -587,6 +640,9 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   "$DNSLINK_FQDN.ipns.example.com" \
 			//   "http://127.0.0.1:$GWAY_PORT" \
 			//   "$CID_VAL"
+			// TODO(laurent): I am not sure what we're testing here,
+			// the test queries somethingsomething.example.org.ipns.example.com
+			// which seems covered by the wikipedia-on-ipfs.org test above.
 
 			// # DNSLink on Public gateway with a single-level wildcard TLS cert
 			// # "Option C" from  https://github.com/ipfs/in-web-browsers/issues/169
@@ -595,6 +651,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   curl -H \"Host: dnslink--subdomain--gw--test-example-org.ipns.example.com\" -H \"X-Forwarded-Proto: https\" -sD - \"http://127.0.0.1:$GWAY_PORT\" > response &&
 			//   test_should_contain \"$CID_VAL\" response
 			//   "
+			// Same?
 
 			// ## ============================================================================
 			// ## Test DNSLink requests with a custom PublicGateway (hostname config)

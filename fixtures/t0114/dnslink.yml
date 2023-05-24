@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../fixture.schema.json
+dnslinks:
+  wikipedia:
+    domain: en.wikipedia-on-ipfs.org
+    # Wikipedia CID
+    path: /ipfs/bafybeiaysi4s6lnjev27ln5icwm6tueaw2vdykrtjkwiphwekaywqhcjze
+  test:
+    subdomain: dnslink-test
+    # CIDv1=$(echo "hello" | ipfs add --cid-version 1 -Q)
+    path: /ipfs/bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am

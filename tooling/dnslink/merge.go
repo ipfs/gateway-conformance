@@ -6,8 +6,16 @@ import (
 	"os"
 )
 
-func Aggregate(inputPaths []string) (map[string]string, error) {
-	aggMap := make(map[string]string)
+type DNSLinksAggregate struct {
+	Domains    map[string]string `json:"domains"`
+	Subdomains map[string]string `json:"subdomains"`
+}
+
+func Aggregate(inputPaths []string) (*DNSLinksAggregate, error) {
+	agg := DNSLinksAggregate{
+		Domains:    make(map[string]string),
+		Subdomains: make(map[string]string),
+	}
 
 	for _, file := range inputPaths {
 		dnsLinks, err := OpenDNSLink(file)
@@ -16,15 +24,31 @@ func Aggregate(inputPaths []string) (map[string]string, error) {
 		}
 
 		for _, link := range dnsLinks.DNSLinks {
-			if _, ok := aggMap[link.Subdomain]; ok {
-				return nil, fmt.Errorf("collision detected for subdomain %s", link.Subdomain)
+			if link.Domain != "" && link.Subdomain != "" {
+				return nil, fmt.Errorf("dnslink %s has both domain and subdomain", link.Subdomain)
 			}
 
-			aggMap[link.Subdomain] = link.Path
+			if link.Domain != "" {
+				if _, ok := agg.Domains[link.Domain]; ok {
+					return nil, fmt.Errorf("collision detected for domain %s", link.Domain)
+				}
+
+				agg.Domains[link.Domain] = link.Path
+				continue
+			}
+
+			if link.Subdomain != "" {
+				if _, ok := agg.Subdomains[link.Subdomain]; ok {
+					return nil, fmt.Errorf("collision detected for subdomain %s", link.Subdomain)
+				}
+
+				agg.Subdomains[link.Subdomain] = link.Path
+				continue
+			}
 		}
 	}
 
-	return aggMap, nil
+	return &agg, nil
 }
 
 func Merge(inputPaths []string, outputPath string) error {
