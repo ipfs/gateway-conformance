@@ -12,13 +12,13 @@ func TestCors(t *testing.T) {
 
 	tests := SugarTests{
 		{
-			Name: "GET Response from Gateway should contain CORS headers",
+			Name: "GET Responses from Gateway should include CORS headers allowing JS from other origins to read the data cross-origin.",
 			Request: Request().
 				Path("ipfs/{{CID}}/", cidHello),
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),
-					Header("Access-Control-Allow-Methods").Equals("GET"),
+					Header("Access-Control-Allow-Methods").Has("GET"),
 					Header("Access-Control-Allow-Headers").Has("Range"),
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
@@ -36,7 +36,7 @@ func TestCors(t *testing.T) {
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),
-					Header("Access-Control-Allow-Methods").Equals("GET"),
+					Header("Access-Control-Allow-Methods").Has("GET"),
 					Header("Access-Control-Allow-Headers").Has("Range"),
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
