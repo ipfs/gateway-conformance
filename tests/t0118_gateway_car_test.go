@@ -12,6 +12,26 @@ func TestGatewayCar(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0118-test-dag.car")
 	hamtFixture := car.MustOpenUnixfsCar("t0118-ipip-402-scope.car")
 
+	dagScopeAllBuilder := Expect().
+		Status(200).
+		Body(
+			IsCar().
+			HasRoot(hamtFixture.MustGetCid()).
+			HasBlocks(hamtFixture.MustGetCid()).
+			HasBlocks(
+				hamtFixture.MustGetCid("sub2"),
+				hamtFixture.MustGetCid("sub2", "hello.txt"),
+			).
+			HasBlocks(hamtFixture.MustGetChildrenCids("sub2", "hello.txt")...).
+			HasBlocks(
+				hamtFixture.MustGetCid("sub1"),
+				hamtFixture.MustGetCid("sub1", "hello.txt"),
+			).
+			HasBlocks(hamtFixture.MustGetChildrenCids("sub1", "hello.txt")...).
+			Exactly().
+			InThatOrder(),
+		)
+
 	tests := SugarTests{
 		{
 			Name: "GET response for application/vnd.ipld.car",
@@ -57,15 +77,15 @@ func TestGatewayCar(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET with ?format=car&car-scope=block params returns expected blocks",
+			Name: "GET with ?format=car&dag-scope=block params returns expected blocks",
 			Hint: `
-				car-scope=block should return a CAR file with only the root block and a
+				dag-scope=block should return a CAR file with only the root block and a
 				block for each optional path component.
 			`,
 			Request: Request().
 				Path("ipfs/{{cid}}/sub1/hello.txt", hamtFixture.MustGetCid()).
 				Query("format", "car").
-				Query("car-scope", "block"),
+				Query("dag-scope", "block"),
 			Response: Expect().
 				Status(200).
 				Body(
@@ -81,68 +101,50 @@ func TestGatewayCar(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET with ?format=car&car-scope=file params returns expected blocks",
+			Name: "GET with ?format=car&dag-scope=entity params returns expected blocks",
 			Hint: `
-				car-scope=file should return a CAR file with all the blocks needed to 'cat'
+				dag-scope=entity should return a CAR file with all the blocks needed to 'cat'
 				a UnixFS file at the end of the specified path, or to 'ls' a UnixFS directory
 				at the end of the specified path.
 			`,
 			Request: Request().
 				Path("ipfs/{{cid}}/sub1/hello.txt", hamtFixture.MustGetCid()).
 				Query("format", "car").
-				Query("car-scope", "file"),
+				Query("dag-scope", "entity"),
 			Response: Expect().
 				Status(200).
 				Body(
 					IsCar().
 					HasRoot(hamtFixture.MustGetCid()).
 					HasBlocks(
-						append(
-							[]string{
-								hamtFixture.MustGetCid(),
-								hamtFixture.MustGetCid("sub1"),
-								hamtFixture.MustGetCid("sub1", "hello.txt"),
-							},
-							hamtFixture.MustGetChildrenCids("sub1", "hello.txt")...,
-						)...,
+						hamtFixture.MustGetCid(),
+						hamtFixture.MustGetCid("sub1"),
+						hamtFixture.MustGetCid("sub1", "hello.txt"),
 					).
+					HasBlocks(hamtFixture.MustGetChildrenCids("sub1", "hello.txt")...).
 					Exactly().
 					InThatOrder(),
 				),
 		},
 		{
-			Name: "GET with ?format=car&car-scope=all params returns expected blocks",
+			Name: "GET with ?format=car&dag-scope=all params returns expected blocks",
 			Hint: `
-				car-scope=all should return a CAR file with the entire contiguous DAG
+				dag-scope=all should return a CAR file with the entire contiguous DAG
 				that begins at the end of the path query, after blocks required to verify path segments.
 			`,
 			Request: Request().
 				Path("ipfs/{{cid}}", hamtFixture.MustGetCid()).
 				Query("format", "car").
-				Query("car-scope", "all"),
-			Response: Expect().
-				Status(200).
-				Body(
-					IsCar().
-					HasRoot(hamtFixture.MustGetCid()).
-					HasBlocks(
-						append(
-							[]string{
-								hamtFixture.MustGetCid(),
-								hamtFixture.MustGetCid("sub1"),
-								hamtFixture.MustGetCid("sub1", "hello.txt"),
-								hamtFixture.MustGetCid("sub2"),
-								hamtFixture.MustGetCid("sub2", "hello.txt"),
-							},
-							append(
-								hamtFixture.MustGetChildrenCids("sub1", "hello.txt"),
-								hamtFixture.MustGetChildrenCids("sub2", "hello.txt")...
-							)...
-						)...,
-					).
-					Exactly().
-					InThatOrder(),
-				),
+				Query("dag-scope", "all"),
+			Response: dagScopeAllBuilder,
+		},
+		{
+			Name: "GET with ?format=car returns same response as dag-scope=all",
+			Hint: `If the CAR request does not have a dag-scope parameter, it should be treated as dag-scope=all`,
+			Request: Request().
+				Path("ipfs/{{cid}}", hamtFixture.MustGetCid()).
+				Query("format", "car"),
+			Response: dagScopeAllBuilder,
 		},
 	}
 
