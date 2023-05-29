@@ -57,8 +57,8 @@ var _ Check[string] = CheckWithHint[string]{}
 type CheckIsEmpty struct {
 }
 
-func (c CheckIsEmpty) Check(v string) CheckOutput {
-	if v == "" {
+func (c CheckIsEmpty) Check(v []string) CheckOutput {
+	if len(v) == 0 {
 		return CheckOutput{
 			Success: true,
 		}
@@ -66,18 +66,18 @@ func (c CheckIsEmpty) Check(v string) CheckOutput {
 
 	return CheckOutput{
 		Success: false,
-		Reason:  fmt.Sprintf("expected empty string, got '%s'", v),
+		Reason:  fmt.Sprintf("expected empty array, got '%s'", v),
 	}
 }
 
-var _ Check[string] = CheckIsEmpty{}
+var _ Check[[]string] = CheckIsEmpty{}
 
 func IsEmpty(hint ...string) interface{} {
 	if len(hint) > 1 {
 		panic("hint can only be one string")
 	}
 	if len(hint) == 1 {
-		return WithHint[string](
+		return WithHint[[]string](
 			hint[0],
 			CheckIsEmpty{},
 		)
@@ -169,6 +169,64 @@ func IsEqualWithHint(hint string, value string, rest ...any) CheckWithHint[strin
 	return WithHint[string](hint, IsEqual(value, rest...))
 }
 
+type CheckUniqAnd struct {
+	check Check[string]
+}
+
+var _ Check[[]string] = &CheckUniqAnd{}
+
+func IsUniqAnd(check Check[string]) Check[[]string] {
+	return &CheckUniqAnd{
+		check: check,
+	}
+}
+
+func (c *CheckUniqAnd) Check(v []string) CheckOutput {
+	if len(v) != 1 {
+		return CheckOutput{
+			Success: false,
+			Reason:  "expected one element",
+		}
+	}
+
+	return c.check.Check(v[0])
+}
+
+type CheckHas struct {
+	values []string
+}
+
+var _ Check[[]string] = &CheckHas{}
+
+func Has(values ...string) Check[[]string] {
+	return &CheckHas{
+		values: values,
+	}
+}
+
+func (c *CheckHas) Check(v []string) CheckOutput {
+	for _, value := range c.values {
+		found := false
+		for _, v := range v {
+			if v == value {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return CheckOutput{
+				Success: false,
+				Reason:  fmt.Sprintf("expected to find '%s' in '%s'", value, v),
+			}
+		}
+	}
+
+	return CheckOutput{
+		Success: true,
+	}
+}
+
 type CheckContains struct {
 	Value string
 }
@@ -250,17 +308,17 @@ func (c CheckFunc[T]) Check(v T) CheckOutput {
 
 var _ Check[string] = &CheckFunc[string]{}
 
-type CheckNot struct {
-	check Check[string]
+type CheckNot[T any] struct {
+	check Check[T]
 }
 
-func Not(check Check[string]) Check[string] {
-	return CheckNot{
+func Not[T any](check Check[T]) Check[T] {
+	return CheckNot[T]{
 		check: check,
 	}
 }
 
-func (c CheckNot) Check(v string) CheckOutput {
+func (c CheckNot[T]) Check(v T) CheckOutput {
 	result := c.check.Check(v)
 
 	if result.Success {
@@ -275,7 +333,7 @@ func (c CheckNot) Check(v string) CheckOutput {
 	}
 }
 
-var _ Check[string] = CheckNot{}
+var _ Check[string] = CheckNot[string]{}
 
 type CheckIsJSONEqual struct {
 	Value interface{}
