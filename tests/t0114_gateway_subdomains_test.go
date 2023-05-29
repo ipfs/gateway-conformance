@@ -520,12 +520,6 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 					DoNotFollowRedirects().
 					URL("{{url}}/ipns/{{fqdn}}/wiki/", gatewayURL, wikipedia),
 				Response: Expect().
-					// TODO: @lidel - some tests relie on dns inlining vs no inlining, I'm not sure how we want to port these.
-					// Is it two specs and we'll need users to run the test suite twice with different configuration?
-					// Is there a mainstream configuration to do this?
-					// It's not like specs are just additive (you cover spec 1 + spec 2 + ...)
-					// it seems that this inlining and subdomain specs are impacting each other
-					// (if you enabled inlining, then the redirect value will be different for every tests about subdomains)
 					Headers(
 						Header("Location").
 							Equals("{{scheme}}://{{fqdn}}.ipns.{{host}}/wiki/", u.Scheme, InlineDNS(wikipedia), u.Host),
@@ -598,6 +592,10 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   "
 			{
 				Name: "request for example.com/ipns/{fqdn} with X-Forwarded-Proto redirects to TLS-safe label in subdomain",
+				Hint: `
+				DNSLink on Public gateway with a single-level wildcard TLS cert
+				"Option C" from https://github.com/ipfs/in-web-browsers/issues/169
+				`,
 				Request: Request().
 					DoNotFollowRedirects().
 					Header("X-Forwarded-Proto", "https").
@@ -615,13 +613,13 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   "http://127.0.0.1:$GWAY_PORT/ipns/?uri=ipns%3A%2F%2Fen.wikipedia-on-ipfs.org" \
 			//   "Location: /ipns/en.wikipedia-on-ipfs.org"
 			{
-				Name: "request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path",
+				Name: `request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path`,
 				Hint: "Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
 				Request: Request().
-					URL("{{url}}/ipns/?uri=ipns%3A%2F%2F{{dnslink}}", gatewayURL, wikipedia),
+					URL(`{{url}}/ipns/?uri=ipns%3A%2F%2F{{dnslink}}`, gatewayURL, wikipedia),
 				Response: Expect().
 					Headers(
-						Header("Location").Equals("/ipns/en.wikipedia-on-ipfs.org"),
+						Header("Location").Equals("/ipns/{{wikipedia}}", wikipedia),
 					),
 			},
 			// # DNSLink: <dnslink-fqdn>.ipns.example.com
