@@ -5,6 +5,8 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/ipns"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
@@ -788,73 +790,126 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Status(412),
 			},
-			/**
-			  # IPNS behavior (should be same as immutable /ipfs, but with different caching headers)
-			  # To keep tests small we only confirm payload is the same, and then only test delta around caching headers.
-
-			  test_expect_success "Prepare IPNS with dag-$format" '
-			  IPNS_ID=$(ipfs key gen --ipns-base=base36 --type=ed25519 ${format}_test_key | head -n1 | tr -d "\n") &&
-			  ipfs name publish --key ${format}_test_key --allow-offline -Q "/ipfs/$CID" > name_publish_out &&
-			  test_check_peerid "${IPNS_ID}" &&
-			  ipfs name resolve "${IPNS_ID}" > output &&
-			  printf "/ipfs/{{cid}}\n" "$CID" > expected &&
-			  test_cmp expected output
-			  '
-			*/
-			// TODO: IPNS
-			/**
-			  test_expect_success "GET $name from /ipns without explicit format returns the same payload as /ipfs" '
-			  curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" -o ipfs_output &&
-			  curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" -o ipns_output &&
-			  test_cmp ipfs_output ipns_output
-			  '
-			*/
-			// TODO: IPNS
-			/**
-			  test_expect_success "GET $name from /ipns without explicit format returns the same payload as /ipfs" '
-			  curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=dag-$format" -o ipfs_output &&
-			  curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID?format=dag-$format" -o ipns_output &&
-			  test_cmp ipfs_output ipns_output
-			  '
-			*/
-			/**
-			  test_expect_success "GET $name from /ipns with explicit application/vnd.ipld.dag-$format has expected headers" '
-			  curl -svX GET -H "Accept: application/vnd.ipld.dag-$format" "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" >/dev/null 2>curl_output &&
-			  test_should_not_contain "Cache-Control" curl_output &&
-			  test_should_contain "< Content-Type: application/vnd.ipld.dag-$format" curl_output &&
-			  test_should_contain "< Etag: \"${CID}.dag-$format\"" curl_output &&
-			  test_should_contain "< X-Ipfs-Path" curl_output &&
-			  test_should_contain "< X-Ipfs-Roots" curl_output
-			  '
-			*/
-			// TODO: IPNS
-			/**
-			  # When Accept header includes text/html and no explicit format is requested for DAG-(CBOR|JSON)
-			  # The gateway returns generated HTML index (see dag-index-html) for web browsers (similar to dir-index-html returned for unixfs dirs)
-			  # As this is generated, we don't return immutable Cache-Control, even on /ipfs (same as for dir-index-html)
-
-			  test_expect_success "GET $name on /ipfs with Accept: text/html returns HTML (dag-index-html)" '
-			  curl -sD - -H "Accept: text/html" "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" > curl_output 2>&1 &&
-			  test_should_not_contain "Content-Disposition" curl_output &&
-			  test_should_not_contain "Cache-Control" curl_output &&
-			  test_should_contain "Etag: \"DagIndex-" curl_output &&
-			  test_should_contain "Content-Type: text/html" curl_output &&
-			  test_should_contain "</html>" curl_output
-			  '
-			*/
-			// TODO: IPNS
-			/**
-			  test_expect_success "GET $name on /ipns with Accept: text/html returns HTML (dag-index-html)" '
-			  curl -sD - -H "Accept: text/html" "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" > curl_output 2>&1 &&
-			  test_should_not_contain "Content-Disposition" curl_output &&
-			  test_should_not_contain "Cache-Control" curl_output &&
-			  test_should_contain "Etag: \"DagIndex-" curl_output &&
-			  test_should_contain "Content-Type: text/html" curl_output &&
-			  test_should_contain "</html>" curl_output
-			  '
-			*/
+			// test_expect_success "GET $name on /ipfs with Accept: text/html returns HTML (dag-index-html)" '
+			// curl -sD - -H "Accept: text/html" "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" > curl_output 2>&1 &&
+			// test_should_not_contain "Content-Disposition" curl_output &&
+			// test_should_not_contain "Cache-Control" curl_output &&
+			// test_should_contain "Etag: \"DagIndex-" curl_output &&
+			// test_should_contain "Content-Type: text/html" curl_output &&
+			// test_should_contain "</html>" curl_output
+			// '
+			{
+				Name: Fmt("GET {{name}} on /ipfs with Accept: text/html returns HTML (dag-index-html)", row.Name),
+				Request: Request().
+					Path("ipfs/{{cid}}", dagTraversalCID).
+					Header("Accept", "text/html"),
+				Response: Expect().
+					Headers(
+						Header("Etag").Contains("DagIndex-"),
+						Header("Content-Type").Contains("text/html"),
+						Header("Content-Disposition").IsEmpty(),
+						Header("Cache-Control").IsEmpty(),
+					).Body(
+					Contains("</html>"),
+				),
+			},
 		}
 
 		Run(t, tests)
 	}
+}
+
+func TestGatewayJSONCborAndIPNS(t *testing.T) {
+	ipnsIdDagJSON := "k51qzi5uqu5dhjghbwdvbo6mi40htrq6e2z4pwgp15pgv3ho1azvidttzh8yy2"
+	ipnsIdDagCBOR := "k51qzi5uqu5dghjous0agrwavl8vzl64xckoqzwqeqwudfr74kfd11zcyk3b7l"
+
+	ipnsDagJSON := ipns.MustOpenIPNSRecordWithKey(Fmt("t0123/{{id}}.ipns-record", ipnsIdDagJSON))
+	ipnsDagCBOR := ipns.MustOpenIPNSRecordWithKey(Fmt("t0123/{{id}}.ipns-record", ipnsIdDagCBOR))
+
+	table := []struct {
+		Name    string
+		Format  string
+		fixture *ipns.IpnsRecord
+	}{
+		{"plain JSON codec", "json", ipnsDagJSON},
+		{"plain CBOR codec", "cbor", ipnsDagCBOR},
+	}
+
+	tests := SugarTests{}
+
+	for _, row := range table {
+		plain := car.MustOpenUnixfsCar(Fmt("t0123/plain.{{format}}.car", row.Format)).MustGetRoot()
+		plainCID := plain.Cid()
+
+		// # IPNS behavior (should be same as immutable /ipfs, but with different caching headers)
+		// # To keep tests small we only confirm payload is the same, and then only test delta around caching headers.
+		tests = append(tests, SugarTests{
+			// test_expect_success "GET $name from /ipns without explicit format returns the same payload as /ipfs" '
+			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID" -o ipfs_output &&
+			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" -o ipns_output &&
+			// test_cmp ipfs_output ipns_output
+			// '
+			// TODO: compare outputs.
+
+			// test_expect_success "GET $name from /ipns without explicit format returns the same payload as /ipfs" '
+			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=dag-$format" -o ipfs_output &&
+			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID?format=dag-$format" -o ipns_output &&
+			// test_cmp ipfs_output ipns_output
+			// '
+			// TODO: compare outputs.
+
+			// test_expect_success "GET $name from /ipns with explicit application/vnd.ipld.dag-$format has expected headers" '
+			// curl -svX GET -H "Accept: application/vnd.ipld.dag-$format" "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" >/dev/null 2>curl_output &&
+			// test_should_not_contain "Cache-Control" curl_output &&
+			// test_should_contain "< Content-Type: application/vnd.ipld.dag-$format" curl_output &&
+			// test_should_contain "< Etag: \"${CID}.dag-$format\"" curl_output &&
+			// test_should_contain "< X-Ipfs-Path" curl_output &&
+			// test_should_contain "< X-Ipfs-Roots" curl_output
+			// '
+			{
+				Name: Fmt("GET {{name}} from /ipns with explicit application/vnd.ipld.dag-{{format}} has expected headers", row.Name, row.Format),
+				Request: Request().
+					Path("ipns/{{id}}", row.fixture.Key()).
+					Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
+				Response: Expect().
+					Headers(
+						Header("Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
+						Header("Etag").Equals(`"{{cid}}.dag-{{format}}"`, plainCID, row.Format),
+						Header("X-Ipfs-Path").Not().IsEmpty(),
+						Header("X-Ipfs-Roots").Not().IsEmpty(),
+					),
+			},
+			// # When Accept header includes text/html and no explicit format is requested for DAG-(CBOR|JSON)
+			// # The gateway returns generated HTML index (see dag-index-html) for web browsers (similar to dir-index-html returned for unixfs dirs)
+			// # As this is generated, we don't return immutable Cache-Control, even on /ipfs (same as for dir-index-html)
+
+			// test_expect_success "GET $name on /ipns with Accept: text/html returns HTML (dag-index-html)" '
+			// curl -sD - -H "Accept: text/html" "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" > curl_output 2>&1 &&
+			// test_should_not_contain "Content-Disposition" curl_output &&
+			// test_should_not_contain "Cache-Control" curl_output &&
+			// test_should_contain "Etag: \"DagIndex-" curl_output &&
+			// test_should_contain "Content-Type: text/html" curl_output &&
+			// test_should_contain "</html>" curl_output
+			// '
+			{
+				Name: Fmt("GET {{name}} on /ipns with Accept: text/html returns HTML (dag-index-html)", row.Name),
+				Request: Request().
+					Path("ipns/{{id}}", row.fixture.Key()).
+					Header("Accept", "text/html"),
+				Response: Expect().
+					Headers(
+						Header("Etag").Contains("DagIndex-"),
+						Header("Content-Type").Contains("text/html"),
+						Header("Content-Disposition").IsEmpty(),
+						Header("Cache-Control").IsEmpty(),
+					).Body(
+					Contains("</html>"),
+				),
+			},
+		}...)
+	}
+
+	RunIfSpecsAreEnabled(t,
+		tests,
+		specs.IPNSResolver)
 }
