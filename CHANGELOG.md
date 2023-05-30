@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `Fmt` a string interpolation that replaces golang's and works better with HTML entities, and HTTP headers and URLs.
 
+### Changed
+- `Path(url)` does not add a leading `/` to the URL anymore.
+
+
 ## [0.0.2] - 2023-06-01
 ### Removed
 - Body check for subdomain redirection
