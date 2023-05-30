@@ -97,6 +97,9 @@ func Run(t *testing.T, tests SugarTests) {
 				url = test.Request.URL_
 			}
 			if test.Request.Path_ != "" {
+				if test.Request.Path_[0] != '/' {
+					localReport(t, "Path must start with '/'")
+				}
 				url = fmt.Sprintf("%s%s", GatewayURL, test.Request.Path_)
 			}
 
