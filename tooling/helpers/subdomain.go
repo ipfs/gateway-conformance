@@ -54,7 +54,6 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 			Hint: fmt.Sprintf("%s\n%s", unwraped.Hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
 			Request: req.
 				URL(rawURL).
-				DoNotFollowRedirects().
 				Headers(
 					test.Header("Host", host),
 				),
@@ -65,8 +64,7 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 			Hint: fmt.Sprintf("%s\n%s", unwraped.Hint, "HTTP proxy (hostname is passed via URL)"),
 			Request: req.
 				URL(baseURL).
-				Proxy(test.GatewayURL).
-				DoNotFollowRedirects(),
+				Proxy(test.GatewayURL),
 			Response: expected,
 		},
 		{
@@ -80,7 +78,6 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 				URL(baseURL).
 				Proxy(test.GatewayURL).
 				WithProxyTunnel().
-				DoNotFollowRedirects().
 				Headers(
 					test.Header("Host", host),
 				),

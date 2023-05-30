@@ -52,7 +52,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					Header("Host", u.Host).
 					URL("{{url}}/redirect-one", redirectDirBaseURL),
 				Response: Expect().
@@ -71,7 +70,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/301-redirect-one redirects with 301, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/301-redirect-one", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
@@ -89,7 +87,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/302-redirect-two redirects with 302, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/302-redirect-two", redirectDirBaseURL),
 				Response: Expect().
 					Status(302).
@@ -107,7 +104,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/200-index returns 200, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/200-index", redirectDirBaseURL),
 				Response: Expect().
 					Status(200).
@@ -123,7 +119,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/posts/:year/:month/:day/:title redirects with 301 and placeholders, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/posts/2022/01/01/hello-world", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).
@@ -141,7 +136,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 			{
 				Name: "request for $REDIRECTS_DIR_HOSTNAME/splat/one.html redirects with 301 and splat placeholder, per _redirects file",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/splat/one.html", redirectDirBaseURL),
 				Response: Expect().
 					Status(301).

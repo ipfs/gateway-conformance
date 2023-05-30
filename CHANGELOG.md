@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `Path(url)` does not add a leading `/` to the URL anymore.
-
+- Do not follow redirects by default anymore, remove `DoNotFollowRedirect` and add `FollowRedirect`.
 
 ## [0.0.2] - 2023-06-01
 ### Removed
