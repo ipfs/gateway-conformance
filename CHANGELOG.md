@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - `Fmt` a string interpolation that replaces golang's and works better with HTML entities, and HTTP headers and URLs.
+- Support for calling multiple requests in a single test case and comparing their payloads.
 
 ### Changed
 - `Path(url)` does not add a leading `/` to the URL anymore.
