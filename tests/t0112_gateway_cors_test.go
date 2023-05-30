@@ -14,7 +14,7 @@ func TestCors(t *testing.T) {
 		{
 			Name: "GET Responses from Gateway should include CORS headers allowing JS from other origins to read the data cross-origin.",
 			Request: Request().
-				Path("ipfs/{{CID}}/", cidHello),
+				Path("/ipfs/{{CID}}/", cidHello),
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),
@@ -32,7 +32,7 @@ func TestCors(t *testing.T) {
 			Name: "OPTIONS to Gateway succeeds",
 			Request: Request().
 				Method("OPTIONS").
-				Path("ipfs/{{CID}}/", cidHello),
+				Path("/ipfs/{{CID}}/", cidHello),
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),

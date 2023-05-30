@@ -29,7 +29,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET an IPNS record from the gateway",
 			Request: Request().
-				Path("ipns/{{name}}", ipnsName),
+				Path("/ipns/{{name}}", ipnsName),
 			Response: Expect().
 				Body(file.RawData()),
 		},
@@ -47,7 +47,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with format=ipns-record has expected HTTP headers and valid key",
 			Request: Request().
-				Path("ipns/{{name}}", ipnsName).
+				Path("/ipns/{{name}}", ipnsName).
 				Query("format", "ipns-record"),
 			Response: Expect().
 				Headers(
@@ -75,7 +75,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with 'Accept: application/vnd.ipfs.ipns-record' has expected HTTP headers and valid key",
 			Request: Request().
-				Path("ipns/{{name}}", ipnsName).
+				Path("/ipns/{{name}}", ipnsName).
 				Header("Accept", "application/vnd.ipfs.ipns-record"),
 			Response: Expect().
 				Headers(
@@ -97,7 +97,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET KEY with expliciy ?filename= succeeds with modified Content-Disposition header",
 			Request: Request().
-				Path("ipns/{{name}}", ipnsName).
+				Path("/ipns/{{name}}", ipnsName).
 				Query("format", "ipns-record").
 				Query("filename", "testтест.ipns-record"),
 			Response: Expect().
