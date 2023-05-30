@@ -838,7 +838,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 	tests := SugarTests{}
 
 	for _, row := range table {
-		plain := car.MustOpenUnixfsCar(Fmt("t0123/plain.{{format}}.car", row.Format)).MustGetRoot()
+		plain := car.MustOpenUnixfsCar(Fmt("t0123/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
 		plainCID := plain.Cid()
 
 		// # IPNS behavior (should be same as immutable /ipfs, but with different caching headers)
@@ -849,14 +849,35 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" -o ipns_output &&
 			// test_cmp ipfs_output ipns_output
 			// '
-			// TODO: compare outputs.
-
+			{
+				Name: Fmt("GET {{name}} from /ipns without explicit format returns the same payload as /ipfs", row.Name),
+				Requests: Requests(
+					Request().
+						Path("ipfs/{{cid}}", plainCID),
+					Request().
+						Path("ipns/{{id}}", row.fixture.Key()),
+				),
+				Responses: Responses().
+					HaveTheSamePayload(),
+			},
 			// test_expect_success "GET $name from /ipns without explicit format returns the same payload as /ipfs" '
 			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=dag-$format" -o ipfs_output &&
 			// curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID?format=dag-$format" -o ipns_output &&
 			// test_cmp ipfs_output ipns_output
 			// '
-			// TODO: compare outputs.
+			{
+				Name: Fmt("GET {{name}} from /ipns with explicit format returns the same payload as /ipfs", row.Name),
+				Requests: Requests(
+					Request().
+						Path("ipfs/{{cid}}", plainCID).
+						Query("format", "dag-{{format}}", row.Format),
+					Request().
+						Path("ipns/{{id}}", row.fixture.Key()).
+						Query("format", "dag-{{format}}", row.Format),
+				),
+				Responses: Responses().
+					HaveTheSamePayload(),
+			},
 
 			// test_expect_success "GET $name from /ipns with explicit application/vnd.ipld.dag-$format has expected headers" '
 			// curl -svX GET -H "Accept: application/vnd.ipld.dag-$format" "http://127.0.0.1:$GWAY_PORT/ipns/$IPNS_ID" >/dev/null 2>curl_output &&

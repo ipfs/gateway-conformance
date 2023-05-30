@@ -58,13 +58,13 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 			switch v := v.(type) {
 			case *http.Request:
 				if v == nil {
-					return "nil"
+					return "nil" // golang does not catch the nil case above
 				}
 
 				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
 				if v == nil {
-					return "nil"
+					return "nil" // golang does not catch the nil case above
 				}
 				// TODO: we have to disable the body dump because
 				// it triggers an error:

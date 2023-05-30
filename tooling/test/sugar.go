@@ -27,6 +27,10 @@ func Request() RequestBuilder {
 	}
 }
 
+func Requests(rs ...RequestBuilder) []RequestBuilder {
+	return rs
+}
+
 func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
 	r.Path_ = tmpl.Fmt(path, args...)
 	return r
@@ -99,6 +103,10 @@ type ExpectBuilder struct {
 
 func Expect() ExpectBuilder {
 	return ExpectBuilder{Body_: nil}
+}
+
+func ResponsesAreEqual() ExpectBuilder {
+	return ExpectBuilder{Body_: check.IsEqual}
 }
 
 func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
@@ -228,4 +236,17 @@ func (h HeaderBuilder) Not() HeaderBuilder {
 
 func (h HeaderBuilder) Exists() HeaderBuilder {
 	return h.Not().IsEmpty()
+}
+
+type ExpectsBuilder struct {
+	payloadsAreEquals bool
+}
+
+func Responses() ExpectsBuilder {
+	return ExpectsBuilder{}
+}
+
+func (e ExpectsBuilder) HaveTheSamePayload() ExpectsBuilder {
+	e.payloadsAreEquals = true
+	return e
 }
