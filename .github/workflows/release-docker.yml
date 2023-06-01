@@ -10,6 +10,10 @@ on:
           The URL of the artifacts to download.
           If provided, we'll try to retrieve the tags from the release.json file of the release artifact.
         required: false
+      ref:
+        description: GitHub Ref
+        required: false
+        default: main
   workflow_run:
     workflows: [Release]
     types:
@@ -49,6 +53,8 @@ jobs:
           TAGS: ${{ needs.release.outputs.tags }}
         run: jq -Rr 'split(",") | map(gsub("^\\s+|\\s+$";"") | "ghcr.io/\(env.REPOSITORY):\(.)") | join(",") | "tags=\(.)"' <<< "$TAGS" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.event.inputs.ref }}
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
       - uses: docker/login-action@v2
