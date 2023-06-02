@@ -83,12 +83,14 @@ func TestDirectorListingOnGateway(t *testing.T) {
 					Header("Etag").Contains(`"DirIndex-`),
 				).
 				BodyWithHint(`
+				- should contain "Index of"
 				- Breadcrumbs should point at /ipfs namespace mounted at Origin root
 				- backlink on subdirectory should point at parent directory
 				- name column should be a link to its content path
 				- hash column should be a CID link with filename param
 				`,
 					And(
+						Contains("Index of"),
 						Contains(`/ipfs/<a href="/ipfs/{{cid}}">{{cid}}</a>/<a href="/ipfs/{{cid}}/%C4%85">ą</a>/<a href="/ipfs/{{cid}}/%C4%85/%C4%99">ę</a>`,
 							root.Cid()),
 						Contains(`<a href="/ipfs/{{cid}}/%C4%85/%C4%99/..">..</a>`, root.Cid()),
