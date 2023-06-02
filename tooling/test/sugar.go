@@ -21,8 +21,8 @@ type RequestBuilder struct {
 
 func Request() RequestBuilder {
 	return RequestBuilder{
-		Method_: "GET",
-		Query_:  make(url.Values),
+		Method_:          "GET",
+		Query_:           make(url.Values),
 		FollowRedirects_: false,
 	}
 }
