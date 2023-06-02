@@ -61,7 +61,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with format=tar and extract",
 			Request: Request().
-				Path("ipfs/{{cid}}", fileCID).
+				Path("/ipfs/{{cid}}", fileCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
@@ -91,7 +91,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with 'Accept: application/x-tar' and extract",
 			Request: Request().
-				Path("ipfs/{{cid}}", fileCID).
+				Path("/ipfs/{{cid}}", fileCID).
 				Header("Accept", "application/x-tar"),
 			Response: Expect().
 				Status(200).
@@ -115,7 +115,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR has expected root directory",
 			Request: Request().
-				Path("ipfs/{{cid}}", dirCID).
+				Path("/ipfs/{{cid}}", dirCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).
@@ -136,7 +136,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with explicit ?filename= succeeds with modified Content-Disposition header",
 			Request: Request().
-				Path("ipfs/{{cid}}", dirCID).
+				Path("/ipfs/{{cid}}", dirCID).
 				Query("filename", "testтест.tar").
 				Query("format", "tar"),
 			Response: Expect().
@@ -155,7 +155,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with relative paths outside root fails",
 			Request: Request().
-				Path("ipfs/{{cid}}", outsideRootCID).
+				Path("/ipfs/{{cid}}", outsideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Body(
@@ -172,7 +172,7 @@ func TestGatewayTar(t *testing.T) {
 		{
 			Name: "GET TAR with relative paths inside root works",
 			Request: Request().
-				Path("ipfs/{{cid}}", insideRootCID).
+				Path("/ipfs/{{cid}}", insideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
 				Status(200).

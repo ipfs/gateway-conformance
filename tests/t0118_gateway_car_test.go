@@ -20,7 +20,7 @@ func TestGatewayCar(t *testing.T) {
 				we will get a CAR that is a deterministic array of bytes.
 			`,
 			Request: Request().
-				Path("ipfs/{{cid}}/subdir/ascii.txt", fixture.MustGetCid()).
+				Path("/ipfs/{{cid}}/subdir/ascii.txt", fixture.MustGetCid()).
 				Headers(
 					Header("Accept", "application/vnd.ipld.car"),
 				),
