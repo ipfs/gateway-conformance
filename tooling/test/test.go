@@ -63,7 +63,7 @@ func Run(t *testing.T, tests SugarTests) {
 				client = NewProxyClient(test.Request.Proxy_)
 			}
 
-			if test.Request.DoNotFollowRedirects_ {
+			if !test.Request.FollowRedirects_ {
 				client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
 				}

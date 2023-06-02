@@ -8,20 +8,23 @@ import (
 )
 
 type RequestBuilder struct {
-	Method_               string            `json:"method,omitempty"`
-	Path_                 string            `json:"path,omitempty"`
-	URL_                  string            `json:"url,omitempty"`
-	Proxy_                string            `json:"proxy,omitempty"`
-	UseProxyTunnel_       bool              `json:"useProxyTunnel,omitempty"`
-	Headers_              map[string]string `json:"headers,omitempty"`
-	DoNotFollowRedirects_ bool              `json:"doNotFollowRedirects,omitempty"`
-	Query_                url.Values        `json:"query,omitempty"`
-	Body_                 []byte            `json:"body,omitempty"`
+	Method_          string            `json:"method,omitempty"`
+	Path_            string            `json:"path,omitempty"`
+	URL_             string            `json:"url,omitempty"`
+	Proxy_           string            `json:"proxy,omitempty"`
+	UseProxyTunnel_  bool              `json:"useProxyTunnel,omitempty"`
+	Headers_         map[string]string `json:"headers,omitempty"`
+	FollowRedirects_ bool              `json:"followRedirects,omitempty"`
+	Query_           url.Values        `json:"query,omitempty"`
+	Body_            []byte            `json:"body,omitempty"`
 }
 
 func Request() RequestBuilder {
-	return RequestBuilder{Method_: "GET",
-		Query_: make(url.Values)}
+	return RequestBuilder{
+		Method_: "GET",
+		Query_:  make(url.Values),
+		FollowRedirects_: false,
+	}
 }
 
 func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
@@ -57,8 +60,8 @@ func (r RequestBuilder) WithProxyTunnel() RequestBuilder {
 	return r
 }
 
-func (r RequestBuilder) DoNotFollowRedirects() RequestBuilder {
-	r.DoNotFollowRedirects_ = true
+func (r RequestBuilder) FollowRedirects() RequestBuilder {
+	r.FollowRedirects_ = true
 	return r
 }
 

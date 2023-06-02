@@ -410,7 +410,6 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 			Hint: fmt.Sprintf("%s\n%s", hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
 			Request: baseReq.
 				URL(rawURL).
-				DoNotFollowRedirects().
 				Headers(
 					Header("Host", host),
 				),
@@ -421,8 +420,7 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 			Hint: fmt.Sprintf("%s\n%s", hint, "HTTP proxy (hostname is passed via URL)"),
 			Request: baseReq.
 				URL(baseURL).
-				Proxy(GatewayURL).
-				DoNotFollowRedirects(),
+				Proxy(GatewayURL),
 			Response: expected,
 		},
 		{
@@ -436,7 +434,6 @@ func testGatewayWithManyProtocols(t *testing.T, label string, hint string, reqUR
 				URL(baseURL).
 				Proxy(GatewayURL).
 				WithProxyTunnel().
-				DoNotFollowRedirects().
 				Headers(
 					Header("Host", host),
 				),
