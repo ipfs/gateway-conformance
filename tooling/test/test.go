@@ -149,7 +149,7 @@ func Run(t *testing.T, tests SugarTests) {
 			for _, header := range test.Response.Headers_ {
 				t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
 					actual := res.Header.Values(header.Key_)
-					
+
 					c := header.Check_
 					if header.Not_ {
 						c = check.Not(c)
@@ -167,37 +167,39 @@ func Run(t *testing.T, tests SugarTests) {
 			}
 
 			if test.Response.Body_ != nil {
-				defer res.Body.Close()
-				resBody, err := io.ReadAll(res.Body)
-				if err != nil {
-					localReport(t, err)
-				}
-
-				var output check.CheckOutput
-
-				switch v := test.Response.Body_.(type) {
-				case check.Check[string]:
-					output = v.Check(string(resBody))
-				case check.Check[[]byte]:
-					output = v.Check(resBody)
-				case string:
-					output = check.IsEqual(v).Check(string(resBody))
-				case []byte:
-					output = check.IsEqualBytes(v).Check(resBody)
-				default:
-					output = check.CheckOutput{
-						Success: false,
-						Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body_),
+				t.Run("Body", func(t *testing.T) {
+					defer res.Body.Close()
+					resBody, err := io.ReadAll(res.Body)
+					if err != nil {
+						localReport(t, err)
 					}
-				}
 
-				if !output.Success {
-					if output.Hint == "" {
-						localReport(t, "Body %s", output.Reason)
-					} else {
-						localReport(t, "Body %s (%s)", output.Reason, output.Hint)
+					var output check.CheckOutput
+
+					switch v := test.Response.Body_.(type) {
+					case check.Check[string]:
+						output = v.Check(string(resBody))
+					case check.Check[[]byte]:
+						output = v.Check(resBody)
+					case string:
+						output = check.IsEqual(v).Check(string(resBody))
+					case []byte:
+						output = check.IsEqualBytes(v).Check(resBody)
+					default:
+						output = check.CheckOutput{
+							Success: false,
+							Reason:  fmt.Sprintf("Body check has an invalid type: %T", test.Response.Body_),
+						}
 					}
-				}
+
+					if !output.Success {
+						if output.Hint == "" {
+							localReport(t, "Body %s", output.Reason)
+						} else {
+							localReport(t, "Body %s (%s)", output.Reason, output.Hint)
+						}
+					}
+				})
 			}
 		})
 	}
