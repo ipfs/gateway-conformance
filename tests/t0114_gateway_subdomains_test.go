@@ -640,7 +640,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   "$CID_VAL"
 			// TODO(laurent): I am not sure what we're testing here,
 			// the test queries somethingsomething.example.org.ipns.example.com
-			// which seems covered by the wikipedia-on-ipfs.org test above.
+			// which seems covered by the   test above.
 
 			// # DNSLink on Public gateway with a single-level wildcard TLS cert
 			// # "Option C" from  https://github.com/ipfs/in-web-browsers/issues/169
@@ -650,6 +650,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   test_should_contain \"$CID_VAL\" response
 			//   "
 			// Same?
+			// TODO: use something with .example.com instead of wikipedia with the spoofing.
 
 			// ## ============================================================================
 			// ## Test DNSLink requests with a custom PublicGateway (hostname config)
