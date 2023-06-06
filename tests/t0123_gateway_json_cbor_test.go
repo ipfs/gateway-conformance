@@ -566,8 +566,8 @@ func TestNativeDag(t *testing.T) {
 			  curl -sX GET "http://127.0.0.1:$GWAY_PORT/ipfs/$CID?format=$format" -o plain_output &&
 			  test_cmp expected plain_output
 			  '
+			  Note: we skip this test since we compare responses bytes to bytes above.
 			*/
-			// TODO(lidel): Note we disable this test, we check the payloads above.
 			/**
 			  test_expect_success "GET $name from /ipfs with application/vnd.ipld.dag-$format returns the same payload as the raw block" '
 			  ipfs block get "/ipfs/$CID" > expected_block &&
