@@ -213,7 +213,7 @@ func TestDirListingOnSubdomainGateway(t *testing.T) {
 						),
 						Contains(
 							`/ipfs/<a href="//{{host}}/ipfs/{{cid}}">{{cid}}</a>/<a href="//{{host}}/ipfs/{{cid}}/%C4%85">ą</a>/<a href="//{{host}}/ipfs/{{cid}}/%C4%85/%C4%99">ę</a>`,
-							u.Host, // TODO: That looks wrong, we link without considering the subdomain
+							u.Host, // We don't have a subdomain here which prevents issues with normalization and cidv0
 							root.Cid(),
 						),
 						Contains(
@@ -221,7 +221,7 @@ func TestDirListingOnSubdomainGateway(t *testing.T) {
 						),
 						Contains(
 							`<a class="ipfs-hash" translate="no" href="//{{host}}/ipfs/{{cid}}?filename=file-%25C5%25BA%25C5%2582.txt">`,
-							u.Host, // TODO: That looks wrong, we link without considering the subdomain?
+							u.Host, // We don't have a subdomain here which prevents issues with normalization and cidv0
 							file.Cid(),
 						),
 					)),
