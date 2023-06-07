@@ -538,9 +538,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			{
 				Name: "request for {dnslink}.ipns.{gateway} returns expected payload",
 				Request: Request().
-					// TODO: Fix this `example.com` hardcoding, something is not right
-					// with the way we deal with dns linking and subdomains.
-					URL("{{scheme}}://{{fqdn}}.example.com.ipns.{{host}}", u.Scheme, dnsLinkTest, u.Host),
+					URL("{{scheme}}://{{fqdn}}.ipns.{{host}}", u.Scheme, dnsLinkTest, u.Host),
 				Response: Expect().
 					Body("hello\n"),
 			},
@@ -638,9 +636,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   "$DNSLINK_FQDN.ipns.example.com" \
 			//   "http://127.0.0.1:$GWAY_PORT" \
 			//   "$CID_VAL"
-			// TODO(laurent): I am not sure what we're testing here,
-			// the test queries somethingsomething.example.org.ipns.example.com
-			// which seems covered by the   test above.
+			// Note: this test was merged with the test for wikipedia in the end.
 
 			// # DNSLink on Public gateway with a single-level wildcard TLS cert
 			// # "Option C" from  https://github.com/ipfs/in-web-browsers/issues/169
@@ -649,9 +645,8 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   curl -H \"Host: dnslink--subdomain--gw--test-example-org.ipns.example.com\" -H \"X-Forwarded-Proto: https\" -sD - \"http://127.0.0.1:$GWAY_PORT\" > response &&
 			//   test_should_contain \"$CID_VAL\" response
 			//   "
-			// Same?
-			// TODO: use something with .example.com instead of wikipedia with the spoofing.
-
+			// Note: this test was merged with the test for wikipedia in the end.
+			
 			// ## ============================================================================
 			// ## Test DNSLink requests with a custom PublicGateway (hostname config)
 			// ## (DNSLink site at http://dnslink-test.example.com)
