@@ -801,7 +801,7 @@ func TestNativeDag(t *testing.T) {
 			{
 				Name: Fmt("GET {{name}} on /ipfs with Accept: text/html returns HTML (dag-index-html)", row.Name),
 				Request: Request().
-					Path("ipfs/{{cid}}/", dagTraversalCID).
+					Path("/ipfs/{{cid}}/", dagTraversalCID).
 					Header("Accept", "text/html"),
 				Response: Expect().
 					Headers(
@@ -853,9 +853,9 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 				Name: Fmt("GET {{name}} from /ipns without explicit format returns the same payload as /ipfs", row.Name),
 				Requests: Requests(
 					Request().
-						Path("ipfs/{{cid}}", plainCID),
+						Path("/ipfs/{{cid}}", plainCID),
 					Request().
-						Path("ipns/{{id}}", row.fixture.Key()),
+						Path("/ipns/{{id}}", row.fixture.Key()),
 				),
 				Responses: Responses().
 					HaveTheSamePayload(),
@@ -869,10 +869,10 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 				Name: Fmt("GET {{name}} from /ipns with explicit format returns the same payload as /ipfs", row.Name),
 				Requests: Requests(
 					Request().
-						Path("ipfs/{{cid}}", plainCID).
+						Path("/ipfs/{{cid}}", plainCID).
 						Query("format", "dag-{{format}}", row.Format),
 					Request().
-						Path("ipns/{{id}}", row.fixture.Key()).
+						Path("/ipns/{{id}}", row.fixture.Key()).
 						Query("format", "dag-{{format}}", row.Format),
 				),
 				Responses: Responses().
@@ -890,7 +890,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 			{
 				Name: Fmt("GET {{name}} from /ipns with explicit application/vnd.ipld.dag-{{format}} has expected headers", row.Name, row.Format),
 				Request: Request().
-					Path("ipns/{{id}}", row.fixture.Key()).
+					Path("/ipns/{{id}}", row.fixture.Key()).
 					Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
 				Response: Expect().
 					Headers(
@@ -915,7 +915,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 			{
 				Name: Fmt("GET {{name}} on /ipns with Accept: text/html returns HTML (dag-index-html)", row.Name),
 				Request: Request().
-					Path("ipns/{{id}}", row.fixture.Key()).
+					Path("/ipns/{{id}}", row.fixture.Key()).
 					Header("Accept", "text/html"),
 				Response: Expect().
 					Headers(
