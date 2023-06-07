@@ -36,6 +36,8 @@ Actual Response:
 `
 
 func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response, err error) {
+	t.Helper()
+
 	input := ReportInput{
 		Req:  req,
 		Res:  res,

@@ -15,6 +15,8 @@ func validateResponse(
 	res *http.Response,
 	localReport Reporter,
 ) {
+	t.Helper()
+
 	if expected.StatusCode_ != 0 {
 		if res.StatusCode != expected.StatusCode_ {
 			localReport(t, "Status code is not %d. It is %d", expected.StatusCode_, res.StatusCode)
@@ -88,6 +90,8 @@ func validateResponses(
 	expected ExpectsBuilder,
 	responses []*http.Response,
 ) {
+	t.Helper()
+
 	if expected.payloadsAreEquals {
 		dumps := make([][]byte, 0, len(responses))
 

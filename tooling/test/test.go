@@ -25,6 +25,8 @@ func RunIfSpecsAreEnabled(
 	tests SugarTests,
 	required ...specs.Spec,
 ) {
+	t.Helper()
+
 	missing := []specs.Spec{}
 	for _, spec := range required {
 		if !spec.IsEnabled() {
@@ -41,6 +43,8 @@ func RunIfSpecsAreEnabled(
 }
 
 func Run(t *testing.T, tests SugarTests) {
+	t.Helper()
+
 	for _, test := range tests {
 		timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
