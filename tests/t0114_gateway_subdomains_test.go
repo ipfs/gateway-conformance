@@ -376,7 +376,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 				//   "example.com" \
 				//   "http://127.0.0.1:$GWAY_PORT/ipns/$ED25519_IPNS_IDv0" \
 				//   "Location: http://${ED25519_IPNS_IDv1}.ipns.example.com/"
-				// Done above, thanks to the loop
+				// NOTE: Done above, thanks to the loop
 				//
 				// # *.ipns.example.com
 				// # ============================================================================
