@@ -55,7 +55,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					subdomains should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,
-				Request: Request().DoNotFollowRedirects().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, CIDv1),
+				Request: Request().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, CIDv1),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -78,7 +78,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					subdomains should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,
-				Request: Request().DoNotFollowRedirects().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, DirCID),
+				Request: Request().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, DirCID),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -89,7 +89,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 			{
 				Name:    "request for example.com/ipfs/{CIDv0} redirects to CIDv1 representation in subdomain",
-				Request: Request().DoNotFollowRedirects().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, CIDv0),
+				Request: Request().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, CIDv0),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -104,7 +104,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			// ============================================================================
 			{
 				Name:    "request for {CID}.ipfs.example.com should return expected payload",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, CIDv1, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, CIDv1, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(Contains(CIDVal)),
@@ -112,14 +112,14 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "request for {CID}.ipfs.example.com/ipfs/{CID} should return HTTP 404",
 				Hint:    "ensure /ipfs/ namespace is not mounted on subdomain",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/{{cid}}", u.Scheme, CIDv1, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/{{cid}}", u.Scheme, CIDv1, u.Host),
 				Response: Expect().
 					Status(404),
 			},
 			{
 				Name:    "request for {CID}.ipfs.example.com/ipfs/file.txt should return data from a file in CID content root",
 				Hint:    "ensure requests to /ipfs/* are not blocked, if content root has such subdirectory",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/file.txt", u.Scheme, DirCID, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/file.txt", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(Contains("I am a txt file")),
@@ -127,7 +127,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "valid file and subdirectory paths in directory listing at {cid}.ipfs.example.com",
 				Hint:    "{CID}.ipfs.example.com/sub/dir (Directory Listing)",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, DirCID, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(And(
@@ -138,7 +138,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 			{
 				Name:    "valid parent directory path in directory listing at {cid}.ipfs.example.com/sub/dir",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/", u.Scheme, DirCID, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(And(
@@ -149,7 +149,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 			{
 				Name:    "request for deep path resource at {cid}.ipfs.localhost/sub/dir/file",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(Contains("text-file-content")),
@@ -160,7 +160,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			Note 1: we test for sneaky subdir names  {cid}.ipfs.example.com/ipfs/ipns/ :^)
 			Note 2: example.com/ipfs/.. present in HTML will be redirected to subdomain, so this is expected behavior
 			`,
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/", u.Scheme, DirCID, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
 					Body(
@@ -185,7 +185,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 				Hint:    "path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv1),
+				Request: Request().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv1),
 				Response: Expect().
 					Headers(
 						Header("Location").Equals("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1, u.Host),
@@ -195,14 +195,14 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "request for example.com/ipfs/{InvalidCID} produces useful error before redirect",
 				Hint:    "error message should include original CID (and it should be case-sensitive, as we can't assume everyone uses base32)",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{host}}/ipfs/QmInvalidCID", u.Scheme, u.Host),
+				Request: Request().URL("{{scheme}}://{{host}}/ipfs/QmInvalidCID", u.Scheme, u.Host),
 				Response: Expect().
 					Body(Contains(`invalid path "/ipfs/QmInvalidCID"`)),
 			},
 
 			{
 				Name:    "request for example.com/ipfs/{CIDv0} produces redirect to {CIDv1}.ipfs.example.com",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv0),
+				Request: Request().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv0),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -213,7 +213,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for http://example.com/ipfs/{CID} with X-Forwarded-Proto: https produces redirect to HTTPS URL",
 				Hint: "Support X-Forwarded-Proto",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv1).
+				Request: Request().URL("{{scheme}}://{{host}}/ipfs/{{cid}}/", u.Scheme, u.Host, CIDv1).
 					Header("X-Forwarded-Proto", "https"),
 				Response: Expect().
 					Status(301).
@@ -225,7 +225,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for example.com/ipfs/?uri=ipfs%3A%2F%2F.. produces redirect to /ipfs/.. content path",
 				Hint: "Support ipfs:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{host}}/ipfs/", u.Scheme, u.Host).
+				Request: Request().URL("{{scheme}}://{{host}}/ipfs/", u.Scheme, u.Host).
 					Query(
 						"uri", "ipfs://{{host}}/wiki/Diego_Maradona.html", CIDWikipedia,
 					),
@@ -238,7 +238,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "request for a too long CID at localhost/ipfs/{CIDv1} returns human readable error",
 				Hint:    "router should not redirect to hostnames that could fail due to DNS limits",
-				Request: Request().DoNotFollowRedirects().URL("{{url}}/ipfs/{{cid}}", gatewayURL, CIDv1_TOO_LONG),
+				Request: Request().URL("{{url}}/ipfs/{{cid}}", gatewayURL, CIDv1_TOO_LONG),
 				Response: Expect().
 					Status(400).
 					Body(Contains("CID incompatible with DNS label length limit of 63")),
@@ -246,7 +246,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name:    "request for a too long CID at {CIDv1}.ipfs.localhost returns expected payload",
 				Hint:    "direct request should also fail (provides the same UX as router and avoids confusion)",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1_TOO_LONG, u.Host),
+				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1_TOO_LONG, u.Host),
 				Response: Expect().
 					Status(400).
 					Body(Contains("CID incompatible with DNS label length limit of 63")),
@@ -256,13 +256,13 @@ func TestGatewaySubdomains(t *testing.T) {
 			// ## ============================================================================
 			{
 				Name:    "request for http://fake.domain.com/ipfs/{CID} doesn't match the example.com gateway",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1),
+				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1),
 				Response: Expect().
 					Status(200),
 			},
 			{
 				Name: "request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com match the example.com gateway",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
+				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
 					Header("X-Forwarded-Host", u.Host),
 				Response: Expect().
 					Status(301).
@@ -272,7 +272,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 			{
 				Name: "request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com and X-Forwarded-Proto: https match the example.com gateway, redirect with https",
-				Request: Request().DoNotFollowRedirects().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
+				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
 					Header("X-Forwarded-Host", u.Host).
 					Header("X-Forwarded-Proto", "https"),
 				Response: Expect().
@@ -328,7 +328,6 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 				{
 					Name: "request for /ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain",
 					Request: Request().
-						DoNotFollowRedirects().
 						URL("{{url}}/ipns/{{cid}}", gatewayURL, record.IdV0()),
 					Response: Expect().
 						Status(301).
@@ -366,7 +365,6 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 				{
 					Name: "request for {CIDv1-dag-pb}.ipns.{gateway} redirects to CID with libp2p-key multicodec",
 					Request: Request().
-						DoNotFollowRedirects().
 						URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IntoCID(multicodec.DagPb, multibase.Base36), u.Host),
 					Response: Expect().
 						Status(301).
@@ -474,7 +472,6 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 			{
 				Name: "request for a ED25519 libp2p-key at example.com/ipns/{b58mh} returns Location HTTP header for DNS-safe subdomain redirect in browsers",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/ipns/{{cid}}", gatewayURL, ed25519Fixture.B58MH()),
 				Response: Expect().
 					Headers(
@@ -517,7 +514,6 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			{
 				Name: "request for /ipns/{fqdn} redirects to DNSLink in subdomain",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL("{{url}}/ipns/{{fqdn}}/wiki/", gatewayURL, wikipedia),
 				Response: Expect().
 					Headers(
@@ -595,7 +591,6 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 				"Option C" from https://github.com/ipfs/in-web-browsers/issues/169
 				`,
 				Request: Request().
-					DoNotFollowRedirects().
 					Header("X-Forwarded-Proto", "https").
 					URL("{{url}}/ipns/{{wikipedia}}/wiki/", gatewayURL, wikipedia),
 				Response: Expect().
@@ -646,7 +641,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 			//   test_should_contain \"$CID_VAL\" response
 			//   "
 			// Note: this test was merged with the test for wikipedia in the end.
-			
+
 			// ## ============================================================================
 			// ## Test DNSLink requests with a custom PublicGateway (hostname config)
 			// ## (DNSLink site at http://dnslink-test.example.com)
