@@ -32,7 +32,7 @@ func TestDirectorListingOnGateway(t *testing.T) {
 		{
 			Name: "path gw: backlink on root CID should be hidden",
 			Request: Request().
-				Path("ipfs/{{cid}}", root.Cid()),
+				Path("/ipfs/{{cid}}/", root.Cid()),
 			Response: Expect().
 				Body(
 					And(
@@ -48,7 +48,7 @@ func TestDirectorListingOnGateway(t *testing.T) {
 		{
 			Name: "path gw: redirect dir listing to URL with trailing slash WHAT",
 			Request: Request().
-				Path("ipfs/{{cid}}/ą/ę", root.Cid()),
+				Path("/ipfs/{{cid}}/ą/ę", root.Cid()),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -75,7 +75,7 @@ func TestDirectorListingOnGateway(t *testing.T) {
 		{
 			Name: "path gw: dir listing",
 			Request: Request().
-				Path("ipfs/{{cid}}/ą/ę/", root.Cid()),
+				Path("/ipfs/{{cid}}/ą/ę/", root.Cid()),
 			Response: Expect().
 				Headers(
 					Header("Etag").Contains(`"DirIndex-`),
