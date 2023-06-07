@@ -57,6 +57,10 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 			var err error
 			switch v := v.(type) {
 			case *http.Request:
+				if v == nil {
+					return "nil"
+				}
+
 				b, err = httputil.DumpRequestOut(v, true)
 			case *http.Response:
 				if v == nil {
