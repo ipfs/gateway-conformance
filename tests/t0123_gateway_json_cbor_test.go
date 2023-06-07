@@ -801,7 +801,7 @@ func TestNativeDag(t *testing.T) {
 			{
 				Name: Fmt("GET {{name}} on /ipfs with Accept: text/html returns HTML (dag-index-html)", row.Name),
 				Request: Request().
-					Path("ipfs/{{cid}}", dagTraversalCID).
+					Path("ipfs/{{cid}}/", dagTraversalCID).
 					Header("Accept", "text/html"),
 				Response: Expect().
 					Headers(
