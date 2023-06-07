@@ -48,7 +48,6 @@ func TestDirectorListingOnGateway(t *testing.T) {
 		{
 			Name: "path gw: redirect dir listing to URL with trailing slash WHAT",
 			Request: Request().
-				DoNotFollowRedirects().
 				Path("ipfs/{{cid}}/ą/ę", root.Cid()),
 			Response: Expect().
 				Status(301).
@@ -76,7 +75,6 @@ func TestDirectorListingOnGateway(t *testing.T) {
 		{
 			Name: "path gw: dir listing",
 			Request: Request().
-				DoNotFollowRedirects().
 				Path("ipfs/{{cid}}/ą/ę/", root.Cid()),
 			Response: Expect().
 				Headers(
@@ -140,7 +138,6 @@ func TestDirListingOnSubdomainGateway(t *testing.T) {
 			{
 				Name: "backlink on root CID should be hidden",
 				Request: Request().
-					DoNotFollowRedirects().
 					URL(
 						"{{scheme}}://{{cid}}.ipfs.{{host}}/",
 						u.Scheme,
@@ -161,12 +158,13 @@ func TestDirListingOnSubdomainGateway(t *testing.T) {
 			// '
 			{
 				Name: "redirect dir listing to URL with trailing slash",
-				Request: Request().DoNotFollowRedirects().URL(
-					"{{scheme}}://{{cid}}.ipfs.{{host}}/ą/ę",
-					u.Scheme,
-					root.Cid(),
-					u.Host,
-				),
+				Request: Request().
+					URL(
+						"{{scheme}}://{{cid}}.ipfs.{{host}}/ą/ę",
+						u.Scheme,
+						root.Cid(),
+						u.Host,
+					),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -192,7 +190,7 @@ func TestDirListingOnSubdomainGateway(t *testing.T) {
 			// '
 			{
 				Name: "Regular dir listing",
-				Request: Request().DoNotFollowRedirects().URL(
+				Request: Request().URL(
 					"{{scheme}}://{{cid}}.ipfs.{{host}}/ą/ę/",
 					u.Scheme,
 					root.Cid(),
@@ -282,7 +280,6 @@ func TestDirListingOnDNSLinkGateway(t *testing.T) {
 		{
 			Name: "Backlink on root CID should be hidden",
 			Request: Request().
-				DoNotFollowRedirects().
 				URL(`{{scheme}}://{{hostname}}/`, u.Scheme, dnsLinkHostname),
 			Response: Expect().
 				Body(
@@ -300,7 +297,6 @@ func TestDirListingOnDNSLinkGateway(t *testing.T) {
 		{
 			Name: "Redirect dir listing to URL with trailing slash",
 			Request: Request().
-				DoNotFollowRedirects().
 				URL(`{{scheme}}://{{hostname}}/ą/ę`, u.Scheme, dnsLinkHostname),
 			Response: Expect().
 				Status(301).
