@@ -915,7 +915,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 			{
 				Name: Fmt("GET {{name}} on /ipns with Accept: text/html returns HTML (dag-index-html)", row.Name),
 				Request: Request().
-					Path("/ipns/{{id}}", row.fixture.Key()).
+					Path("/ipns/{{id}}/", row.fixture.Key()).
 					Header("Accept", "text/html"),
 				Response: Expect().
 					Headers(
