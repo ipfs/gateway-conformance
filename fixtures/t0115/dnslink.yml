@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=../fixture.schema.json
+dnslinks:
+  website:
+    subdomain: website
+    path: /ipfs/bafybeig6ka5mlwkl4subqhaiatalkcleo4jgnr3hqwvpmsqfca27cijp3i # ./rootDir/
