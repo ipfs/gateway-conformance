@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/ipfs/boxo v0.8.2-0.20230510114019-33e3f0cd052b
 	github.com/ipfs/go-cid v0.4.1
+	github.com/ipfs/go-unixfsnode v1.6.0
 	github.com/ipld/go-ipld-prime v0.20.0
 	github.com/libp2p/go-libp2p v0.26.3
 	github.com/stretchr/testify v1.8.2

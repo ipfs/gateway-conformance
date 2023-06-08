@@ -6,25 +6,36 @@ package car
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/ipfs/boxo/blockservice"
 	"github.com/ipfs/boxo/ipld/car/v2/blockstore"
 	"github.com/ipfs/boxo/ipld/merkledag"
-	"github.com/ipfs/boxo/ipld/unixfs/io"
-	"github.com/ipfs/gateway-conformance/tooling/fixtures"
+	"github.com/ipfs/boxo/ipld/unixfs"
+	"github.com/ipfs/boxo/ipld/unixfs/hamt"
+	uio "github.com/ipfs/boxo/ipld/unixfs/io"
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
+	"github.com/ipfs/go-unixfsnode"
+	dagpb "github.com/ipld/go-codec-dagpb"
 	"github.com/ipld/go-ipld-prime"
 	_ "github.com/ipld/go-ipld-prime/codec/cbor"
 	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
 	_ "github.com/ipld/go-ipld-prime/codec/dagjson"
 	_ "github.com/ipld/go-ipld-prime/codec/json"
+	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/linking"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/ipld/go-ipld-prime/multicodec"
 	mc "github.com/multiformats/go-multicodec"
+
+	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 )
 
 type UnixfsDag struct {
@@ -53,7 +64,7 @@ func newUnixfsDagFromCar(file string) (*UnixfsDag, error) {
 
 func (d *UnixfsDag) loadLinks(node format.Node) (map[string]*UnixfsDag, error) {
 	result := make(map[string]*UnixfsDag)
-	dir, err := io.NewDirectoryFromNode(d.dsvc, node)
+	dir, err := uio.NewDirectoryFromNode(d.dsvc, node)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +80,7 @@ func (d *UnixfsDag) loadLinks(node format.Node) (map[string]*UnixfsDag, error) {
 }
 
 func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
-	for _, name := range names {
+	for i, name := range names {
 		node, err := d.getNode()
 		if err != nil {
 			return nil, err
@@ -77,7 +88,18 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 
 		if d.links == nil {
 			d.links, err = d.loadLinks(node)
-			if err != nil {
+			if errors.Is(err, uio.ErrNotADir) {
+				// Maybe it's an IPLD Link!
+				lnk, _, err := node.ResolveLink(names[i:])
+				if err != nil {
+					return nil, fmt.Errorf("node is neither a unixfs directory, nor includes an ipld link: %w", err)
+				}
+				n, err := lnk.GetNode(context.Background(), d.dsvc)
+				if err != nil {
+					return nil, fmt.Errorf("found link node could not be fetched: %w", err)
+				}
+				return n, nil
+			} else if err != nil {
 				return nil, err
 			}
 		}
@@ -164,12 +186,96 @@ func (d *UnixfsDag) MustGetChildrenCids(names ...string) []string {
 	return cids
 }
 
+// MustGetCidsInHAMT returns the cids in the HAMT at the given path. Does not include the CID of the HAMT root
+func (d *UnixfsDag) MustGetCidsInHAMT(names ...string) []string {
+	node := d.MustGetNode(names...)
+	var cids []string
+	tracker := dservTrackingWrapper{
+		DAGService: node.dsvc,
+	}
+
+	lsys := cidlink.DefaultLinkSystem()
+	unixfsnode.AddUnixFSReificationToLinkSystem(&lsys)
+	lsys.StorageReadOpener = func(linkContext linking.LinkContext, link datamodel.Link) (io.Reader, error) {
+		nd, err := tracker.Get(linkContext.Ctx, link.(cidlink.Link).Cid)
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewReader(nd.RawData()), nil
+	}
+
+	primeNodeBuilder := dagpb.Type.PBNode.NewBuilder()
+	err := dagpb.DecodeBytes(primeNodeBuilder, node.node.RawData())
+	if err != nil {
+		panic(err)
+	}
+	primeNode := primeNodeBuilder.Build()
+	_, err = lsys.KnownReifiers["unixfs-preload"](linking.LinkContext{}, primeNode, &lsys)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, c := range tracker.requestedCids {
+		cids = append(cids, c.String())
+	}
+	return cids
+}
+
+// MustGetCIDsInHAMTTraversal returns the cids needed for a given HAMT traversal. Does not include the HAMT root.
+func (d *UnixfsDag) MustGetCIDsInHAMTTraversal(path []string, child string) []string {
+	node := d.MustGetNode(path...)
+	var cids []string
+	tracker := dservTrackingWrapper{
+		DAGService: node.dsvc,
+	}
+
+	// Do some assertations to ensure that the HAMT is well-formed.
+	pbnd, ok := node.node.(*merkledag.ProtoNode)
+	if !ok {
+		panic(merkledag.ErrNotProtobuf)
+	}
+
+	fsn, err := unixfs.FSNodeFromBytes(pbnd.Data())
+	if err != nil {
+		panic(err)
+	}
+
+	if fsn.Type() != unixfs.THAMTShard {
+		panic(fmt.Errorf("node was not a dir shard"))
+	}
+
+	if fsn.HashType() != hamt.HashMurmur3 {
+		panic(fmt.Errorf("only murmur3 supported as hash function"))
+	}
+
+	h, err := hamt.NewHamtFromDag(&tracker, node.node)
+	if err != nil {
+		panic(err)
+	}
+	_, err = h.Find(context.Background(), child)
+	if err != nil {
+		panic(err)
+	}
+	for _, c := range tracker.requestedCids {
+		cids = append(cids, c.String())
+	}
+	return cids
+}
+
 func (d *UnixfsDag) MustGetRoot() *FixtureNode {
 	return d.MustGetNode()
 }
 
 func (d *UnixfsDag) MustGetCid(names ...string) string {
 	return d.mustGetNode(names...).Cid().String()
+}
+
+func (d *UnixfsDag) MustGetCidWithCodec(codec uint64, names ...string) string {
+	c := d.mustGetNode(names...).Cid()
+	if c.Prefix().GetCodec() != codec {
+		panic(fmt.Errorf("expected codec of cid to be %d, is %d", codec, c.Prefix().GetCodec()))
+	}
+	return c.String()
 }
 
 func (d *UnixfsDag) MustGetRawData(names ...string) []byte {
@@ -216,4 +322,39 @@ func MustOpenUnixfsCar(file string) *UnixfsDag {
 		os.Exit(1)
 	}
 	return dag
+}
+
+type dservTrackingWrapper struct {
+	format.DAGService
+	reqMx         sync.Mutex
+	requestedCids []cid.Cid
+}
+
+func (d *dservTrackingWrapper) Get(ctx context.Context, c cid.Cid) (format.Node, error) {
+	nd, err := d.DAGService.Get(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+	d.reqMx.Lock()
+	d.requestedCids = append(d.requestedCids, c)
+	d.reqMx.Unlock()
+	return nd, nil
+}
+
+func (d *dservTrackingWrapper) GetMany(ctx context.Context, cids []cid.Cid) <-chan *format.NodeOption {
+	innerCh := d.DAGService.GetMany(ctx, cids)
+	outCh := make(chan *format.NodeOption, 1)
+	go func() {
+		defer close(outCh)
+		for i := range innerCh {
+			if i.Err == nil {
+				c := i.Node.Cid()
+				d.reqMx.Lock()
+				d.requestedCids = append(d.requestedCids, c)
+				d.reqMx.Unlock()
+			}
+			outCh <- i
+		}
+	}()
+	return outCh
 }

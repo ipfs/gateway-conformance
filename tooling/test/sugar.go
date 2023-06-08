@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"net/url"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -93,6 +94,42 @@ func (r RequestBuilder) Headers(hs ...HeaderBuilder) RequestBuilder {
 	}
 
 	return r
+}
+
+func (r RequestBuilder) Clone() RequestBuilder {
+	var clonedHeaders map[string]string
+	var clonedQuery map[string][]string
+
+	if r.Headers_ != nil {
+		clonedHeaders = make(map[string]string)
+		for k, v := range r.Headers_ {
+			clonedHeaders[k] = v
+		}
+	}
+
+	if r.Query_ != nil {
+		clonedQuery = make(map[string][]string)
+		for k, v := range r.Query_ {
+			if v == nil {
+				clonedQuery[k] = nil
+			} else {
+				clonedQueryParams := append([]string{}, v...)
+				clonedQuery[k] = clonedQueryParams
+			}
+		}
+	}
+
+	return RequestBuilder{
+		Method_:          r.Method_,
+		Path_:            r.Path_,
+		URL_:             r.URL_,
+		Proxy_:           r.Proxy_,
+		UseProxyTunnel_:  r.UseProxyTunnel_,
+		Headers_:         clonedHeaders,
+		FollowRedirects_: r.FollowRedirects_,
+		Query_:           clonedQuery,
+		Body_:            bytes.Clone(r.Body_),
+	}
 }
 
 type ExpectBuilder struct {
