@@ -32,6 +32,8 @@ jobs:
       - uses: protocol/cache-go-action@v1
       - run: go install github.com/ipfs/kubo/cmd/ipfs@${{ matrix.target }}
         shell: bash
+        env:
+          GOPROXY: direct
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
