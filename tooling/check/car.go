@@ -7,10 +7,11 @@ import (
 )
 
 type CheckIsCarFile struct {
-	blockCIDs []cid.Cid
-	rootCIDs  []cid.Cid
-	isExact   bool
-	isOrdered bool
+	blockCIDs        []cid.Cid
+	rootCIDs         []cid.Cid
+	mightHaveNoRoots bool
+	isExact          bool
+	isOrdered        bool
 }
 
 var _ Check[[]byte] = (*CheckIsCarFile)(nil)
@@ -53,6 +54,11 @@ func (c CheckIsCarFile) HasRoots(cidStrs ...string) *CheckIsCarFile {
 	for _, cidStr := range cidStrs {
 		c.rootCIDs = append(c.rootCIDs, decoded(cidStr))
 	}
+	return &c
+}
+
+func (c CheckIsCarFile) MightHaveNoRoots() *CheckIsCarFile {
+	c.mightHaveNoRoots = true
 	return &c
 }
 
@@ -104,10 +110,11 @@ func (c *CheckIsCarFile) Check(carContent []byte) CheckOutput {
 			}
 		}
 
-		output = cmp(gotRoots, c.rootCIDs)
-
-		if !output.Success {
-			return output
+		if !(c.mightHaveNoRoots && len(gotRoots) == 0) {
+			output = cmp(gotRoots, c.rootCIDs)
+			if !output.Success {
+				return output
+			}
 		}
 	}
 

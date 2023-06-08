@@ -92,14 +92,13 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 				// Maybe it's an IPLD Link!
 				lnk, _, err := node.ResolveLink(names[i:])
 				if err != nil {
-					return nil, fmt.Errorf("node is neither a unixfs directory, or includes an ipld link: %w", err)
+					return nil, fmt.Errorf("node is neither a unixfs directory, nor includes an ipld link: %w", err)
 				}
 				n, err := lnk.GetNode(context.Background(), d.dsvc)
 				if err != nil {
 					return nil, fmt.Errorf("found link node could not be fetched: %w", err)
 				}
-				d.node = n
-				return d.node, nil
+				return n, nil
 			} else if err != nil {
 				return nil, err
 			}
