@@ -73,7 +73,7 @@ func TestIPNSFixtureVersionsConversion(t *testing.T) {
 
 	// 12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d is a ED25519 key, which is using the identity hash.
 	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.Key())
-	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.IdV0()) // TODO: confirm with @lidel this makes sense.
+	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.IdV0())
 	assert.Equal(t, "k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam", record.IdV1())
 	assert.Equal(t, "k50rm9yjlt0jey4fqg6wafvqprktgbkpgkqdg27tpqje6iimzxewnhvtin9hhq", record.IntoCID(multicodec.DagPb, mbase.Base36))
 	assert.Equal(t, "12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d", record.B58MH())
