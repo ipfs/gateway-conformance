@@ -36,6 +36,9 @@ func applyStandardCarResponseHeaders(t *testing.T, st test.SugarTest) test.Sugar
 		test.Header("Content-Disposition").
 			Hint(`Expected content disposition to be attachment; filename="*.car"`).
 			Matches(`attachment; filename=".*\.car"`),
+		test.Header("Etag").
+			Hint("Etag must be present for caching purposes").
+			Not().IsEmpty(),
 	)
 	return st
 }
