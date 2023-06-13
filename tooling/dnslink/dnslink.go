@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
 	"gopkg.in/yaml.v3"
@@ -17,6 +18,13 @@ type DNSLink struct {
 	Subdomain string `yaml:"subdomain"`
 	Domain    string `yaml:"domain"`
 	Path      string `yaml:"path"`
+}
+
+func InlineDNS(s string) string {
+	// See spec at https://github.com/ipfs/specs/blob/main/src/http-gateways/subdomain-gateway.md#host-request-header
+	// Every - is replaced with --
+	// Every . is replaced with -
+	return strings.ReplaceAll(strings.ReplaceAll(s, "-", "--"), ".", "-")
 }
 
 func OpenDNSLink(absPath string) (*ConfigFixture, error) {

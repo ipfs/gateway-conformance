@@ -2,7 +2,6 @@ package tests
 
 import (
 	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -15,13 +14,6 @@ import (
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 )
-
-func InlineDNS(s string) string {
-	// See spec at https://github.com/ipfs/specs/blob/main/src/http-gateways/subdomain-gateway.md#host-request-header
-	// Every - is replaced with --
-	// Every . is replaced with -
-	return strings.ReplaceAll(strings.ReplaceAll(s, "-", "--"), ".", "-")
-}
 
 func TestGatewaySubdomains(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
@@ -510,7 +502,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Location").
-							Equals("{{scheme}}://{{fqdn}}.ipns.{{host}}/wiki/", u.Scheme, InlineDNS(wikipedia), u.Host),
+							Equals("{{scheme}}://{{fqdn}}.ipns.{{host}}/wiki/", u.Scheme, dnslink.InlineDNS(wikipedia), u.Host),
 					),
 			},
 			// # <dnslink-fqdn>.ipns.localhost
@@ -588,7 +580,7 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Location").
-							Equals("https://{{inlined}}.ipns.{{host}}/wiki/", InlineDNS(wikipedia), u.Host),
+							Equals("https://{{inlined}}.ipns.{{host}}/wiki/", dnslink.InlineDNS(wikipedia), u.Host),
 					),
 			},
 			// # Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler
