@@ -64,7 +64,7 @@ func (i *IpnsRecord) idV1(codec multicodec.Code, base mbase.Encoding) (string, e
 	return s, nil
 }
 
-func (i *IpnsRecord) IntoCID(codec multicodec.Code, base mbase.Encoding) string {
+func (i *IpnsRecord) ToCID(codec multicodec.Code, base mbase.Encoding) string {
 	s, err := i.idV1(codec, base)
 	if err != nil {
 		panic(err)
@@ -81,7 +81,7 @@ func (i *IpnsRecord) IdV0() string {
 }
 
 func (i *IpnsRecord) IdV1() string {
-	return i.IntoCID(cid.Libp2pKey, mbase.Base36)
+	return i.ToCID(cid.Libp2pKey, mbase.Base36)
 }
 
 func (i *IpnsRecord) B58MH() string {

@@ -349,7 +349,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 				{
 					Name: "request for {CIDv1-dag-pb}.ipns.{gateway} redirects to CID with libp2p-key multicodec",
 					Request: Request().
-						URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IntoCID(multicodec.DagPb, multibase.Base36), u.Host),
+						URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.ToCID(multicodec.DagPb, multibase.Base36), u.Host),
 					Response: Expect().
 						Status(301).
 						Headers(
@@ -460,7 +460,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Location").
-							Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, ed25519Fixture.IntoCID(multicodec.Libp2pKey, multibase.Base36), u.Host),
+							Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, ed25519Fixture.ToCID(multicodec.Libp2pKey, multibase.Base36), u.Host),
 					),
 			},
 		}...)
