@@ -7,6 +7,9 @@
             "additionalProperties": {
                 "type": "object",
                 "properties": {
+                    "domain": {
+                        "type": "string"
+                    },
                     "subdomain": {
                         "type": "string"
                     },
@@ -15,8 +18,19 @@
                     }
                 },
                 "required": [
-                    "subdomain",
                     "path"
+                ],
+                "oneOf": [
+                    {
+                        "required": [
+                            "domain"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "subdomain"
+                        ]
+                    }
                 ],
                 "additionalProperties": false
             }
