@@ -76,15 +76,8 @@ func (i *IpnsRecord) IdV0() string {
 	if strings.HasPrefix(i.key, "Qm") || strings.HasPrefix(i.key, "1") {
 		return i.key
 	}
+
 	panic("not a v0 id")
-	// This code won't work if key starts with "1", this is an identity multihash, which
-	// makes `NewCidV0` panic.
-	// c := peer.ToCid(i.id)
-	// s, err := cid.NewCidV0(c.Hash()).StringOfBase(mbase.Base58BTC)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// return s
 }
 
 func (i *IpnsRecord) IdV1() string {
