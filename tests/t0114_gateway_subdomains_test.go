@@ -741,5 +741,5 @@ func TestGatewaySubdomainAndDnsLink(t *testing.T) {
 		}...)
 	}
 
-	RunIfSpecsAreEnabled(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGateway, specs.DNSLinkResolver)
+	RunIfSpecsAreEnabled(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGateway, specs.DNSLinkGateway)
 }

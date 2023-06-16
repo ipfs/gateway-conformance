@@ -357,6 +357,6 @@ func TestDirListingOnDNSLinkGateway(t *testing.T) {
 			tests,
 		),
 		specs.SubdomainGateway,
-		specs.DNSLinkResolver,
+		specs.DNSLinkGateway,
 	)
 }

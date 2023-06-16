@@ -15,7 +15,6 @@ import (
 	"sync"
 
 	"github.com/ipfs/boxo/blockservice"
-	"github.com/ipfs/boxo/ipld/car/v2/blockstore"
 	"github.com/ipfs/boxo/ipld/merkledag"
 	"github.com/ipfs/boxo/ipld/unixfs"
 	"github.com/ipfs/boxo/ipld/unixfs/hamt"
@@ -23,6 +22,7 @@ import (
 	"github.com/ipfs/go-cid"
 	format "github.com/ipfs/go-ipld-format"
 	"github.com/ipfs/go-unixfsnode"
+	"github.com/ipld/go-car/v2/blockstore"
 	dagpb "github.com/ipld/go-codec-dagpb"
 	"github.com/ipld/go-ipld-prime"
 	_ "github.com/ipld/go-ipld-prime/codec/cbor"

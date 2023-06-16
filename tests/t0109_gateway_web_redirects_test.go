@@ -395,7 +395,7 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 	RunIfSpecsAreEnabled(
 		t,
 		helpers.UnwrapSubdomainTests(t, tests),
-		specs.DNSLinkResolver,
+		specs.DNSLinkGateway,
 		specs.SubdomainGateway,
 	)
 }

@@ -23,7 +23,7 @@ type SugarTests []SugarTest
 func RunIfSpecsAreEnabled(
 	t *testing.T,
 	tests SugarTests,
-	required ...specs.Spec,
+	required ...specs.Leaf,
 ) {
 	t.Helper()
 
