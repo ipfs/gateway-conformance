@@ -5,12 +5,15 @@ import (
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
+// TODO(laurent): this was t0122_gateway_tar_test.go
+
 // "Test HTTP Gateway TAR (application/x-tar) Support"
-func TestGatewayTar(t *testing.T) {
+func TestTar(t *testing.T) {
 	/**
 	test_expect_success "Add CARs with relative paths to test with" '
 	ipfs dag import ../t0122-gateway-tar/outside-root.car > import_output &&
@@ -185,5 +188,5 @@ func TestGatewayTar(t *testing.T) {
 		},
 	}
 
-	Run(t, tests)
+	RunWithSpecs(t, tests, specs.PathGatewayTAR)
 }

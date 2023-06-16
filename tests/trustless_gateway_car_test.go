@@ -6,10 +6,11 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
+	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
-func TestGatewayCarPathing(t *testing.T) {
+func TestTrustlessCarPathing(t *testing.T) {
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
 	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("t0118/dir-with-dag-cbor-with-links.car")
@@ -92,11 +93,10 @@ func TestGatewayCarPathing(t *testing.T) {
 		},
 	}
 
-	transformedTests := helpers.StandardCARTestTransforms(t, tests)
-	Run(t, transformedTests)
+	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
-func TestGatewayCarDagScopeBlock(t *testing.T) {
+func TestTrustlessCarDagScopeBlock(t *testing.T) {
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
 
@@ -179,11 +179,10 @@ func TestGatewayCarDagScopeBlock(t *testing.T) {
 		},
 	}
 
-	transformedTests := helpers.StandardCARTestTransforms(t, tests)
-	Run(t, transformedTests)
+	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
-func TestGatewayCarDagScopeEntity(t *testing.T) {
+func TestTrustlessCarDagScopeEntity(t *testing.T) {
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
@@ -319,11 +318,10 @@ func TestGatewayCarDagScopeEntity(t *testing.T) {
 		},
 	}
 
-	transformedTests := helpers.StandardCARTestTransforms(t, tests)
-	Run(t, transformedTests)
+	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
-func TestGatewayCarDagScopeAll(t *testing.T) {
+func TestTrustlessCarDagScopeAll(t *testing.T) {
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
 
 	tests := SugarTests{
@@ -385,11 +383,10 @@ func TestGatewayCarDagScopeAll(t *testing.T) {
 		},
 	}
 
-	transformedTests := helpers.StandardCARTestTransforms(t, tests)
-	Run(t, transformedTests)
+	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
-func TestGatewayCarEntityBytes(t *testing.T) {
+func TestTrustlessCarEntityBytes(t *testing.T) {
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
 
@@ -600,8 +597,7 @@ func TestGatewayCarEntityBytes(t *testing.T) {
 		},
 	}
 
-	transformedTests := helpers.StandardCARTestTransforms(t, tests)
-	Run(t, transformedTests)
+	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
 func flattenStrings(t *testing.T, values ...interface{}) []string {

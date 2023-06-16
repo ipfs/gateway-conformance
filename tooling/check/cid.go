@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ipfs/boxo/ipld/car"
-	"github.com/ipfs/boxo/ipld/car/v2/blockstore"
 	"github.com/ipfs/go-cid"
+	"github.com/ipld/go-car"
+	"github.com/ipld/go-car/v2/blockstore"
 )
 
 func CidSetContains(a, b []cid.Cid) CheckOutput {

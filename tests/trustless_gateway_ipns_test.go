@@ -9,6 +9,8 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
+// TODO(laurent): this was t0124_gateway_ipns_record_test.go
+
 func TestGatewayIPNSRecord(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0124/fixtures.car")
 	file := fixture.MustGetRoot()
@@ -108,6 +110,5 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		},
 	}
 
-	RunIfSpecsAreEnabled(t, tests,
-		specs.IPNSResolver)
+	RunWithSpecs(t, tests, specs.TrustlessGatewayIPNS)
 }

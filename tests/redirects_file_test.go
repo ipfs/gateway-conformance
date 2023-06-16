@@ -13,6 +13,8 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
+// TODO(laurent): this were in t0109_gateway_web_redirects_test
+
 func TestRedirectsFileSupport(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0109-redirects.car")
 	redirectDir := fixture.MustGetNode("examples")
@@ -300,11 +302,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 		}...)
 	}
 
-	RunIfSpecsAreEnabled(
-		t,
-		helpers.UnwrapSubdomainTests(t, tests),
-		specs.SubdomainGateway,
-	)
+	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPFS, specs.RedirectsFile)
 }
 
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
@@ -392,10 +390,5 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		// },
 	}
 
-	RunIfSpecsAreEnabled(
-		t,
-		helpers.UnwrapSubdomainTests(t, tests),
-		specs.DNSLinkResolver,
-		specs.SubdomainGateway,
-	)
+	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway, specs.RedirectsFile)
 }
