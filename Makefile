@@ -1,5 +1,8 @@
 all: test-kubo
 
+deliberate_car:
+	go build -o ./deliberate ./fixtures/deliberate_car/main.go
+
 test-cargateway: provision-cargateway fixtures.car gateway-conformance
 	./gateway-conformance test --json output.json --gateway-url http://127.0.0.1:8040 --specs -subdomain-gateway
 
