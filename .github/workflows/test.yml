@@ -54,8 +54,11 @@ jobs:
           records=$(find ./fixtures -name '*.ipns-record')
           for record in $records
           do
+              echo $record
               key=$(basename -s .ipns-record "$record" | cut -d'_' -f1)
+              echo $key
               ipfs routing put --allow-offline "/ipns/$key" "$record"
+              echo put complete
           done
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
