@@ -20,7 +20,7 @@ type SugarTest struct {
 
 type SugarTests []SugarTest
 
-func RunIfSpecsAreEnabled(
+func RunWithSpecs(
 	t *testing.T,
 	tests SugarTests,
 	required ...specs.Leaf,
@@ -39,10 +39,10 @@ func RunIfSpecsAreEnabled(
 		return
 	}
 
-	Run(t, tests)
+	run(t, tests)
 }
 
-func Run(t *testing.T, tests SugarTests) {
+func run(t *testing.T, tests SugarTests) {
 	t.Helper()
 
 	for _, test := range tests {

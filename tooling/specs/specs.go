@@ -103,28 +103,40 @@ func (c Collection) Disable() {
 }
 
 var (
-	TrustlessBlockGateway = Leaf{"trustless-block-gateway", stable}
-	TrustlessCARGateway   = Leaf{"trustless-car-gateway", stable}
-	TrustlessIPNSGateway  = Leaf{"trustless-ipns-gateway", stable}
-	TrustlessGateway      = Collection{"trustless-gateway", []Spec{TrustlessBlockGateway, TrustlessCARGateway, TrustlessIPNSGateway}}
-	PathGateway           = Leaf{"path-gateway", stable}
-	DNSLinkGateway        = Leaf{"dnslink-gateway", stable}
-	SubdomainGateway      = Leaf{"subdomain-gateway", stable}
-	RedirectsFile         = Leaf{"redirects-file", stable} // TODO: Can be run for path gateway, dnslink and subdomain gateways, but not by itself.
-	IPNSResolver          = Leaf{"ipns-resolver", stable}
+	TrustlessGatewayRaw  = Leaf{"trustless-block-gateway", stable}
+	TrustlessGatewayCAR  = Leaf{"trustless-car-gateway", stable}
+	TrustlessGatewayIPNS = Leaf{"trustless-ipns-gateway", stable}
+	TrustlessGateway     = Collection{"trustless-gateway", []Spec{TrustlessGatewayRaw, TrustlessGatewayCAR, TrustlessGatewayIPNS}}
+	PathGatewayUnixFS    = Leaf{"path-unixfs-gateway", stable}
+	PathGatewayIPNS      = Leaf{"path-ipns-gateway", stable}
+	PathGatewayTAR       = Leaf{"path-tar-gateway", stable}
+	PathGatewayDAG       = Leaf{"path-dag-gateway", stable}
+	PathGatewayRaw       = Leaf{"path-raw-gateway", stable}
+	PathGateway          = Collection{"path-gateway", []Spec{PathGatewayUnixFS, PathGatewayIPNS, PathGatewayTAR, PathGatewayDAG, PathGatewayRaw}}
+	SubdomainGatewayIPFS = Leaf{"subdomain-ipfs-gateway", stable}
+	SubdomainGatewayIPNS = Leaf{"subdomain-ipns-gateway", stable}
+	SubdomainGateway     = Collection{"subdomain-gateway", []Spec{SubdomainGatewayIPFS, SubdomainGatewayIPNS}}
+	DNSLinkGateway       = Leaf{"dnslink-gateway", stable}
+	RedirectsFile        = Leaf{"redirects-file", stable}
 )
 
 // All specs MUST be listed here.
 var specs = []Spec{
-	TrustlessBlockGateway,
-	TrustlessCARGateway,
-	TrustlessIPNSGateway,
+	TrustlessGatewayRaw,
+	TrustlessGatewayCAR,
+	TrustlessGatewayIPNS,
 	TrustlessGateway,
+	PathGatewayUnixFS,
+	PathGatewayIPNS,
+	PathGatewayTAR,
+	PathGatewayDAG,
+	PathGatewayRaw,
 	PathGateway,
-	DNSLinkGateway,
+	SubdomainGatewayIPFS,
+	SubdomainGatewayIPNS,
 	SubdomainGateway,
+	DNSLinkGateway,
 	RedirectsFile,
-	IPNSResolver,
 }
 
 var specEnabled = map[Spec]bool{}
