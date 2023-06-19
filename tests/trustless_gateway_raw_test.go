@@ -47,7 +47,7 @@ func TestTrustlessRaw(t *testing.T) {
 					Header("Content-Type").
 						Equals("application/vnd.ipld.raw"),
 					Header("Content-Length").
-						Equals("{{ length }}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
+						Equals("{{length}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
 						Matches(`attachment;\s*filename=".*\.bin"`),
 					Header("X-Content-Type-Options").
