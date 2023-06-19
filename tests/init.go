@@ -45,15 +45,14 @@ func (s *specsFlag) Set(value string) error {
 		for _, spec := range only {
 			spec.Enable()
 		}
-	} else {
-		// If all specs from the input are prefixed with a + or -,
-		// enable the specs prefixed with + and then disable the specs prefixed with -.
-		for _, spec := range enable {
-			spec.Enable()
-		}
-		for _, spec := range disable {
-			spec.Disable()
-		}
+	}
+	// If some specs from the input are prefixed with a + or -,
+	// enable the specs prefixed with + and then disable the specs prefixed with -.
+	for _, spec := range enable {
+		spec.Enable()
+	}
+	for _, spec := range disable {
+		spec.Disable()
 	}
 	*s = specsFlag(value)
 	return nil

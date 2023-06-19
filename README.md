@@ -138,6 +138,8 @@ The examples are going to use `gateway-conformance` as a wrapper over `docker ru
 
 ### Testing only mature specs
 
+By default, all mature tests are run. Mature tests generally refer to specifications whose [status is mature](https://specs.ipfs.tech/meta/spec-for-specs/).
+
 ```bash
 gateway-conformance test
 ```
@@ -157,7 +159,21 @@ gateway-conformance test --specs +subdomain-gateway
 ### Testing mature specs, while disabling specific specs
 
 ```bash
-gateway-conformance test --specs -subdomain-gateway
+gateway-conformance test --specs -subdomain-gateway,-dnslink-gateway
+```
+
+### Testing specific spec (trustless gateway), while disabling a sub-part of it
+
+```bash
+gateway-conformance test --specs trustless-gateway,-trustless-gateway-ipns
+```
+
+### Skip a specific test
+
+Tests are skipped using Go's standard syntax:
+
+```bash
+gateway-conformance test -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
 ```
 
 ### Extracting the test fixtures

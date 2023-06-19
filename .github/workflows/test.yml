@@ -41,6 +41,9 @@ jobs:
           echo "IPFS_NS_MAP=${IPFS_NS_MAP}" >> $GITHUB_ENV
         # note: the IPFS_NS_MAP set above will be passed the daemon
       - uses: ipfs/start-ipfs-daemon-action@v1
+        with:
+          args: '--offline'
+          wait-for-addrs: false
       - name: Provision Kubo Gateway
         run: |
           # Import car files
@@ -66,7 +69,6 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
-          args: -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
       - name: Set summary
         if: (failure() || success())
         run: cat ./output.md >> $GITHUB_STEP_SUMMARY

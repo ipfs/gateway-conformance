@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ipfs/boxo/ipld/car/v2/blockstore"
 	"github.com/ipfs/go-cid"
+	"github.com/ipld/go-car/v2/blockstore"
 )
 
 func Merge(inputPaths []string, outputPath string) error {

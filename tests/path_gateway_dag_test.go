@@ -11,6 +11,8 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
+// TODO(laurent): this was t0123_gateway_json_cbor_test
+
 func TestGatewayJsonCbor(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0123-gateway-json-cbor.car")
 
@@ -63,7 +65,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 		},
 	}
 
-	Run(t, tests)
+	RunWithSpecs(t, tests, specs.PathGatewayDAG)
 }
 
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
@@ -255,7 +257,7 @@ func TestDAgPbConversion(t *testing.T) {
 			},
 		}
 
-		Run(t, tests)
+		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 	}
 }
 
@@ -406,7 +408,7 @@ func TestPlainCodec(t *testing.T) {
 			},
 		}
 
-		Run(t, tests)
+		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 	}
 }
 
@@ -495,7 +497,7 @@ func TestPathing(t *testing.T) {
 		},
 	}
 
-	Run(t, tests)
+	RunWithSpecs(t, tests, specs.PathGatewayDAG)
 }
 
 // ## NATIVE TESTS for DAG-JSON (0x0129) and DAG-CBOR (0x71):
@@ -815,7 +817,7 @@ func TestNativeDag(t *testing.T) {
 			},
 		}
 
-		Run(t, tests)
+		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 	}
 }
 
@@ -930,7 +932,5 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 		}...)
 	}
 
-	RunIfSpecsAreEnabled(t,
-		tests,
-		specs.IPNSResolver)
+	RunWithSpecs(t, tests, specs.PathGatewayDAG, specs.PathGatewayIPNS)
 }
