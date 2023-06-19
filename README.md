@@ -162,6 +162,12 @@ gateway-conformance test --specs +subdomain-gateway
 gateway-conformance test --specs -subdomain-gateway,-dnslink-gateway
 ```
 
+### Testing specific spec (trustless gateway), while disabling a sub-part of it
+
+```bash
+gateway-conformance test --specs trustless-gateway,-trustless-gateway-ipns
+```
+
 ### Skip a specific test
 
 Tests are skipped using Go's standard syntax:
