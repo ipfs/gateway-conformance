@@ -39,6 +39,8 @@ func (l Leaf) Name() string {
 	return l.name
 }
 
+// IsMature returns maturity status (only reliable, stable, or permanent specs will return true).
+// See https://specs.ipfs.tech/meta/spec-for-specs/
 func (l Leaf) IsMature() bool {
 	return l.maturity.isMature()
 }

@@ -45,7 +45,7 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 			//   test_should_not_contain "<a href=\"/\">..</a>" list_response
 			// '
 			{
-				Name: "backlink on root CID should be hidden",
+				Name: "backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 				Request: Request().
 					URL(
 						"{{scheme}}://{{cid}}.ipfs.{{host}}/",
@@ -98,7 +98,7 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 			//   test_should_contain "<a class=\"ipfs-hash\" translate=\"no\" href=\"//localhost:$GWAY_PORT/ipfs/$FILE_CID?filename=file-%25C5%25BA%25C5%2582.txt\">" list_response
 			// '
 			{
-				Name: "Regular dir listing",
+				Name: "Regular dir listing HTML (TODO: cleanup Kubo-specifics)",
 				Request: Request().URL(
 					"{{scheme}}://{{cid}}.ipfs.{{host}}/ą/ę/",
 					u.Scheme,
@@ -109,8 +109,8 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 					Headers(
 						Header("Etag").Contains(`"DirIndex-`),
 					).BodyWithHint(`
-					- backlink on subdirectory should point at parent directory
-					- breadcrumbs should leverage path-based router mounted on the parent domain
+					- backlink on subdirectory should point at parent directory (TODO:  kubo-specific)
+					- breadcrumbs should leverage path-based router mounted on the parent domain (TODO:  kubo-specific)
 					- name column should be a link to content root mounted at subdomain origin
 					`,
 					And(
@@ -267,7 +267,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					Body(Contains("text-file-content")),
 			},
 			{
-				Name: "valid breadcrumb links in the header of directory listing at {cid}.ipfs.example.com/sub/dir",
+				Name: "valid breadcrumb links in the header of directory listing at {cid}.ipfs.example.com/sub/dir (TODO: cleanup Kubo-specifics)",
 				Hint: `
 			Note 1: we test for sneaky subdir names  {cid}.ipfs.example.com/ipfs/ipns/ :^)
 			Note 2: example.com/ipfs/.. present in HTML will be redirected to subdomain, so this is expected behavior

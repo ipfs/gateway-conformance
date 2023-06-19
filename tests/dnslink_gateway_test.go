@@ -175,7 +175,7 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		//   test_should_not_contain "<a href=\"/\">..</a>" list_response
 		// '
 		{
-			Name: "Backlink on root CID should be hidden",
+			Name: "Backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 			Request: Request().
 				URL(`{{scheme}}://{{hostname}}/`, u.Scheme, dnsLinkHostname),
 			Response: Expect().
@@ -221,7 +221,7 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		//   test_should_contain "<a class=\"ipfs-hash\" translate=\"no\" href=\"https://cid.ipfs.tech/#$FILE_CID\" target=\"_blank\" rel=\"noreferrer noopener\">" list_response
 		// '
 		{
-			Name: "Regular dir listing",
+			Name: "Regular dir listing (TODO: cleanup Kubo-specifics)",
 			Request: Request().
 				URL(`{{scheme}}://{{hostname}}/ą/ę/`, u.Scheme, dnsLinkHostname),
 			Response: Expect().
@@ -229,12 +229,12 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 					Header("Etag").Contains(`"DirIndex-`),
 				).
 				BodyWithHint(`
-					- backlink on subdirectory should point at parent directory
-					- breadcrumbs should point at content root mounted at dnslink origin
+					- backlink on subdirectory should point at parent directory (TODO:  kubo-specific)
+					- breadcrumbs should point at content root mounted at dnslink origin (TODO:  kubo-specific)
 					- name column should be a link to content root mounted at dnslink origin
 					- hash column should be a CID link to cid.ipfs.tech
 					  DNSLink websites don't have public gateway mounted by default
-					  See: https://github.com/ipfs/dir-index-html/issues/42
+					  See: https://github.com/ipfs/dir-index-html/issues/42 (TODO:  class and other attrs are kubo-specific)
 					`,
 					And(
 						Contains("Index of"),

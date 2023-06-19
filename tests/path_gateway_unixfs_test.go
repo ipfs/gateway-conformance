@@ -30,7 +30,7 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 		//
 		// '
 		{
-			Name: "path gw: backlink on root CID should be hidden",
+			Name: "path gw: backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 			Request: Request().
 				Path("/ipfs/{{cid}}/", root.Cid()),
 			Response: Expect().
@@ -46,7 +46,7 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 		//   test_should_contain "Location: /ipfs/${DIR_CID}/%c4%85/%c4%99/" list_response
 		// '
 		{
-			Name: "path gw: redirect dir listing to URL with trailing slash WHAT",
+			Name: "path gw: redirect dir listing to URL with trailing slash",
 			Request: Request().
 				Path("/ipfs/{{cid}}/ą/ę", root.Cid()),
 			Response: Expect().
@@ -73,7 +73,7 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 		//   test_should_contain "<a class=\"ipfs-hash\" translate=\"no\" href=\"/ipfs/$FILE_CID?filename=file-%25C5%25BA%25C5%2582.txt\">" list_response
 		// '
 		{
-			Name: "path gw: dir listing",
+			Name: "path gw: dir listing HTML response (TODO: cleanup Kubo-specifics)",
 			Request: Request().
 				Path("/ipfs/{{cid}}/ą/ę/", root.Cid()),
 			Response: Expect().
@@ -81,8 +81,8 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 					Header("Etag").Contains(`"DirIndex-`),
 				).
 				BodyWithHint(`
-				- should contain "Index of"
-				- Breadcrumbs should point at /ipfs namespace mounted at Origin root
+				- should contain "Index of" (TODO:  kubo-specific)
+				- Breadcrumbs should point at /ipfs namespace mounted at Origin root (TODO:  kubo-specific)
 				- backlink on subdirectory should point at parent directory
 				- name column should be a link to its content path
 				- hash column should be a CID link with filename param

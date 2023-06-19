@@ -87,7 +87,7 @@ func TestTrustlessRaw(t *testing.T) {
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid("dir", "ascii.txt")),
 					Header("Cache-Control").
-						Hint("It should be public, immutable and have max-age of at least 31536000.").
+						Hint("It should be public, immutable and have max-age of at least 29030400.").
 						Checks(func(v string) bool {
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
 							dir := make(map[string]string)
