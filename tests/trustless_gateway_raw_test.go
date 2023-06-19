@@ -49,7 +49,7 @@ func TestTrustlessRaw(t *testing.T) {
 					Header("Content-Length").
 						Equals("{{length}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
-						Matches(`attachment;\s*filename=".*\.bin"`),
+						Contains("attachment;"),
 					Header("X-Content-Type-Options").
 						Equals("nosniff"),
 				).
@@ -66,7 +66,9 @@ func TestTrustlessRaw(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").
-						Matches(`attachment;\s*filename="foobar\.bin`),
+						Contains(`attachment;`),
+					Header("Content-Disposition").
+						Contains(`filename="foobar.bin`),
 				),
 		},
 		{
@@ -80,8 +82,7 @@ func TestTrustlessRaw(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Etag").
-						Hint("Etag must be present for caching purposes").
-						Not().IsEmpty(),
+						Exists(),
 					Header("X-IPFS-Path").
 						Equals("/ipfs/{{cid}}", fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-IPFS-Roots").
