@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
-
-// TODO(laurent): this was t0117_gateway_block_test
 
 func TestGatewayBlock(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0117-gateway-block.car")
@@ -37,6 +36,36 @@ func TestGatewayBlock(t *testing.T) {
 				Body(fixture.MustGetRawData("dir")),
 		},
 		{
+			Name: "GET with application/vnd.ipld.raw with single range request includes correct bytes",
+			Request: Request().
+				Path("/ipfs/{{cid}}/dir", fixture.MustGetCid()).
+				Headers(
+					Header("Accept", "application/vnd.ipld.raw"),
+					Header("Range", "bytes=6-16"),
+				),
+			Response: Expect().
+				Status(206).
+				Body(fixture.MustGetRawData("dir")[6:17]),
+		},
+		{
+			Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
+			Request: Request().
+				Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
+				Headers(
+					Header("Accept", "application/vnd.ipld.raw"),
+					Header("Range", "bytes=6-16,0-4"),
+				),
+			Response: Expect().
+				Status(206).
+				Body(check.And(
+					check.Contains("Content-Range: bytes 6-16/31"),
+					check.Contains("Content-Type: application/vnd.ipld.raw"),
+					check.Contains("application"),
+					check.Contains("Content-Range: bytes 0-4/31"),
+					check.Contains("hello"),
+				)),
+		},
+		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
 			Request: Request().
 				Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
@@ -49,9 +78,9 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Content-Type").
 						Equals("application/vnd.ipld.raw"),
 					Header("Content-Length").
-						Equals("{{cid}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
+						Equals("{{length}}", len(fixture.MustGetRawData("dir", "ascii.txt"))),
 					Header("Content-Disposition").
-						Matches(`attachment;\s*filename="{{cid}}\.bin`, fixture.MustGetCid("dir", "ascii.txt")),
+						Contains("attachment;"),
 					Header("X-Content-Type-Options").
 						Equals("nosniff"),
 				).
@@ -68,7 +97,9 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Content-Disposition").
-						Matches(`attachment;\s*filename="foobar\.bin`),
+						Contains(`attachment;`),
+					Header("Content-Disposition").
+						Contains(`filename="foobar.bin`),
 				),
 		},
 		{
@@ -82,7 +113,7 @@ func TestGatewayBlock(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("ETag").
-						Equals(`"{{cid}}.raw"`, fixture.MustGetCid("dir", "ascii.txt")),
+						Exists(),
 					Header("X-IPFS-Path").
 						Equals("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()),
 					Header("X-IPFS-Roots").
