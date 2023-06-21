@@ -9,7 +9,7 @@ import (
 
 	blocks "github.com/ipfs/go-block-format"
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-car/v2"
+	carv2 "github.com/ipld/go-car/v2"
 	"github.com/ipld/go-car/v2/blockstore"
 	"github.com/urfave/cli/v2"
 )
@@ -20,7 +20,7 @@ func dropBlockFromCar(input, output, removedBlock string) error {
 
 	// Read roots & blocks
 	// RELATED: https://github.com/ipld/go-car/issues/395
-	robs, err := blockstore.OpenReadOnly(input, car.UseWholeCIDs(true))
+	robs, err := blockstore.OpenReadOnly(input, carv2.UseWholeCIDs(true))
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func dropBlockFromCar(input, output, removedBlock string) error {
 	robs.Close()
 
 	// Create trimmed car file, copy roots and blocks, except the removed one.
-	rwbs, err := blockstore.OpenReadWrite(output, roots, car.UseWholeCIDs(true))
+	rwbs, err := blockstore.OpenReadWrite(input, roots, carv2.UseWholeCIDs(true))
 	if err != nil {
 		panic(err)
 	}
@@ -96,6 +96,17 @@ func main() {
 					removedBlock := cCtx.Args().Get(2)
 
 					return dropBlockFromCar(input, output, removedBlock)
+				},
+			},
+			{
+				Name:    "wrap-car",
+				Aliases: []string{"wc"},
+				Usage:   "Wrap car v1 to car v2",
+				Flags:   []cli.Flag{},
+				Action: func(cCtx *cli.Context) error {
+					input := cCtx.Args().Get(0)
+					output := cCtx.Args().Get(1)
+					return carv2.WrapV1File(input, output)
 				},
 			},
 		},
