@@ -11,9 +11,9 @@ import (
 )
 
 func TestTrustlessCarPathing(t *testing.T) {
-	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
-	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
-	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("t0118/dir-with-dag-cbor-with-links.car")
+	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
+	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
+	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-dag-cbor-with-links.car")
 
 	tests := SugarTests{
 		{
@@ -61,7 +61,7 @@ func TestTrustlessCarPathing(t *testing.T) {
 							singleLayerHamtMultiBlockFilesFixture.MustGetCid(),
 							singleLayerHamtMultiBlockFilesFixture.MustGetCIDsInHAMTTraversal(nil, "685.txt"),
 							singleLayerHamtMultiBlockFilesFixture.MustGetCid("685.txt"),
-							singleLayerHamtMultiBlockFilesFixture.MustGetChildrenCids("685.txt"))...,
+							singleLayerHamtMultiBlockFilesFixture.MustGetDescendantsCids("685.txt"))...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -97,8 +97,8 @@ func TestTrustlessCarPathing(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeBlock(t *testing.T) {
-	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
-	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
+	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
+	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 
 	tests := SugarTests{
 		{
@@ -183,10 +183,10 @@ func TestTrustlessCarDagScopeBlock(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeEntity(t *testing.T) {
-	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("t0118/subdir-with-two-single-block-files.car")
-	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
-	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
-	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("t0118/dir-with-dag-cbor-with-links.car")
+	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
+	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
+	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
+	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-dag-cbor-with-links.car")
 
 	tests := SugarTests{
 		{
@@ -285,7 +285,7 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 								subdirWithMixedBlockFiles.MustGetCid(),
 								subdirWithMixedBlockFiles.MustGetCid("subdir"),
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt"),
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt"),
 							)...,
 						).
 						Exactly().
@@ -322,7 +322,7 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeAll(t *testing.T) {
-	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
+	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
 
 	tests := SugarTests{
 		{
@@ -346,7 +346,7 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 								t,
 								subdirWithMixedBlockFiles.MustGetCid(),
 								subdirWithMixedBlockFiles.MustGetCid("subdir"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir"),
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir"),
 							)...,
 						).
 						Exactly().
@@ -374,7 +374,7 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 								subdirWithMixedBlockFiles.MustGetCid(),
 								subdirWithMixedBlockFiles.MustGetCid("subdir"),
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt"),
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt"),
 							)...,
 						).
 						Exactly().
@@ -387,10 +387,80 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 }
 
 func TestTrustlessCarEntityBytes(t *testing.T) {
-	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("t0118/single-layer-hamt-with-multi-block-files.car")
-	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("t0118/subdir-with-mixed-block-files.car")
+	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
+	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
+	missingBlockFixture := car.MustOpenUnixfsCar("trustless_gateway_car/file-3k-and-3-blocks-missing-block.car")
 
 	tests := SugarTests{
+		{
+			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing some blocks",
+			Hint: `
+				dag-scope=entity&entity-bytes=0:x should return a CAR file with only the blocks needed.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
+				Query("format", "car").
+				Query("dag-scope", "entity").
+				Query("entity-bytes", "0:1000"),
+			Response: Expect().
+				Status(200).
+				Body(
+					IsCar().
+						HasRoot(missingBlockFixture.MustGetCid()).
+						MightHaveNoRoots().
+						HasBlocks(
+							missingBlockFixture.MustGetCid(),
+							missingBlockFixture.MustGetChildrenCids()[0],
+						).
+						Exactly(),
+				),
+		},
+		{
+			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing some blocks",
+			Hint: `
+				dag-scope=entity&entity-bytes=0:x should return a CAR file with only the blocks needed.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
+				Query("format", "car").
+				Query("dag-scope", "entity").
+				Query("entity-bytes", "2200:*"),
+			Response: Expect().
+				Status(200).
+				Body(
+					IsCar().
+						HasRoot(missingBlockFixture.MustGetCid()).
+						MightHaveNoRoots().
+						HasBlocks(
+							missingBlockFixture.MustGetCid(),
+							missingBlockFixture.MustGetChildrenCids()[2],
+						).
+						Exactly(),
+				),
+		},
+		{
+			Name: "GET CAR with entity-bytes when missing a block will timeout",
+			Hint: `
+				dag-scope=entity&entity-bytes=0:* should return a CAR file with all the blocks needed to 'cat'
+				the full UnixFS file at the end of the specified path
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
+				Query("format", "car").
+				Query("dag-scope", "entity").
+				Query("entity-bytes", "0:1000"),
+			Response: Expect().
+				Status(200).
+				Body(
+					IsCar().
+						HasRoot(missingBlockFixture.MustGetCid()).
+						MightHaveNoRoots().
+						HasBlocks(
+							missingBlockFixture.MustGetCid(),
+							missingBlockFixture.MustGetChildrenCids()[0],
+						),
+				),
+		},
 		{
 			Name: "GET CAR with entity-bytes of a full UnixFS file",
 			Hint: `
@@ -412,7 +482,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 							subdirWithMixedBlockFiles.MustGetCid(),
 							subdirWithMixedBlockFiles.MustGetCid("subdir"),
 							subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-							subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt"),
+							subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt"),
 						)...).
 						Exactly().
 						InThatOrder(),
@@ -464,7 +534,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[2:])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[2:])...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -489,7 +559,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[2:4])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[2:4])...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -514,7 +584,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[2:4])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[2:4])...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -539,7 +609,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[3:])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[3:])...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -564,7 +634,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[:5])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[:5])...,
 						).
 						Exactly().
 						InThatOrder(),
@@ -589,7 +659,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetChildrenCids("subdir", "multiblock.txt")[0])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[0])...,
 						).
 						Exactly().
 						InThatOrder(),
