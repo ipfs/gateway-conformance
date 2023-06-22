@@ -9,6 +9,7 @@ import (
 type CheckIsCarFile struct {
 	blockCIDs        []cid.Cid
 	rootCIDs         []cid.Cid
+	ignoreRoots      bool
 	mightHaveNoRoots bool
 	isExact          bool
 	isOrdered        bool
@@ -62,6 +63,11 @@ func (c CheckIsCarFile) MightHaveNoRoots() *CheckIsCarFile {
 	return &c
 }
 
+func (c CheckIsCarFile) IgnoreRoots() *CheckIsCarFile {
+	c.ignoreRoots = true
+	return &c
+}
+
 func (c CheckIsCarFile) Exactly() *CheckIsCarFile {
 	c.isExact = true
 	return &c
@@ -101,7 +107,7 @@ func (c *CheckIsCarFile) Check(carContent []byte) CheckOutput {
 		return output
 	}
 
-	if len(c.rootCIDs) > 0 || c.isExact {
+	if (len(c.rootCIDs) > 0 || c.isExact) && !c.ignoreRoots {
 		gotRoots, err := listAllRoots(carContent)
 		if err != nil {
 			return CheckOutput{
