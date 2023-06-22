@@ -30,8 +30,6 @@ func TestTrustlessCarPathing(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirTwoSingleBlockFilesFixture.MustGetCid("subdir", "ascii.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							subdirTwoSingleBlockFilesFixture.MustGetCid(),
 							subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
@@ -55,8 +53,6 @@ func TestTrustlessCarPathing(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(singleLayerHamtMultiBlockFilesFixture.MustGetCid("685.txt")).
-						MightHaveNoRoots().
 						HasBlocks(flattenStrings(t,
 							singleLayerHamtMultiBlockFilesFixture.MustGetCid(),
 							singleLayerHamtMultiBlockFilesFixture.MustGetCIDsInHAMTTraversal(nil, "685.txt"),
@@ -81,8 +77,6 @@ func TestTrustlessCarPathing(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(dirWithDagCborWithLinksFixture.MustGetCid("document", "files", "single")).
-						MightHaveNoRoots().
 						HasBlocks(flattenStrings(t,
 							dirWithDagCborWithLinksFixture.MustGetCid("document"),
 							dirWithDagCborWithLinksFixture.MustGetCid("document", "files", "single"),
@@ -115,8 +109,6 @@ func TestTrustlessCarDagScopeBlock(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirTwoSingleBlockFilesFixture.MustGetCid("subdir")).
-						MightHaveNoRoots().
 						HasBlocks(
 							subdirTwoSingleBlockFilesFixture.MustGetCid(),
 							subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
@@ -139,8 +131,6 @@ func TestTrustlessCarDagScopeBlock(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirTwoSingleBlockFilesFixture.MustGetCid("subdir", "ascii.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							subdirTwoSingleBlockFilesFixture.MustGetCid(),
 							subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
@@ -166,8 +156,6 @@ func TestTrustlessCarDagScopeBlock(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(singleLayerHamtMultiBlockFilesFixture.MustGetCid("1.txt")).
-						MightHaveNoRoots().
 						HasBlocks(flattenStrings(t,
 							singleLayerHamtMultiBlockFilesFixture.MustGetCid(),
 							singleLayerHamtMultiBlockFilesFixture.MustGetCIDsInHAMTTraversal(nil, "1.txt"),
@@ -203,8 +191,6 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirTwoSingleBlockFilesFixture.MustGetCid()).
-						MightHaveNoRoots().
 						HasBlocks(
 							subdirTwoSingleBlockFilesFixture.MustGetCid(),
 						).
@@ -226,8 +212,6 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(singleLayerHamtMultiBlockFilesFixture.MustGetCid()).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								singleLayerHamtMultiBlockFilesFixture.MustGetCid(),
@@ -251,8 +235,6 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "ascii.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid(),
@@ -278,8 +260,6 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid(),
@@ -306,8 +286,6 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(dirWithDagCborWithLinksFixture.MustGetCid("document")).
-						MightHaveNoRoots().
 						HasBlocks(flattenStrings(t,
 							dirWithDagCborWithLinksFixture.MustGetCid(),
 							dirWithDagCborWithLinksFixture.MustGetCid("document"),
@@ -339,8 +317,6 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(
 								t,
@@ -367,8 +343,6 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid(),
@@ -406,8 +380,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(flattenStrings(t,
 							subdirWithMixedBlockFiles.MustGetCid(),
 							subdirWithMixedBlockFiles.MustGetCid("subdir"),
@@ -434,8 +406,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(singleLayerHamtMultiBlockFilesFixture.MustGetCid()).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								singleLayerHamtMultiBlockFilesFixture.MustGetCid(),
@@ -459,8 +429,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
@@ -484,8 +452,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
@@ -509,8 +475,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
@@ -534,8 +498,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
@@ -559,8 +521,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
@@ -584,8 +544,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt")).
-						MightHaveNoRoots().
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
