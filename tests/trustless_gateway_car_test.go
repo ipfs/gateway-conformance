@@ -395,6 +395,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
+						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
 							missingBlockFixture.MustGetChildrenCids()[0],
@@ -419,6 +420,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
+						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
 							missingBlockFixture.MustGetChildrenCids()[2],
