@@ -393,9 +393,11 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 
 	tests := SugarTests{
 		{
-			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing some blocks",
+			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing a block after the requested range",
 			Hint: `
-				dag-scope=entity&entity-bytes=0:x should return a CAR file with only the blocks needed.
+				dag-scope=entity&entity-bytes=0:x should return a CAR file with
+				only the blocks needed to fullfill the request. This MUST
+				succeed despite the fact that bytes beyond 'x' are not retrievable.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
@@ -406,8 +408,6 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(missingBlockFixture.MustGetCid()).
-						MightHaveNoRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
 							missingBlockFixture.MustGetChildrenCids()[0],
@@ -416,9 +416,12 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing some blocks",
+			Name: "GET CAR with entity-bytes succeeds even if the gateway is missing a block before the requested range",
 			Hint: `
-				dag-scope=entity&entity-bytes=0:x should return a CAR file with only the blocks needed.
+				dag-scope=entity&entity-bytes=y:* should return a CAR file with
+				only the blocks needed to fullfill the request. This MUST
+				succeed despite the fact that a block with bytes before 'y' is
+				not retrievable.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
@@ -429,36 +432,11 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				Status(200).
 				Body(
 					IsCar().
-						HasRoot(missingBlockFixture.MustGetCid()).
-						MightHaveNoRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
 							missingBlockFixture.MustGetChildrenCids()[2],
 						).
 						Exactly(),
-				),
-		},
-		{
-			Name: "GET CAR with entity-bytes when missing a block will timeout",
-			Hint: `
-				dag-scope=entity&entity-bytes=0:* should return a CAR file with all the blocks needed to 'cat'
-				the full UnixFS file at the end of the specified path
-			`,
-			Request: Request().
-				Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
-				Query("format", "car").
-				Query("dag-scope", "entity").
-				Query("entity-bytes", "0:1000"),
-			Response: Expect().
-				Status(200).
-				Body(
-					IsCar().
-						HasRoot(missingBlockFixture.MustGetCid()).
-						MightHaveNoRoots().
-						HasBlocks(
-							missingBlockFixture.MustGetCid(),
-							missingBlockFixture.MustGetChildrenCids()[0],
-						),
 				),
 		},
 		{
