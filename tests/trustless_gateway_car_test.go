@@ -629,7 +629,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
-func TestTrustlessCarDuplicates(t *testing.T) {
+func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 	dirWithDuplicateFiles := car.MustOpenUnixfsCar("t0118/dir-with-duplicate-files.car")
 
 	tests := SugarTests{
@@ -694,6 +694,34 @@ func TestTrustlessCarDuplicates(t *testing.T) {
 						)...).
 						Exactly().
 						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR with order=unk of UnixFS Directors",
+			Hint: `
+				The response with order=unk MUST contain all the blocks required to construct
+				the requested CID. However, it can be in any order and duplicates MAY occur.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=unk"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order="),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlocks(flattenStrings(t,
+							dirWithDuplicateFiles.MustGetCid(),
+							dirWithDuplicateFiles.MustGetCid("ascii.txt"),
+							dirWithDuplicateFiles.MustGetCid("ascii-copy.txt"),
+							dirWithDuplicateFiles.MustGetCid("hello.txt"),
+							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
+							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
+						)...),
 				),
 		},
 	}
