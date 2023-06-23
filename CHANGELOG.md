@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed methods using `Children` into `Descendants` when relevant
 
+### Changed
+- CAR tests no longer check for the roots. See discussion in [IPIP-402](https://github.com/ipfs/specs/pull/402).
+
 ## [0.1.0] - 2023-06-08
 ### Added
 - `Fmt` a string interpolation that replaces golang's and works better with HTML entities, and HTTP headers and URLs.
