@@ -629,6 +629,79 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
 }
 
+func TestTrustlessCarDuplicates(t *testing.T) {
+	dirWithDuplicateFiles := car.MustOpenUnixfsCar("t0118/dir-with-duplicate-files.car")
+
+	tests := SugarTests{
+		{
+			Name: "GET CAR with dups=y of UnixFS Directory With Duplicate Files",
+			Hint: `
+				The response MUST contain all the blocks found during traversal even if they
+				are duplicate. In this test, a directory that contains duplicate files is
+				requested. The blocks corresponding to the duplicate files must be returned.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlocks(flattenStrings(t,
+							dirWithDuplicateFiles.MustGetCid(),
+							dirWithDuplicateFiles.MustGetCid("ascii.txt"), // ascii.txt = ascii-copy.txt
+							dirWithDuplicateFiles.MustGetCid("ascii-copy.txt"),
+							dirWithDuplicateFiles.MustGetCid("hello.txt"),
+							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
+							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
+						)...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR with dups=n of UnixFS Directory With Duplicate Files",
+			Hint: `
+				The response MUST NOT contain duplicate blocks.In this test, a directory that
+				contains duplicate files is requested. The blocks corresponding to the duplicate
+				files must be returned only ONCE.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=n"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=n"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlocks(flattenStrings(t,
+							dirWithDuplicateFiles.MustGetCid(),
+							dirWithDuplicateFiles.MustGetCid("ascii.txt"), // ascii.txt = ascii-copy.txt
+							dirWithDuplicateFiles.MustGetCid("hello.txt"),
+							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
+							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
+						)...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+	}
+
+	// TODO: add sub-specification for these tests.
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAR)
+}
+
 func flattenStrings(t *testing.T, values ...interface{}) []string {
 	var res []string
 	for _, v := range values {
