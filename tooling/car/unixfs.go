@@ -121,7 +121,7 @@ func (d *UnixfsDag) getNode(names ...string) (format.Node, error) {
 	return d.node, nil
 }
 
-func (d *UnixfsDag) listChildren(names ...string) ([]*FixtureNode, error) {
+func (d *UnixfsDag) listDescendants(names ...string) ([]*FixtureNode, error) {
 	node, err := d.getNode(names...)
 	if err != nil {
 		return nil, err
@@ -169,16 +169,31 @@ func (d *UnixfsDag) MustGetNode(names ...string) *FixtureNode {
 	return &FixtureNode{node: d.mustGetNode(names...), dsvc: d.dsvc}
 }
 
-func (d *UnixfsDag) MustGetChildren(names ...string) [](*FixtureNode) {
-	nodes, err := d.listChildren(names...)
+func (d *UnixfsDag) listChildrenCids(node format.Node) []string {
+	links := node.Links()
+	var cids []string
+	for _, link := range links {
+		cids = append(cids, link.Cid.String())
+	}
+
+	return cids
+}
+
+func (d *UnixfsDag) MustGetChildrenCids(names ...string) []string {
+	cids := d.listChildrenCids(d.mustGetNode(names...))
+	return cids
+}
+
+func (d *UnixfsDag) MustGetDescendants(names ...string) [](*FixtureNode) {
+	nodes, err := d.listDescendants(names...)
 	if err != nil {
 		panic(err)
 	}
 	return nodes
 }
 
-func (d *UnixfsDag) MustGetChildrenCids(names ...string) []string {
-	nodes := d.MustGetChildren(names...)
+func (d *UnixfsDag) MustGetDescendantsCids(names ...string) []string {
+	nodes := d.MustGetDescendants(names...)
 	var cids []string
 	for _, node := range nodes {
 		cids = append(cids, node.Cid().String())
