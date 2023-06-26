@@ -144,7 +144,7 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 // TODO(laurent): this were in t0114_gateway_subdomains_test.go
 
 func TestGatewaySubdomains(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0114-gateway_subdomains.car")
+	fixture := car.MustOpenUnixfsCar("subdomain_gateway_ipfs/fixtures.car")
 
 	CIDVal := string(fixture.MustGetRawData("hello-CIDv1")) // hello
 	DirCID := fixture.MustGetCid("testdirlisting")
@@ -210,10 +210,6 @@ func TestGatewaySubdomains(t *testing.T) {
 							Contains("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv0to1, u.Host),
 					),
 			},
-			// ============================================================================
-			// Test subdomain-based requests to a local gateway with default config
-			// (origin per content root at http://*.example.com)
-			// ============================================================================
 			{
 				Name:    "request for {CID}.ipfs.example.com should return expected payload",
 				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, CIDv1, u.Host),
@@ -283,17 +279,6 @@ func TestGatewaySubdomains(t *testing.T) {
 						),
 					),
 			},
-			// ## ============================================================================
-			// ## Test subdomain-based requests with a custom hostname config
-			// ## (origin per content root at http://*.example.com)
-			// ## ============================================================================
-
-			// # example.com/ip(f|n)s/*
-			// # =============================================================================
-
-			// # path requests to the root hostname should redirect
-			// # to a subdomain URL with proper origin isolation
-
 			{
 				Name:    "request for example.com/ipfs/{CIDv1} produces redirect to {CIDv1}.ipfs.example.com",
 				Hint:    "path requests to the root hostname should redirect to a subdomain URL with proper origin isolation",
@@ -303,7 +288,6 @@ func TestGatewaySubdomains(t *testing.T) {
 						Header("Location").Equals("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1, u.Host),
 					),
 			},
-
 			{
 				Name:    "request for example.com/ipfs/{InvalidCID} produces useful error before redirect",
 				Hint:    "error message should include original CID (and it should be case-sensitive, as we can't assume everyone uses base32)",
@@ -333,7 +317,6 @@ func TestGatewaySubdomains(t *testing.T) {
 						Header("Location").Equals("https://{{cid}}.ipfs.{{host}}/", CIDv1, u.Host),
 					),
 			},
-
 			{
 				Name: "request for example.com/ipfs/?uri=ipfs%3A%2F%2F.. produces redirect to /ipfs/.. content path",
 				Hint: "Support ipfs:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
