@@ -141,10 +141,8 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPFS)
 }
 
-// TODO(laurent): this were in t0114_gateway_subdomains_test.go
-
 func TestGatewaySubdomains(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("subdomain_gateway_ipfs/fixtures.car")
+	fixture := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
 
 	CIDVal := string(fixture.MustGetRawData("hello-CIDv1")) // hello
 	DirCID := fixture.MustGetCid("testdirlisting")
