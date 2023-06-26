@@ -430,10 +430,8 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS, specs.PathGatewayIPNS)
 }
 
-// TODO(laurent): this were in t0113_gateway_symlink_test
-
 func TestGatewaySymlink(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0113-gateway-symlink.car")
+	fixture := car.MustOpenUnixfsCar("path_gateway_unixfs/symlink.car")
 	rootDirCID := fixture.MustGetCid()
 
 	tests := SugarTests{
