@@ -3,5 +3,5 @@ dnslinks:
   custom-dnslink:
     subdomain: dnslink-enabled-on-fqdn
     # this is the cid of the folder
-    # t0109-redirects.car:/examples/
+    # ./redirects.car:/examples/
     path: /ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj
