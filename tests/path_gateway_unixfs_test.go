@@ -471,7 +471,6 @@ func TestGatewaySymlink(t *testing.T) {
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
 }
 
-// TODO(laurent): this were in t0112_gateway_cors_test
 func TestCors(t *testing.T) {
 	cidHello := "bafkqabtimvwgy3yk" // hello
 
