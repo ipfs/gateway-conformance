@@ -14,7 +14,7 @@ import (
 // TODO(laurent): this was t0123_gateway_json_cbor_test
 
 func TestGatewayJsonCbor(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0123-gateway-json-cbor.car")
+	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	fileJSON := fixture.MustGetNode("ą", "ę", "t.json")
 	fileJSONCID := fileJSON.Cid()
@@ -71,7 +71,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
 // ## (returns representation defined in https://ipld.io/specs/codecs/dag-pb/spec/#logical-format)
 func TestDAgPbConversion(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0123-gateway-json-cbor.car")
+	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	dir := fixture.MustGetRoot()
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
@@ -275,8 +275,8 @@ func TestPlainCodec(t *testing.T) {
 	}
 
 	for _, row := range table {
-		plain := car.MustOpenUnixfsCar(Fmt("t0123/plain.{{format}}.car", row.Format)).MustGetRoot()
-		plainOrDag := car.MustOpenUnixfsCar(Fmt("t0123/plain-that-can-be-dag.{{format}}.car", row.Format)).MustGetRoot()
+		plain := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain.{{format}}.car", row.Format)).MustGetRoot()
+		plainOrDag := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-that-can-be-dag.{{format}}.car", row.Format)).MustGetRoot()
 		formatted := plainOrDag.Formatted("dag-" + row.Format)
 
 		plainCID := plain.Cid()
@@ -414,8 +414,8 @@ func TestPlainCodec(t *testing.T) {
 
 // ## Pathing, traversal over DAG-JSON and DAG-CBOR
 func TestPathing(t *testing.T) {
-	dagJSONTraversal := car.MustOpenUnixfsCar("t0123/dag-json-traversal.car").MustGetRoot()
-	dagCBORTraversal := car.MustOpenUnixfsCar("t0123/dag-cbor-traversal.car").MustGetRoot()
+	dagJSONTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-json-traversal.car").MustGetRoot()
+	dagCBORTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
 
 	dagJSONTraversalCID := dagJSONTraversal.Cid()
 	dagCBORTraversalCID := dagCBORTraversal.Cid()
@@ -516,7 +516,7 @@ func TestNativeDag(t *testing.T) {
 	}
 
 	for _, row := range table {
-		dagTraversal := car.MustOpenUnixfsCar(Fmt("t0123/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
+		dagTraversal := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
 		dagTraversalCID := dagTraversal.Cid()
 		formatted := dagTraversal.Formatted("dag-" + row.Format)
 
@@ -825,8 +825,8 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 	ipnsIdDagJSON := "k51qzi5uqu5dhjghbwdvbo6mi40htrq6e2z4pwgp15pgv3ho1azvidttzh8yy2"
 	ipnsIdDagCBOR := "k51qzi5uqu5dghjous0agrwavl8vzl64xckoqzwqeqwudfr74kfd11zcyk3b7l"
 
-	ipnsDagJSON := ipns.MustOpenIPNSRecordWithKey(Fmt("t0123/{{id}}.ipns-record", ipnsIdDagJSON))
-	ipnsDagCBOR := ipns.MustOpenIPNSRecordWithKey(Fmt("t0123/{{id}}.ipns-record", ipnsIdDagCBOR))
+	ipnsDagJSON := ipns.MustOpenIPNSRecordWithKey(Fmt("path_gateway_dag/{{id}}.ipns-record", ipnsIdDagJSON))
+	ipnsDagCBOR := ipns.MustOpenIPNSRecordWithKey(Fmt("path_gateway_dag/{{id}}.ipns-record", ipnsIdDagCBOR))
 
 	table := []struct {
 		Name    string
@@ -840,7 +840,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 	tests := SugarTests{}
 
 	for _, row := range table {
-		plain := car.MustOpenUnixfsCar(Fmt("t0123/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
+		plain := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/dag-{{format}}-traversal.car", row.Format)).MustGetRoot()
 		plainCID := plain.Cid()
 
 		// # IPNS behavior (should be same as immutable /ipfs, but with different caching headers)
