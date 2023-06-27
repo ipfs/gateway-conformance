@@ -348,14 +348,16 @@ func TestGatewaySubdomains(t *testing.T) {
 			// ## Test support for X-Forwarded-Host
 			// ## ============================================================================
 			{
-				Name:    "request for http://fake.domain.com/ipfs/{CID} doesn't match the example.com gateway",
-				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1),
+				Name: "request for http://fake.domain.com/ipfs/{CID} doesn't match the example.com gateway",
+				Request: Request().
+					URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1),
 				Response: Expect().
 					Status(200),
 			},
 			{
 				Name: "request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com match the example.com gateway",
-				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
+				Request: Request().
+					URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
 					Header("X-Forwarded-Host", u.Host),
 				Response: Expect().
 					Status(301).
@@ -365,7 +367,8 @@ func TestGatewaySubdomains(t *testing.T) {
 			},
 			{
 				Name: "request for http://fake.domain.com/ipfs/{CID} with X-Forwarded-Host: example.com and X-Forwarded-Proto: https match the example.com gateway, redirect with https",
-				Request: Request().URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
+				Request: Request().
+					URL("{{scheme}}://{{domain}}/ipfs/{{cid}}", u.Scheme, "fake.domain.com", CIDv1).
 					Header("X-Forwarded-Host", u.Host).
 					Header("X-Forwarded-Proto", "https"),
 				Response: Expect().
