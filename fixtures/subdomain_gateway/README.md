@@ -39,11 +39,11 @@ DIR_CID=$(ipfs add -Qr --cid-version 1 testdirlisting)
 echo DIR_CID=${DIR_CID} # ./testdirlisting
 
 ipfs files mkdir /t0114/
-ipfs files cp /ipfs/${CIDv1} /t0114/
-ipfs files cp /ipfs/${CIDv0} /t0114/
-ipfs files cp /ipfs/${CIDv0to1} /t0114/
-ipfs files cp /ipfs/${DIR_CID} /t0114/
-ipfs files cp /ipfs/${CIDv1_TOO_LONG} /t0114/
+ipfs files cp /ipfs/${CIDv1} /t0114/hello-CIDv1
+ipfs files cp /ipfs/${CIDv0} /t0114/hello-CIDv0
+ipfs files cp /ipfs/${CIDv0to1} /t0114/hello-CIDv0to1
+ipfs files cp /ipfs/${DIR_CID} /t0114/testdirlisting
+ipfs files cp /ipfs/${CIDv1_TOO_LONG} /t0114/hello-CIDv1_TOO_LONG
 
 ROOT=`ipfs files stat /t0114/ --hash`
 

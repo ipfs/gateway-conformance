@@ -21,8 +21,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 	ed25519Fixture := ipns.MustOpenIPNSRecordWithKey("subdomain_gateway/12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d.ipns-record")
 
 	car := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
-	helloCID := "bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am"
-	payload := string(car.MustGetRawData(helloCID))
+	payload := string(car.MustGetRawData("hello-CIDv1"))
 
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
