@@ -14,7 +14,7 @@ import (
 // TODO(laurent): this was in t0115_gateway_dir_listing_test.go
 
 func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0115/fixtures.car")
+	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 
@@ -32,18 +32,7 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// ## ============================================================================
-		// ## Test dir listing on subdomain gateway (eg. <cid>.ipfs.localhost:8080)
-		// ## ============================================================================
 		tests = append(tests, SugarTests{
-			// DIR_HOSTNAME="${DIR_CID}.ipfs.localhost"
-			// # note: we skip DNS lookup by running curl with --resolve $DIR_HOSTNAME:127.0.0.1
-
-			// test_expect_success "subdomain gw: backlink on root CID should be hidden" '
-			//   curl -sD - --resolve $DIR_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DIR_HOSTNAME:$GWAY_PORT/ > list_response &&
-			//   test_should_contain "Index of" list_response &&
-			//   test_should_not_contain "<a href=\"/\">..</a>" list_response
-			// '
 			{
 				Name: "backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 				Request: Request().
@@ -60,11 +49,6 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 							Not(Contains(`<a href="/">..</a>`)),
 						)),
 			},
-			// test_expect_success "subdomain gw: redirect dir listing to URL with trailing slash" '
-			//   curl -sD - --resolve $DIR_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DIR_HOSTNAME:$GWAY_PORT/ą/ę > list_response &&
-			//   test_should_contain "HTTP/1.1 301 Moved Permanently" list_response &&
-			//   test_should_contain "Location: /%c4%85/%c4%99/" list_response
-			// '
 			{
 				Name: "redirect dir listing to URL with trailing slash",
 				Request: Request().
@@ -80,23 +64,6 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 						Header("Location").Equals(`/%c4%85/%c4%99/`),
 					),
 			},
-			// test_expect_success "subdomain gw: Etag should be present" '
-			//   curl -sD - --resolve $DIR_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DIR_HOSTNAME:$GWAY_PORT/ą/ę/ > list_response &&
-			//   test_should_contain "Index of" list_response &&
-			//   test_should_contain "Etag: \"DirIndex-" list_response
-			// '
-			// test_expect_success "subdomain gw: backlink on subdirectory should point at parent directory" '
-			//   test_should_contain "<a href=\"/%C4%85/%C4%99/..\">..</a>" list_response
-			// '
-			// test_expect_success "subdomain gw: breadcrumbs should leverage path-based router mounted on the parent domain" '
-			//   test_should_contain "/ipfs/<a href=\"//localhost:$GWAY_PORT/ipfs/$DIR_CID\">$DIR_CID</a>/<a href=\"//localhost:$GWAY_PORT/ipfs/$DIR_CID/%C4%85\">ą</a>/<a href=\"//localhost:$GWAY_PORT/ipfs/$DIR_CID/%C4%85/%C4%99\">ę</a>" list_response
-			// '
-			// test_expect_success "subdomain gw: name column should be a link to content root mounted at subdomain origin" '
-			//   test_should_contain "<a href=\"/%C4%85/%C4%99/file-%C5%BA%C5%82.txt\">file-źł.txt</a>" list_response
-			// '
-			// test_expect_success "subdomain gw: hash column should be a CID link to path router with filename param" '
-			//   test_should_contain "<a class=\"ipfs-hash\" translate=\"no\" href=\"//localhost:$GWAY_PORT/ipfs/$FILE_CID?filename=file-%25C5%25BA%25C5%2582.txt\">" list_response
-			// '
 			{
 				Name: "Regular dir listing HTML (TODO: cleanup Kubo-specifics)",
 				Request: Request().URL(
@@ -135,8 +102,6 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 			},
 		}...)
 	}
-
-	// Body expect to find substring '<a class="ipfs-hash" translate="no" href="//example.com/ipfs/bafybeig6ka5mlwkl4subqhaiatalkcleo4jgnr3hqwvpmsqfca27cijp3i?filename=file-%25C5%25BA%25C5%2582.txt">',
 
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPFS)
 }

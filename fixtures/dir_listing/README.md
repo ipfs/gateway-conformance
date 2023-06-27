@@ -1,9 +1,10 @@
-# Dataset description/sources
+# Directory Listing Fixtures
 
-- fixtures.car
-  - raw CARv1
+## Recipes
 
-generated with:
+### [fixtures.car](./fixtures.car)
+
+Raw CARv1, generated with:
 
 ```sh
 # using ipfs version 0.18.1

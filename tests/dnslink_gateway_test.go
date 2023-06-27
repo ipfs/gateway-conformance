@@ -134,13 +134,11 @@ func TestDNSLinkGateway(t *testing.T) {
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway)
 }
 
-// TODO(laurent): this was in t0115_gateway_dir_listing_test.go
-
 func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0115/fixtures.car")
+	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 
-	dnsLinks := dnslink.MustOpenDNSLink("t0115/dnslink.yml")
+	dnsLinks := dnslink.MustOpenDNSLink("dir_listing/dnslink.yml")
 	dnsLink := dnsLinks.MustGet("website")
 
 	gatewayURL := SubdomainGatewayURL
@@ -154,26 +152,7 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 
 	dnsLinkHostname := tmpl.Fmt("{{dnslink}}.{{host}}", dnsLink, u.Host)
 
-	// ## ============================================================================
-	// ## Test dir listing on DNSLink gateway (eg. example.com)
-	// ## ============================================================================
 	tests = append(tests, SugarTests{
-		// # DNSLink test requires a daemon in online mode with precached /ipns/ mapping
-		// test_kill_ipfs_daemon
-		// DNSLINK_HOSTNAME="website.example.com"
-		// export IPFS_NS_MAP="$DNSLINK_HOSTNAME:/ipfs/$DIR_CID"
-		// test_launch_ipfs_daemon
-
-		// # Note that:
-		// # - this type of gateway is also tested in gateway_test.go#TestIPNSHostnameBacklinks
-		// #   (go tests and sharness tests should be kept in sync)
-		// # - we skip DNS lookup by running curl with --resolve $DNSLINK_HOSTNAME:127.0.0.1
-
-		// test_expect_success "dnslink gw: backlink on root CID should be hidden" '
-		//   curl -v -sD - --resolve $DNSLINK_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DNSLINK_HOSTNAME:$GWAY_PORT/ > list_response &&
-		//   test_should_contain "Index of" list_response &&
-		//   test_should_not_contain "<a href=\"/\">..</a>" list_response
-		// '
 		{
 			Name: "Backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 			Request: Request().
@@ -186,11 +165,6 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 					),
 				),
 		},
-		// test_expect_success "dnslink gw: redirect dir listing to URL with trailing slash" '
-		//   curl -sD - --resolve $DNSLINK_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DNSLINK_HOSTNAME:$GWAY_PORT/ą/ę > list_response &&
-		//   test_should_contain "HTTP/1.1 301 Moved Permanently" list_response &&
-		//   test_should_contain "Location: /%c4%85/%c4%99/" list_response
-		// '
 		{
 			Name: "Redirect dir listing to URL with trailing slash",
 			Request: Request().
@@ -201,25 +175,6 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 					Header("Location").Equals(`/%c4%85/%c4%99/`),
 				),
 		},
-		// test_expect_success "dnslink gw: Etag should be present" '
-		//   curl -sD - --resolve $DNSLINK_HOSTNAME:$GWAY_PORT:127.0.0.1 http://$DNSLINK_HOSTNAME:$GWAY_PORT/ą/ę/ > list_response &&
-		//   test_should_contain "Index of" list_response &&
-		//   test_should_contain "Etag: \"DirIndex-" list_response
-		// '
-		// test_expect_success "dnslink gw: backlink on subdirectory should point at parent directory" '
-		//   test_should_contain "<a href=\"/%C4%85/%C4%99/..\">..</a>" list_response
-		// '
-		// test_expect_success "dnslink gw: breadcrumbs should point at content root mounted at dnslink origin" '
-		//   test_should_contain "/ipns/<a href=\"//$DNSLINK_HOSTNAME:$GWAY_PORT/\">website.example.com</a>/<a href=\"//$DNSLINK_HOSTNAME:$GWAY_PORT/%C4%85\">ą</a>/<a href=\"//$DNSLINK_HOSTNAME:$GWAY_PORT/%C4%85/%C4%99\">ę</a>" list_response
-		// '
-		// test_expect_success "dnslink gw: name column should be a link to content root mounted at dnslink origin" '
-		//   test_should_contain "<a href=\"/%C4%85/%C4%99/file-%C5%BA%C5%82.txt\">file-źł.txt</a>" list_response
-		// '
-		// # DNSLink websites don't have public gateway mounted by default
-		// # See: https://github.com/ipfs/dir-index-html/issues/42
-		// test_expect_success "dnslink gw: hash column should be a CID link to cid.ipfs.tech" '
-		//   test_should_contain "<a class=\"ipfs-hash\" translate=\"no\" href=\"https://cid.ipfs.tech/#$FILE_CID\" target=\"_blank\" rel=\"noreferrer noopener\">" list_response
-		// '
 		{
 			Name: "Regular dir listing (TODO: cleanup Kubo-specifics)",
 			Request: Request().
@@ -234,7 +189,7 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 					- name column should be a link to content root mounted at dnslink origin
 					- hash column should be a CID link to cid.ipfs.tech
 					  DNSLink websites don't have public gateway mounted by default
-					  See: https://github.com/ipfs/dir-index-html/issues/42 (TODO:  class and other attrs are kubo-specific)
+					  See: https://github.com/ipfs/dir-index-html/issues/42 (TODO: class and other attrs are kubo-specific)
 					`,
 					And(
 						Contains("Index of"),
