@@ -333,7 +333,6 @@ func TestGatewayCache(t *testing.T) {
 				Status(304),
 		},
 	}
-
 	RunWithSpecs(t, testsB, specs.PathGatewayUnixFS)
 }
 
