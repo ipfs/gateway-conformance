@@ -317,7 +317,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Fmt(`"{{etag}}"`, etag)),
+					Header("If-None-Match", `"{{etag}}"`, etag),
 				),
 			Response: Expect().
 				Status(304),
@@ -327,7 +327,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", Fmt(`W/"{{etag}}"`, etag)),
+					Header("If-None-Match", `W/"{{etag}}"`, etag),
 				),
 			Response: Expect().
 				Status(304),
