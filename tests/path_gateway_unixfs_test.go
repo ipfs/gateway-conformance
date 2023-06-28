@@ -301,7 +301,7 @@ func TestGatewayCache(t *testing.T) {
 				if etag == "" {
 					return fmt.Errorf("etag is empty")
 				}
-				req.Header.Add("If-None-Match", fmt.Sprintf(`"{{%s}}"`, etag))
+				req.Header.Add("If-None-Match", fmt.Sprintf(`"%s"`, etag))
 				return nil
 			},
 		},
@@ -315,7 +315,7 @@ func TestGatewayCache(t *testing.T) {
 				if etag == "" {
 					return fmt.Errorf("etag is empty")
 				}
-				req.Header.Add("If-None-Match", fmt.Sprintf(`W/"{{%s}}"`, etag))
+				req.Header.Add("If-None-Match", fmt.Sprintf(`W/"%s"`, etag))
 				return nil
 			},
 		},
