@@ -36,7 +36,7 @@ func TestExtractPath(t *testing.T) {
 }
 
 func TestLoadIPNSRecord(t *testing.T) {
-	path := "../../fixtures/t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record"
+	path := "./_fixtures/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record"
 	ipns, err := OpenIPNSRecordWithKey(path)
 
 	assert.Nil(t, err)
