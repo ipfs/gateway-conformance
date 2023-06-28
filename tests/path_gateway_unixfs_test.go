@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -128,7 +129,7 @@ func TestGatewayCache(t *testing.T) {
 						Matches("DirIndex-.*_CID-{{cid}}", fixture.MustGetCid("root2", "root3")),
 				),
 			After: func(res *http.Response) error {
-				etag = res.Header.Get("Etag")
+				etag = strings.ReplaceAll(res.Header.Get("Etag"), `"`, "")
 				return nil
 			},
 		},
