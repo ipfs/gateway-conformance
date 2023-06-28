@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -101,14 +102,8 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
 }
 
-// TODO(laurent): below were in t0116_gateway_cache_test
-
 func TestGatewayCache(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0116/gateway-cache.car")
-
-	// TODO: Add request chaining support to the test framework and enable the etag tests
-	// https://specs.ipfs.tech/http-gateways/path-gateway/#etag-response-header
-	// var etag string
+	fixture := car.MustOpenUnixfsCar("gateway-cache/fixtures.car")
 
 	tests := SugarTests{
 		{
@@ -226,6 +221,9 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(412),
 		},
+		// ==========
+		// # If-None-Match (return 304 Not Modified when client sends matching Etag they already have)
+		// ==========
 		{
 			Name: "GET for /ipfs/ file with matching Etag in If-None-Match returns 304 Not Modified",
 			Request: Request().
@@ -290,8 +288,8 @@ func TestGatewayCache(t *testing.T) {
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
 
-	// DirIndex etag is based on xxhash(./assets/dir-index-html), so we need to fetch it dynamically
-	var etag string
+	// DirIndex etagDir is based on xxhash(./assets/dir-index-html), so we need to fetch it dynamically
+	var etagDir string
 
 	testsA := SugarTests{
 		{
@@ -303,7 +301,7 @@ func TestGatewayCache(t *testing.T) {
 				Headers(
 					Header("Etag").
 						Checks(func(v string) bool {
-							etag = strings.Trim(v, `"`)
+							etagDir = strings.Trim(v, `"`)
 							return v != ""
 						}),
 				),
@@ -317,7 +315,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", `"{{etag}}"`, etag),
+					Header("If-None-Match", `"{{etag}}"`, etagDir),
 				),
 			Response: Expect().
 				Status(304),
@@ -327,7 +325,7 @@ func TestGatewayCache(t *testing.T) {
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
-					Header("If-None-Match", `W/"{{etag}}"`, etag),
+					Header("If-None-Match", `W/"{{etag}}"`, etagDir),
 				),
 			Response: Expect().
 				Status(304),
@@ -337,8 +335,8 @@ func TestGatewayCache(t *testing.T) {
 }
 
 func TestGatewayCacheWithIPNS(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0116/gateway-cache.car")
-	ipns := ipns.MustOpenIPNSRecordWithKey("t0116/k51qzi5uqu5dlxdsdu5fpuu7h69wu4ohp32iwm9pdt9nq3y5rpn3ln9j12zfhe.ipns-record")
+	fixture := car.MustOpenUnixfsCar("gateway-cache/fixtures.car")
+	ipns := ipns.MustOpenIPNSRecordWithKey("gateway-cache/k51qzi5uqu5dlxdsdu5fpuu7h69wu4ohp32iwm9pdt9nq3y5rpn3ln9j12zfhe.ipns-record")
 	ipnsKey := ipns.Key()
 
 	tests := SugarTests{
