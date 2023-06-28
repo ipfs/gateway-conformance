@@ -219,7 +219,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					)),
 			},
 			{
-				Name:    "request for deep path resource at {cid}.ipfs.localhost/sub/dir/file",
+				Name:    "request for deep path resource at {cid}.ipfs.example.com/sub/dir/file",
 				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/ipfs/ipns/bar", u.Scheme, DirCID, u.Host),
 				Response: Expect().
 					Status(200).
@@ -294,7 +294,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					),
 			},
 			{
-				Name:    "request for a too long CID at localhost/ipfs/{CIDv1} returns human readable error",
+				Name:    "request for a too long CID at example.com/ipfs/{CIDv1} returns human readable error",
 				Hint:    "router should not redirect to hostnames that could fail due to DNS limits",
 				Request: Request().URL("{{url}}/ipfs/{{cid}}", gatewayURL, CIDv1_TOO_LONG),
 				Response: Expect().
@@ -302,7 +302,7 @@ func TestGatewaySubdomains(t *testing.T) {
 					Body(Contains("CID incompatible with DNS label length limit of 63")),
 			},
 			{
-				Name:    "request for a too long CID at {CIDv1}.ipfs.localhost returns expected payload",
+				Name:    "request for a too long CID at {CIDv1}.ipfs.example.com returns expected payload",
 				Hint:    "direct request should also fail (provides the same UX as router and avoids confusion)",
 				Request: Request().URL("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1_TOO_LONG, u.Host),
 				Response: Expect().

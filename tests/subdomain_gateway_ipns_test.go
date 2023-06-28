@@ -214,6 +214,7 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 				Name: `request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path`,
 				Hint: "Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
 				Request: Request().
+					// TODO: use Query or future QueryRaw here
 					URL(`{{url}}/ipns/?uri=ipns%3A%2F%2F{{dnslink}}`, gatewayURL, wikipedia),
 				Response: Expect().
 					Headers(
