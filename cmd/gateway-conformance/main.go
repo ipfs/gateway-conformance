@@ -147,7 +147,10 @@ func main() {
 					cmd.Stdout = out{
 						Writer: output,
 						Filter: func(line string) bool {
-							return verbose || strings.Contains(line, "FAIL") || strings.HasPrefix(line, "PASS")
+							return verbose ||
+								strings.HasPrefix(line, "\u0016FAIL") ||
+								strings.HasPrefix(line, "\u0016--- FAIL") ||
+								strings.HasPrefix(line, "\u0016PASS")
 						},
 					}
 					cmd.Stderr = os.Stderr
@@ -161,13 +164,13 @@ func main() {
 						strOutput := output.String()
 						lineDump := []string{}
 						for _, line := range strings.Split(strOutput, "\n") {
-							if strings.Contains(line, "FAIL") {
+							if strings.HasPrefix(line, "\u0016FAIL") || strings.HasPrefix(line, "\u0016--- FAIL") {
 								fmt.Println(line)
 								for _, l := range lineDump {
 									fmt.Println(l)
 								}
 								lineDump = []string{}
-							} else if strings.Contains(line, "===") {
+							} else if strings.HasPrefix(line, "\u0016===") {
 								lineDump = []string{}
 							} else {
 								lineDump = append(lineDump, line)
