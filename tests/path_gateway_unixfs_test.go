@@ -286,32 +286,55 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
-		// The tests below require `etag` to be set.
-		/*
-			{
-				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
-				Request: Request().
-					Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
-					Headers(
-						Header("If-None-Match", fmt.Sprintf(`"{{etag}}"`, etag)),
-					),
-				Response: Expect().
-					Status(304),
-			},
-			{
-				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
-				Request: Request().
-					Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
-					Headers(
-						Header("If-None-Match", fmt.Sprintf(`W/"{{etag}}"`, etag)),
-					),
-				Response: Expect().
-					Status(304),
-			},
-		*/
 	}
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
+
+	// DirIndex etag is based on xxhash(./assets/dir-index-html), so we need to fetch it dynamically
+	var etag string
+
+	testsA := SugarTests{
+		{
+			Name: "DirIndex etag is based on xxhash(./assets/dir-index-html), so we need to fetch it dynamically",
+			Request: Request().
+				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Etag").
+						Checks(func(v string) bool {
+							etag = v[1 : len(v)-1] // trim quotes
+							return v != ""
+						}),
+				),
+		},
+	}
+	RunWithSpecs(t, testsA, specs.PathGatewayUnixFS)
+
+	testsB := SugarTests{
+		{
+			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
+			Request: Request().
+				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
+				Headers(
+					Header("If-None-Match", Fmt(`"{{etag}}"`, etag)),
+				),
+			Response: Expect().
+				Status(304),
+		},
+		{
+			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
+			Request: Request().
+				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
+				Headers(
+					Header("If-None-Match", Fmt(`W/"{{etag}}"`, etag)),
+				),
+			Response: Expect().
+				Status(304),
+		},
+	}
+
+	RunWithSpecs(t, testsB, specs.PathGatewayUnixFS)
 }
 
 func TestGatewayCacheWithIPNS(t *testing.T) {
