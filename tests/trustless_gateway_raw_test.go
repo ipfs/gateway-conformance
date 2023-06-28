@@ -11,7 +11,7 @@ import (
 )
 
 func TestTrustlessRaw(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0117-gateway-block.car")
+	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
 	tests := SugarTests{
 		{

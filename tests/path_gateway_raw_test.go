@@ -12,7 +12,7 @@ import (
 )
 
 func TestGatewayBlock(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0117-gateway-block.car")
+	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
 	tests := SugarTests{
 		{
@@ -121,6 +121,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Cache-Control").
 						Hint("It should be public, immutable and have max-age of at least 31536000.").
 						Checks(func(v string) bool {
+							// TODO: port this to a regular check.
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
 							dir := make(map[string]string)
 							for _, directive := range directives {
