@@ -303,7 +303,7 @@ func TestGatewayCache(t *testing.T) {
 				Headers(
 					Header("Etag").
 						Checks(func(v string) bool {
-							etag = v[1 : len(v)-1] // trim quotes
+							etag = strings.Trim(v, `"`)
 							return v != ""
 						}),
 				),
