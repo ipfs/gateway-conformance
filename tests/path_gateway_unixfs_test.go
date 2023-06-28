@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -106,9 +108,7 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 func TestGatewayCache(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("t0116/gateway-cache.car")
 
-	// TODO: Add request chaining support to the test framework and enable the etag tests
-	// https://specs.ipfs.tech/http-gateways/path-gateway/#etag-response-header
-	// var etag string
+	var etag string
 
 	tests := SugarTests{
 		{
@@ -127,6 +127,10 @@ func TestGatewayCache(t *testing.T) {
 					Header("Etag").
 						Matches("DirIndex-.*_CID-{{cid}}", fixture.MustGetCid("root2", "root3")),
 				),
+			After: func(res *http.Response) error {
+				etag = res.Header.Get("Etag")
+				return nil
+			},
 		},
 		{
 			Name: "GET for /ipfs/ unixfs dir with index.html succeeds",
@@ -286,29 +290,34 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
-		// The tests below require `etag` to be set.
-		/*
-			{
-				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
-				Request: Request().
-					Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
-					Headers(
-						Header("If-None-Match", fmt.Sprintf(`"{{etag}}"`, etag)),
-					),
-				Response: Expect().
-					Status(304),
+		{
+			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
+			Request: Request().
+				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()),
+			Response: Expect().
+				Status(304),
+			Before: func(req *http.Request) error {
+				if etag == "" {
+					return fmt.Errorf("etag is empty")
+				}
+				req.Header.Add("If-None-Match", fmt.Sprintf(`"{{%s}}"`, etag))
+				return nil
 			},
-			{
-				Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
-				Request: Request().
-					Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
-					Headers(
-						Header("If-None-Match", fmt.Sprintf(`W/"{{etag}}"`, etag)),
-					),
-				Response: Expect().
-					Status(304),
+		},
+		{
+			Name: "GET for /ipfs/ dir listing with matching strong Etag in If-None-Match returns 304 Not Modified",
+			Request: Request().
+				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()),
+			Response: Expect().
+				Status(304),
+			Before: func(req *http.Request) error {
+				if etag == "" {
+					return fmt.Errorf("etag is empty")
+				}
+				req.Header.Add("If-None-Match", fmt.Sprintf(`W/"{{%s}}"`, etag))
+				return nil
 			},
-		*/
+		},
 	}
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)

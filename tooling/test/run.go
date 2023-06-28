@@ -97,13 +97,26 @@ func runRequest(ctx context.Context, t *testing.T, test SugarTest, builder Reque
 		}
 	}
 
+	if test.Before != nil {
+		err = test.Before(req)
+		if err != nil {
+			localReport(t, "Before failed: %s", err)
+		}
+	}
+
 	// send request
 	log.Debugf("Querying %s", url)
 	req = req.WithContext(ctx)
-
 	res, err = client.Do(req)
 	if err != nil {
 		localReport(t, "Querying %s failed: %s", url, err)
+	}
+
+	if test.After != nil {
+		err = test.After(res)
+		if err != nil {
+			localReport(t, "After failed: %s", err)
+		}
 	}
 
 	return req, res, localReport

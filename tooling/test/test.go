@@ -9,6 +9,9 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 )
 
+type BeforeFunc func(req *http.Request) error
+type AfterFunc func(res *http.Response) error
+
 type SugarTest struct {
 	Name      string
 	Hint      string
@@ -16,6 +19,8 @@ type SugarTest struct {
 	Requests  []RequestBuilder
 	Response  ExpectBuilder
 	Responses ExpectsBuilder
+	Before    BeforeFunc
+	After     AfterFunc
 }
 
 type SugarTests []SugarTest
