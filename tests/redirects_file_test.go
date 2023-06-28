@@ -142,17 +142,6 @@ func TestRedirectsFileSupport(t *testing.T) {
 					Status(200).
 					Body(Contains("my index")),
 			},
-			// # This test ensures _redirects is supported only on Web Gateways that use Host header (DNSLink, Subdomain)
-			// test_expect_success "request for http://127.0.0.1:$GWAY_PORT/ipfs/$REDIRECTS_DIR_CID/301-redirect-one returns generic 404 (no custom 404 from _redirects since no origin isolation)" '
-			//
-			//	curl -sD - "http://127.0.0.1:$GWAY_PORT/ipfs/$REDIRECTS_DIR_CID/301-redirect-one" > response &&
-			//	test_should_contain "404 Not Found" response &&
-			//	test_should_not_contain "my 404" response
-			//
-			// '
-			// TODO(lidel): Do we want to explicitly test something like "if the spec `redirect` is not enabled, then test this case"?
-			// 				Recommendation: don't (because you might disable a spec just because it's not fully implemented yet, which is different from not supporting it)
-			// 								and keep the test in kubo sharness.
 		}...)
 
 		// # Invalid file, containing forced redirect
@@ -188,6 +177,54 @@ func TestRedirectsFileSupport(t *testing.T) {
 						And(
 							Contains("could not parse _redirects:"),
 							Contains("redirects file size cannot exceed"),
+						),
+					),
+			},
+		}...)
+
+		// # With CRLF line terminator
+		newlineRedirectsDirCID := fixture.MustGetNode("newlines").Base32Cid()
+		newlineBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, newlineRedirectsDirCID, u.Host)
+
+		// # Good codes
+		goodRedirectDirCID := fixture.MustGetNode("good-codes").Base32Cid()
+		goodRedirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, goodRedirectDirCID, u.Host)
+
+		// # Bad codes
+		badRedirectDirCID := fixture.MustGetNode("bad-codes").Base32Cid()
+		badRedirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, badRedirectDirCID, u.Host)
+
+		tests = append(tests, SugarTests{
+			{
+				Name: "newline: request for $NEWLINE_REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
+				Request: Request().
+					URL("{{url}}/redirect-one", newlineBaseURL),
+				Response: Expect().
+					Status(301).
+					Headers(
+						Header("Location").Equals("/one.html"),
+					),
+			},
+			{
+				Name: "good codes: request for $GOOD_REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
+				Request: Request().
+					URL("{{url}}/a301", goodRedirectDirBaseURL),
+				Response: Expect().
+					Status(301).
+					Headers(
+						Header("Location").Equals("/b301"),
+					),
+			},
+			{
+				Name: "bad codes: request for $BAD_REDIRECTS_DIR_HOSTNAME/found.html doesn't return error about bad code",
+				Request: Request().
+					URL("{{url}}/found.html", badRedirectDirBaseURL),
+				Response: Expect().
+					Status(200).
+					Body(
+						And(
+							Contains("my found"),
+							Not(Contains("unsupported redirect status")),
 						),
 					),
 			},
@@ -237,15 +274,6 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 					Contains("my 404"),
 				),
 		},
-		// test_expect_success "request for $NO_DNSLINK_FQDN/redirect-one does not redirect, since DNSLink is disabled" '
-		// curl -sD - --resolve $NO_DNSLINK_FQDN:$GWAY_PORT:127.0.0.1 "http://$NO_DNSLINK_FQDN:$GWAY_PORT/redirect-one" > response &&
-		// test_should_not_contain "one.html" response &&
-		// test_should_not_contain "301 Moved Permanently" response &&
-		// test_should_not_contain "Location:" response
-		// '
-		// TODO(lidel): Do we want to explicitly test something like "if the spec is not enabled, then test this case"?
-		// 				Recommendation: don't (because you might disable a spec just because it's not fully implemented yet, which is different from not supporting it)
-		// 								and keep the test in kubo sharness.
 	}
 
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway, specs.RedirectsFile)
