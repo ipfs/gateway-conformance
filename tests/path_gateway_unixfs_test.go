@@ -446,13 +446,15 @@ func TestCors(t *testing.T) {
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),
-					Header("Access-Control-Allow-Methods").Has("GET"),
-					Header("Access-Control-Allow-Headers").Has("Range"),
+					Header("Access-Control-Allow-Methods").Has("GET", "HEAD", "OPTIONS"),
+					Header("Access-Control-Allow-Headers").Has("Content-Type", "Range", "User-Agent", "X-Requested-With"),
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
 						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
+						"X-Chunked-Output",
+						"X-Stream-Output",
 					),
 				),
 		},
@@ -464,13 +466,15 @@ func TestCors(t *testing.T) {
 			Response: Expect().
 				Headers(
 					Header("Access-Control-Allow-Origin").Equals("*"),
-					Header("Access-Control-Allow-Methods").Has("GET"),
-					Header("Access-Control-Allow-Headers").Has("Range"),
+					Header("Access-Control-Allow-Methods").Has("GET", "HEAD", "OPTIONS"),
+					Header("Access-Control-Allow-Headers").Has("Content-Type", "Range", "User-Agent", "X-Requested-With"),
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
 						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
+						"X-Chunked-Output",
+						"X-Stream-Output",
 					),
 				),
 		},
