@@ -10,11 +10,11 @@ import (
 )
 
 func TestGatewayIPNSRecord(t *testing.T) {
-	fixture := car.MustOpenUnixfsCar("t0124/fixtures.car")
+	fixture := car.MustOpenUnixfsCar("ipns_records/fixtures.car")
 	file := fixture.MustGetRoot()
 	fileCID := file.Cid()
 
-	ipns := MustOpenIPNSRecordWithKey("t0124/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
+	ipns := MustOpenIPNSRecordWithKey("ipns_records/k51qzi5uqu5dh71qgwangrt6r0nd4094i88nsady6qgd1dhjcyfsaqmpp143ab.ipns-record")
 	ipnsName := ipns.Key()
 
 	tests := SugarTests{
