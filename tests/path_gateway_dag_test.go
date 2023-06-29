@@ -221,8 +221,8 @@ func TestPlainCodec(t *testing.T) {
 	}
 
 	for _, row := range table {
-		plain := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain.{{format}}.car", row.Format)).MustGetRoot()
-		plainOrDag := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-that-can-be-dag.{{format}}.car", row.Format)).MustGetRoot()
+		plain := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-{{format}}.car", row.Format)).MustGetRoot()
+		plainOrDag := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-cbor-that-can-be-dag-{{format}}.car", row.Format)).MustGetRoot()
 		formatted := plainOrDag.Formatted("dag-" + row.Format)
 
 		plainCID := plain.Cid()
