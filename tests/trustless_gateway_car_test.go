@@ -630,7 +630,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 }
 
 func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
-	dirWithDuplicateFiles := car.MustOpenUnixfsCar("t0118/dir-with-duplicate-files.car")
+	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
 
 	tests := SugarTests{
 		{
@@ -653,14 +653,12 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 				Body(
 					IsCar().
 						IgnoreRoots().
-						HasBlocks(flattenStrings(t,
-							dirWithDuplicateFiles.MustGetCid(),
-							dirWithDuplicateFiles.MustGetCid("ascii.txt"), // ascii.txt = ascii-copy.txt
-							dirWithDuplicateFiles.MustGetCid("ascii-copy.txt"),
-							dirWithDuplicateFiles.MustGetCid("hello.txt"),
-							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
-							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
-						)...).
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...).
 						Exactly().
 						InThatOrder(),
 				),
@@ -685,13 +683,11 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 				Body(
 					IsCar().
 						IgnoreRoots().
-						HasBlocks(flattenStrings(t,
-							dirWithDuplicateFiles.MustGetCid(),
-							dirWithDuplicateFiles.MustGetCid("ascii.txt"), // ascii.txt = ascii-copy.txt
-							dirWithDuplicateFiles.MustGetCid("hello.txt"),
-							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
-							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
-						)...).
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...).
 						Exactly().
 						InThatOrder(),
 				),
@@ -714,14 +710,12 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 				Body(
 					IsCar().
 						IgnoreRoots().
-						HasBlocks(flattenStrings(t,
-							dirWithDuplicateFiles.MustGetCid(),
-							dirWithDuplicateFiles.MustGetCid("ascii.txt"),
-							dirWithDuplicateFiles.MustGetCid("ascii-copy.txt"),
-							dirWithDuplicateFiles.MustGetCid("hello.txt"),
-							dirWithDuplicateFiles.MustGetCid("multiblock.txt"),
-							dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt"),
-						)...),
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...),
 				),
 		},
 	}
