@@ -13,7 +13,7 @@ See the [PR](https://github.com/ipfs/kubo/pull/9029) that introduced them for mo
 Generated with:
 
 ```sh
-# ipfs version 0.18.1
+# Kubo CLI version 0.18.1 (https://dist.ipfs.tech/kubo/v0.18.1/)
 
 mkdir -p rootDir/ipfs &&
 mkdir -p rootDir/ipns &&

@@ -14,7 +14,7 @@
 Generated with:
 
 ```sh
-# using ipfs version 0.21.0-dev (03a98280e3e642774776cd3d0435ab53e5dfa867)
+# using Kubo CLI version 0.21.0-rc3 (https://dist.ipfs.tech/kubo/v0.21.0-rc3/)
 
 mkdir -p rootDir/ipfs &&
 mkdir -p rootDir/ipns &&

@@ -10,7 +10,7 @@
 generated with:
 
 ```sh
-# using ipfs version 0.21.0-dev (03a98280e3e642774776cd3d0435ab53e5dfa867)
+# using Kubo CLI version 0.21.0-dev (03a98280e3e642774776cd3d0435ab53e5dfa867)
 
 mkdir -p root2/root3/root4 &&
 echo "hello" > root2/root3/root4/index.html &&
