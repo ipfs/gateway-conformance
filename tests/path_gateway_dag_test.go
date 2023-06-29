@@ -22,7 +22,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 
 	tests := SugarTests{
 		{
-			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type (1)",
+			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type - without headers",
 			Hint: `
 			## Quick regression check for JSON stored on UnixFS:
 			## it has nothing to do with DAG-JSON and JSON codecs,
@@ -30,10 +30,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 			## and we want to avoid surprises like https://github.com/protocol/bifrost-infra/issues/2290
 			`,
 			Request: Request().
-				Path("/ipfs/{{cid}}", fileJSONCID).
-				Headers(
-					Header("Accept", "application/json"),
-				),
+				Path("/ipfs/{{cid}}", fileJSONCID),
 			Response: Expect().
 				Status(200).
 				Headers(
@@ -43,7 +40,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 				Body(fileJSONData),
 		},
 		{
-			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type (2)",
+			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type - with headers",
 			Hint: `
 			## Quick regression check for JSON stored on UnixFS:
 			## it has nothing to do with DAG-JSON and JSON codecs,
