@@ -196,7 +196,7 @@ Here is an example for VSCode, `example.com` is the domain configured via [kubo-
 
 With this configuration, the tests will appear in `Testing` on VSCode's left sidebar.
 
-It's also possible to run test suite locally and use `make output.html` to generate a human-readable report from the test results in `reports/output.json`.
+It's also possible to run test suite locally and use `make ./reports/output.html` to generate a human-readable report from the test results in `reports/output.json`.
 
 ## Examples
 
