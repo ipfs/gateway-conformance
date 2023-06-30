@@ -1,0 +1,20 @@
+name: Release Fixtures
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Release]
+    types:
+      - completed
+    
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - id: generate-fixtures
+        env:
+          W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
+        uses: bash
+        run: |
+          make fixtures.car
+          curl -X POST 'https://api.web3.storage/car' # token should be in W3STORAGE_TOKEN
