@@ -11,10 +11,13 @@
     - [Usage](#usage)
   - [extract-fixtures](#extract-fixtures)
     - [Inputs](#inputs-1)
+    - [Outputs](#outputs)
     - [Usage](#usage-1)
-- [Testing your gateway](#testing-your-gateway)
+- [Testing Your Gateway](#testing-your-gateway)
   - [Provisioning the Gateway](#provisioning-the-gateway)
+- [Local Development](#local-development)
 - [Examples](#examples)
+- [APIs](#apis)
 - [FAQ](#faq)
 - [In Development](#in-development)
 
@@ -94,7 +97,19 @@ The `extract-fixtures` command is used to extract the test fixtures from the `ga
 | Input | Availability | Description | Default |
 |---|---|---|---|
 | output | Both | The path where the test fixtures should be extracted. | `./fixtures` |
-| merged | Both | Whether the fixtures should be merged into a single CAR file. | `false` |
+| merged | Both | Whether the fixtures should be merged into as few files as possible. | `false` |
+
+#### Outputs
+
+When you use `--merged=true` the following files are be generated:
+
+- `fixtures.car`: A car file that contains all the blocks required to run the tests
+- `dnslinks.json`: A configuration file listing all the dnslink names required to run the tests related to DNSLinks
+- `*.ipns-record`: Many raw ipns-record files required to run the tests related to IPNS
+
+Examples of how to import these in Kubo are shown in [`kubo-config.example.sh`](./kubo-config.example.sh) and the [`Makefile`](./Makefile).
+
+Without `--merged=true`, many car files and dnslink configurations file will be generated, we don't recommend using these.
 
 #### Usage
 
@@ -131,6 +146,55 @@ These fixtures are located in the `./fixtures` folders. We distribute tools for 
 - Blocks & Dags: These are served as [CAR](https://ipld.io/specs/transport/car/) file(s).
 - IPNS Records: These are distributed as files containing [IPNS Record](https://specs.ipfs.tech/ipns/ipns-record/#ipns-record) [serialized as protobuf](https://specs.ipfs.tech/ipns/ipns-record/#record-serialization-format). The file name includes the Multihash of the public key ([IPNS Name](https://specs.ipfs.tech/ipns/ipns-record/#ipns-name)) in this format: `pubkey(_optional_suffix)?.ipns-record`. We may decide to [share CAR files](https://github.com/ipfs/specs/issues/369) in the future.
 - DNS Links: These are distributed as `yml` configurations. You can use the `--merge` option to generate a consolidated `.json` file, which can be more convenient for use in a shell script.
+
+## Local Development
+
+This is how we use the test-suite when we work on the suite itself or a gateway implementation:
+
+```sh
+# Generate the fixtures
+make fixtures.car
+
+# Import the fixtures in Kubo
+# We import car files and ipns-records during this step.
+# We import DNSLink fixtures through the `IPFS_NS_MAP` below. 
+make provision-kubo
+
+# Configure Kubo for the test-suite
+# This also generated the `IPFS_NS_MAP` variable to setup DNSLink fixtures
+source ./kubo-config.example.sh
+
+# Start a Kubo daemon in offline mode
+ipfs daemon --offline
+```
+
+By then the gateway is configured and you may run the test-suite.
+
+```sh
+make test-kubo
+
+# run with subdomain testing which requires more configuration (see kubo-config.example.sh)
+make test-kubo-subdomains
+```
+
+If you are using a different gateway and would like to use a different configuration, the [Makefile](./Makefile) and configuration scripts are great, up-to-date, starting points.
+
+The test-suite is a regular go test-suite, which means that any IDE integration will work as-well.
+You can use env variables to configure the tests from your IDE.
+
+Here is an example for VSCode, `example.com` is the domain configured via [kubo-config.example.sh](./kubo-config.example.sh)
+
+```json
+{
+  "go.testEnvVars": {
+    "GATEWAY_URL": "http://127.0.0.1:8080",
+    "SUBDOMAIN_GATEWAY_URL": "http://example.com",
+    "GOLOG_LOG_LEVEL": "conformance=debug"
+  },
+}
+```
+
+With this configuration, the tests will appear in `Testing` on VSCode's left sidebar.
 
 ## Examples
 
