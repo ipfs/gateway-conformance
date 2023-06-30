@@ -1,18 +1,15 @@
-# Dataset description/sources
+# Subdomain Gateway Fixtures
 
-- fixtures.car
-  - raw CARv1
+## Recipes
 
-- QmUKd....ipns-record
-  - ipns record, encoded with protocol buffer
+### [dnslink.yml](./dnslink.yml)
 
-- 12D3K....ipns-record
-  - ipns record, encoded with protocol buffer
+See comments in the yml file.
 
-Generated with:
+### [fixtures.car](./fixtures.car)
 
 ```sh
-# using ipfs version 0.21.0-dev (03a98280e3e642774776cd3d0435ab53e5dfa867)
+# using Kubo CLI version 0.21.0-rc3 (https://dist.ipfs.tech/kubo/v0.21.0-rc3/)
 
 # CIDv0to1 is necessary because raw-leaves are enabled by default during
 # "ipfs add" with CIDv1 and disabled with CIDv0
@@ -42,18 +39,22 @@ DIR_CID=$(ipfs add -Qr --cid-version 1 testdirlisting)
 echo DIR_CID=${DIR_CID} # ./testdirlisting
 
 ipfs files mkdir /t0114/
-ipfs files cp /ipfs/${CIDv1} /t0114/
-ipfs files cp /ipfs/${CIDv0} /t0114/
-ipfs files cp /ipfs/${CIDv0to1} /t0114/
-ipfs files cp /ipfs/${DIR_CID} /t0114/
-ipfs files cp /ipfs/${CIDv1_TOO_LONG} /t0114/
+ipfs files cp /ipfs/${CIDv1} /t0114/hello-CIDv1
+ipfs files cp /ipfs/${CIDv0} /t0114/hello-CIDv0
+ipfs files cp /ipfs/${CIDv0to1} /t0114/hello-CIDv0to1
+ipfs files cp /ipfs/${DIR_CID} /t0114/testdirlisting
+ipfs files cp /ipfs/${CIDv1_TOO_LONG} /t0114/hello-CIDv1_TOO_LONG
 
 ROOT=`ipfs files stat /t0114/ --hash`
 
 ipfs dag export ${ROOT} > ./fixtures.car
+```
 
-# Then the keys
+### [ipns-records](./)
 
+We create ipns-records pointing to the CIDv1 generated above:
+
+```sh
 KEY_NAME=test_key_rsa_$RANDOM
 RSA_KEY=$(ipfs key gen --ipns-base=b58mh --type=rsa --size=2048 ${KEY_NAME} | head -n1 | tr -d "\n")
 RSA_IPNS_IDv0=$(echo "$RSA_KEY" | ipfs cid format -v 0)
@@ -89,23 +90,4 @@ echo ED25519_IPNS_IDv1=${ED25519_IPNS_IDv1}
 echo ED25519_IPNS_IDv1_DAGPB=${ED25519_IPNS_IDv1_DAGPB}
 echo IPNS_ED25519_B58MH=${IPNS_ED25519_B58MH}
 echo IPNS_ED25519_B36CID=${IPNS_ED25519_B36CID}
-
-# CID_VAL=hello
-# CIDv1=bafkreicysg23kiwv34eg2d7qweipxwosdo2py4ldv42nbauguluen5v6am
-# CIDv0=QmZULkCELmmk5XNfCgTnCyFgAVxBRBXyDHGGMVoLFLiXEN
-# CIDv0to1=bafybeiffndsajwhk3lwjewwdxqntmjm4b5wxaaanokonsggenkbw6slwk4
-# CIDv1_TOO_LONG=bafkrgqhhyivzstcz3hhswshfjgy6ertgmnqeleynhwt4dlfsthi4hn7zgh4uvlsb5xncykzapi3ocd4lzogukir6ksdy6wzrnz6ohnv4aglcs
-# DIR_CID=bafybeiht6dtwk3les7vqm6ibpvz6qpohidvlshsfyr7l5mpysdw2vmbbhe # ./testdirlisting
-
-# RSA_KEY=QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3
-# RSA_IPNS_IDv0=QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3
-# RSA_IPNS_IDv1=k2k4r8m7xvggw5pxxk3abrkwyer625hg01hfyggrai7lk1m63fuihi7w
-# RSA_IPNS_IDv1_DAGPB=k2jmtxu61bnhrtj301lw7zizknztocdbeqhxgv76l2q9t36fn9jbzipo
-
-# ED25519_KEY=12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d
-# ED25519_IPNS_IDv0=12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d
-# ED25519_IPNS_IDv1=k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam
-# ED25519_IPNS_IDv1_DAGPB=k50rm9yjlt0jey4fqg6wafvqprktgbkpgkqdg27tpqje6iimzxewnhvtin9hhq
-# IPNS_ED25519_B58MH=12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d
-# IPNS_ED25519_B36CID=k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam
 ```

@@ -1,12 +1,13 @@
-# Dataset description/sources
+# Directory Listing Fixtures
 
-- fixtures.car
-  - raw CARv1
+## Recipes
 
-generated with:
+### [fixtures.car](./fixtures.car)
+
+Raw CARv1, generated with:
 
 ```sh
-# using ipfs version 0.18.1
+# using Kubo CLI version 0.18.1 (https://dist.ipfs.tech/kubo/v0.18.1/)
 mkdir -p rootDir/ipfs &&
 mkdir -p rootDir/ipns &&
 mkdir -p rootDir/api &&

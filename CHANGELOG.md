@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `--verbose` flag displays all the output to the console
 
+### Changed
+- finalized port of Kubo's sharness tests. [PR](https://github.com/ipfs/gateway-conformance/pull/92)
+
 ## [0.2.0] - 2023-06-26
 ### Added
 - `carFixture.MustGetChildren`

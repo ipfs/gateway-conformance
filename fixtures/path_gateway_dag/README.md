@@ -1,20 +1,20 @@
-# Dataset description/sources
+# Path Gateway Dag Fixtures
+
+## Recipes
+
+### Legacy fixtures from Kubo
 
 - dag-cbor-traversal.car
-
 - dag-json-traversal.car
-
 - dag-pb.car
-
 - dag-pb.json
 
-- fixtures.car
-  - raw CARv1
+### [gateway-json-cbor.car](./gateway-json-cbor.car) and ipns-records
 
-generated with:
+Generated with:
 
 ```sh
-# using Kubo CLI version 0.21.0-dev (03a98280e3e642774776cd3d0435ab53e5dfa867)
+# using Kubo CLI version 0.21.0-rc3 (https://dist.ipfs.tech/kubo/v0.21.0-rc3/)
 
 mkdir -p rootDir/ipfs &&
 mkdir -p rootDir/ipns &&
@@ -36,7 +36,7 @@ echo FILE_JSON_CID=${FILE_JSON_CID} # ./rootDir/ą/ę/t.json
 echo FILE_CID=${FILE_CID} # ./rootDir/ą/ę/file-źł.txt
 echo FILE_SIZE=${FILE_SIZE}
 
-ipfs dag export ${DIR_CID} > fixtures.car
+ipfs dag export ${DIR_CID} > gateway-json-cbor.car
 
 DAG_CBOR_TRAVERSAL_CID="bafyreibs4utpgbn7uqegmd2goqz4bkyflre2ek2iwv743fhvylwi4zeeim"
 DAG_JSON_TRAVERSAL_CID="baguqeeram5ujjqrwheyaty3w5gdsmoz6vittchvhk723jjqxk7hakxkd47xq"
