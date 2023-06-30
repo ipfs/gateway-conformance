@@ -1,4 +1,4 @@
-name: Test
+name: Test Kubo (e2e)
 
 on:
   workflow_dispatch:
