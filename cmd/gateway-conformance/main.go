@@ -24,10 +24,17 @@ type event struct {
 
 type out struct {
 	Writer io.Writer
+	Filter func(s string) bool
 }
 
 func (o out) Write(p []byte) (n int, err error) {
-	os.Stdout.Write(p)
+	if o.Filter != nil {
+		for _, line := range strings.Split(string(p), "\n") {
+			if o.Filter(line) {
+				os.Stdout.Write([]byte(fmt.Sprintf("%s\n", line)))
+			}
+		}
+	}
 	return o.Writer.Write(p)
 }
 
@@ -52,6 +59,7 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 		newName := fmt.Sprintf("%s_%d%s", name, i, ext)
 
 		outputPath := filepath.Join(outputDirectoryPath, newName)
+
 		dst, err := os.Create(outputPath)
 		if err != nil {
 			return err
@@ -72,6 +80,7 @@ func main() {
 	var specs string
 	var directory string
 	var merged bool
+	var verbose bool
 
 	app := &cli.App{
 		Name:  "gateway-conformance",
@@ -108,6 +117,12 @@ func main() {
 						Value:       "",
 						Destination: &specs,
 					},
+					&cli.BoolFlag{
+						Name: "verbose",
+						Usage: "Prints all the output to the console.",
+						Value:       false,
+						Destination: &verbose,
+					},
 				},
 				Action: func(cCtx *cli.Context) error {
 					args := []string{"test", "./tests", "-test.v=test2json"}
@@ -129,9 +144,40 @@ func main() {
 						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
 					}
 
-					cmd.Stdout = out{output}
+					cmd.Stdout = out{
+						Writer: output,
+						Filter: func(line string) bool {
+							return verbose ||
+								strings.HasPrefix(line, "\u0016FAIL") ||
+								strings.HasPrefix(line, "\u0016--- FAIL") ||
+								strings.HasPrefix(line, "\u0016PASS")
+						},
+					}
 					cmd.Stderr = os.Stderr
+
+					fmt.Println("Running tests...\n")
 					testErr := cmd.Run()
+					fmt.Println("\nDONE!\n")
+
+					if testErr != nil {
+						fmt.Println("\nLooking for details...\n")
+						strOutput := output.String()
+						lineDump := []string{}
+						for _, line := range strings.Split(strOutput, "\n") {
+							if strings.HasPrefix(line, "\u0016FAIL") || strings.HasPrefix(line, "\u0016--- FAIL") {
+								fmt.Println(line)
+								for _, l := range lineDump {
+									fmt.Println(l)
+								}
+								lineDump = []string{}
+							} else if strings.HasPrefix(line, "\u0016===") {
+								lineDump = []string{}
+							} else {
+								lineDump = append(lineDump, line)
+							}
+						}
+						fmt.Println("\nDONE!\n")
+					}
 
 					if jsonOutput != "" {
 						json := &bytes.Buffer{}
@@ -139,7 +185,14 @@ func main() {
 						cmd.Stdin = output
 						cmd.Stdout = json
 						cmd.Stderr = os.Stderr
+
+						fmt.Println("\nGenerating JSON report...")
 						err := cmd.Run()
+						if err != nil {
+							return err
+						}
+						// create directory if it doesn't exist
+						err = os.MkdirAll(filepath.Dir(jsonOutput), 0755)
 						if err != nil {
 							return err
 						}
@@ -153,6 +206,7 @@ func main() {
 						if err != nil {
 							return err
 						}
+						fmt.Println("DONE!\n")
 					}
 
 					return testErr
