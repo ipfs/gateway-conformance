@@ -28,14 +28,13 @@ gateway-conformance:
 test-docker: docker fixtures.car gateway-conformance
 	./gc test
 
-output.xml: test-kubo
-	docker run --rm -v "${PWD}:/workspace" -w "/workspace" --entrypoint "/bin/bash" ghcr.io/pl-strflt/saxon:v1 -c """
-		java -jar /opt/SaxonHE11-5J/saxon-he-11.5.jar -s:<(jq -s '.' output.json) -xsl:/etc/gotest.xsl -o:output.xml
-	"""
-
+output.xml:
+	jq -ns 'inputs' ./reports/output.json > ./reports/output.json.alt
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -json:"./reports/output.json.alt" -xsl:/etc/gotest.xsl -o:"./reports/output.xml"
+	
 output.html: output.xml
-	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:output.html
-	open ./output.html
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:./reports/output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:./reports/output.html
+	open ./reports/output.html
 
 docker:
 	docker build -t gateway-conformance .
