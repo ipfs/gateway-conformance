@@ -118,8 +118,8 @@ func main() {
 						Destination: &specs,
 					},
 					&cli.BoolFlag{
-						Name: "verbose",
-						Usage: "Prints all the output to the console.",
+						Name:        "verbose",
+						Usage:       "Prints all the output to the console.",
 						Value:       false,
 						Destination: &verbose,
 					},
