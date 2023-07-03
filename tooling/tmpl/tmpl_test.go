@@ -143,7 +143,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 	assert.Equal(t,
 		"foo/{first}/{{}}/{{another}}/bar/{{{escaped}}}/{{first}}/baz",
 		Fmt(
-			"{{first}}/{first}/{{{}}}/{{{another}}}/{{}}/{{{{escaped}}}}/{{{first}}}/{{two}}",
+			"{{first}}/{first}/{{{}}}/{{{another}}}/{{two}}/{{{{escaped}}}}/{{{first}}}/{{three}}",
 			"foo",
 			"bar",
 			"baz",
@@ -169,7 +169,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 	assert.Equal(t,
 		"{{foo",
 		Fmt(
-			"{{{{}}",
+			"{{{{tmpl}}",
 			"foo",
 		),
 	)
@@ -177,7 +177,7 @@ func TestTemplatingWithEscaping(t *testing.T) {
 	assert.Equal(t,
 		"{name}}/{{foo/{barname}}}/{{{name}}}",
 		Fmt(
-			"{name}}/{{{{name}}/{{{}}name}}}/{{{{name}}}}",
+			"{name}}/{{{{name}}/{{{two}}name}}}/{{{{name}}}}",
 			"foo",
 			"bar",
 		),
