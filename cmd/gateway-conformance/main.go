@@ -17,11 +17,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type event struct {
-	Action string
-	Test   string `json:",omitempty"`
-}
-
 type out struct {
 	Writer io.Writer
 	Filter func(s string) bool

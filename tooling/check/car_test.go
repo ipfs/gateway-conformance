@@ -1,7 +1,7 @@
 package check
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -15,7 +15,7 @@ func loadFile(t *testing.T, carFilePath string) []byte {
 	}
 	defer file.Close()
 
-	fileBytes, err := ioutil.ReadAll(file)
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		t.Fatalf("failed to read car file: %v", err)
 	}

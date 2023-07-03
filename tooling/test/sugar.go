@@ -172,13 +172,13 @@ func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
 		e.Body_ = []byte(body)
 	case []byte:
 		e.Body_ = body
-	case check.Check[string]:
-		e.Body_ = body
 	case check.CheckWithHint[string]:
 		e.Body_ = body
-	case check.Check[[]byte]:
-		e.Body_ = body
 	case check.CheckWithHint[[]byte]:
+		e.Body_ = body
+	case check.Check[string]:
+		e.Body_ = body
+	case check.Check[[]byte]:
 		e.Body_ = body
 	default:
 		panic("body must be string, []byte, or a regular check")
