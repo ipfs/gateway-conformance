@@ -155,12 +155,15 @@ func main() {
 					}
 					cmd.Stderr = os.Stderr
 
-					fmt.Println("Running tests...\n")
+					fmt.Println("Running tests...")
+					fmt.Println()
 					testErr := cmd.Run()
-					fmt.Println("\nDONE!\n")
+					fmt.Println("\nDONE!")
+					fmt.Println()
 
 					if testErr != nil {
-						fmt.Println("\nLooking for details...\n")
+						fmt.Println("\nLooking for details...")
+						fmt.Println()
 						strOutput := output.String()
 						lineDump := []string{}
 						for _, line := range strings.Split(strOutput, "\n") {
@@ -176,7 +179,8 @@ func main() {
 								lineDump = append(lineDump, line)
 							}
 						}
-						fmt.Println("\nDONE!\n")
+						fmt.Println("\nDONE!")
+						fmt.Println()
 					}
 
 					if jsonOutput != "" {
@@ -206,7 +210,8 @@ func main() {
 						if err != nil {
 							return err
 						}
-						fmt.Println("DONE!\n")
+						fmt.Println("DONE!")
+						fmt.Println()
 					}
 
 					return testErr
