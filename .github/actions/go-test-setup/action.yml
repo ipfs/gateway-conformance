@@ -1,0 +1,11 @@
+name: "Go Test Setup"
+# https://github.com/protocol/.github#setup-actions
+description: "Setup the Go test environment."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Drop conformance tests - keep only unit tests
+      shell: bash
+      run: |
+        rm -rf ./tests

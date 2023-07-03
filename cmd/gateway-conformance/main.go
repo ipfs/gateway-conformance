@@ -17,11 +17,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type event struct {
-	Action string
-	Test   string `json:",omitempty"`
-}
-
 type out struct {
 	Writer io.Writer
 	Filter func(s string) bool
@@ -118,8 +113,8 @@ func main() {
 						Destination: &specs,
 					},
 					&cli.BoolFlag{
-						Name: "verbose",
-						Usage: "Prints all the output to the console.",
+						Name:        "verbose",
+						Usage:       "Prints all the output to the console.",
 						Value:       false,
 						Destination: &verbose,
 					},
@@ -155,12 +150,15 @@ func main() {
 					}
 					cmd.Stderr = os.Stderr
 
-					fmt.Println("Running tests...\n")
+					fmt.Println("Running tests...")
+					fmt.Println()
 					testErr := cmd.Run()
-					fmt.Println("\nDONE!\n")
+					fmt.Println("\nDONE!")
+					fmt.Println()
 
 					if testErr != nil {
-						fmt.Println("\nLooking for details...\n")
+						fmt.Println("\nLooking for details...")
+						fmt.Println()
 						strOutput := output.String()
 						lineDump := []string{}
 						for _, line := range strings.Split(strOutput, "\n") {
@@ -176,7 +174,8 @@ func main() {
 								lineDump = append(lineDump, line)
 							}
 						}
-						fmt.Println("\nDONE!\n")
+						fmt.Println("\nDONE!")
+						fmt.Println()
 					}
 
 					if jsonOutput != "" {
@@ -206,7 +205,8 @@ func main() {
 						if err != nil {
 							return err
 						}
-						fmt.Println("DONE!\n")
+						fmt.Println("DONE!")
+						fmt.Println()
 					}
 
 					return testErr
