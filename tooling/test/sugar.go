@@ -1,7 +1,6 @@
 package test
 
 import (
-	"bytes"
 	"net/url"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -128,7 +127,9 @@ func (r RequestBuilder) Clone() RequestBuilder {
 		Headers_:         clonedHeaders,
 		FollowRedirects_: r.FollowRedirects_,
 		Query_:           clonedQuery,
-		Body_:            bytes.Clone(r.Body_),
+		// TODO: replace this call with bytes.Clone when we switch to Go 1.20
+		// See https://github.com/golang/go/issues/45038#issuecomment-799795384
+		Body_: append([]byte(nil), r.Body_...),
 	}
 }
 
