@@ -1,0 +1,70 @@
+name: Test Kubo (e2e)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - main
+  pull_request:
+
+jobs:
+  upload-fixtures:
+    runs-on: 'ubuntu-latest'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.4
+      - uses: actions/checkout@v3
+        with:
+          path: 'gateway-conformance'
+      - name: Extract fixtures
+        uses: ./gateway-conformance/.github/actions/extract-fixtures
+        with:
+          output: ./
+          merged: true
+      # https://web3.storage/docs/how-tos/store/#storing-ipfs-content-archives
+      - name: Upload fixtures
+        env: 
+          W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
+        run: |
+          curl --headers "Authorization: Bearer $W3STORAGE_TOKEN" --data-binary @fixtures.car
+  test:
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ["ipfs.runfission.com"]
+    defaults:
+      run:
+        shell: bash
+    needs: upload-fixtures
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.4
+      - uses: actions/checkout@v3
+        with:
+          path: 'gateway-conformance'
+      - name: Run the tests
+        uses: ./gateway-conformance/.github/actions/test
+        with:
+          gateway-url: https://${{ matrix.target }}
+          subdomain-url: https://${{ matrix.target }}
+          json: output.json
+          xml: output.xml
+          html: output.html
+          markdown: output.md
+      - name: Set summary
+        if: (failure() || success())
+        run: cat ./output.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload one-page HTML report
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance.html
+          path: ./output.html
