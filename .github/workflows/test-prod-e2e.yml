@@ -3,13 +3,13 @@ name: Test Kubo (e2e)
 on:
   workflow_dispatch:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
 
 jobs:
   upload-fixtures:
-    runs-on: 'ubuntu-latest'
+    runs-on: "ubuntu-latest"
     defaults:
       run:
         shell: bash
@@ -20,7 +20,7 @@ jobs:
           go-version: 1.20.4
       - uses: actions/checkout@v3
         with:
-          path: 'gateway-conformance'
+          path: "gateway-conformance"
       - name: Extract fixtures
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
@@ -28,12 +28,38 @@ jobs:
           merged: true
       # https://web3.storage/docs/how-tos/store/#storing-ipfs-content-archives
       - name: Upload fixtures
-        env: 
+        id: upload
+        env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
         run: |
-          curl --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car
+          response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car "https://api.web3.storage/car")
+          status=$?
+
+          if [ $status -eq 0 ]; then
+            cid=$(echo $response | jq -r .cid)
+            echo "Pinned fixtures to w3.storage with CID: $cid"
+            echo "cid=$cid" >> "$GITHUB_OUTPUT"
+          else
+            exit $status
+          fi
+      - name: Wait for pinning
+        env:
+          W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
+          CID: ${{ steps.upload.outputs.cid }}
+        run: |
+          pin_status=""
+
+          while [[ "$pin_status" != "Pinned" ]]; do
+            response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$cid")
+            pin_status=$(echo $response | jq -r '.pins[0].status')
+            echo "Current pin status: $pin_status"
+
+            if [[ "$pin_status" != "Pinned" ]]; then
+              sleep 10 # Sleep for 10 seconds before trying again
+            fi
+          done
   test:
-    runs-on: 'ubuntu-latest'
+    runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
@@ -49,7 +75,7 @@ jobs:
           go-version: 1.20.4
       - uses: actions/checkout@v3
         with:
-          path: 'gateway-conformance'
+          path: "gateway-conformance"
       - name: Run the tests
         uses: ./gateway-conformance/.github/actions/test
         with:

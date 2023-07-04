@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-cid"
+	carv2 "github.com/ipld/go-car/v2"
 	"github.com/ipld/go-car/v2/blockstore"
 )
 
@@ -31,7 +32,8 @@ func Merge(inputPaths []string, outputPath string) error {
 
 	// Now prepare our new CAR file
 	fmt.Printf("Opening the %s file, with roots: %v\n", outputPath, roots)
-	rout, err := blockstore.OpenReadWrite(outputPath, roots)
+	options := []carv2.Option{blockstore.WriteAsCarV1(true)}
+	rout, err := blockstore.OpenReadWrite(outputPath, roots[0:1], options...)
 	if err != nil {
 		return err
 	}
