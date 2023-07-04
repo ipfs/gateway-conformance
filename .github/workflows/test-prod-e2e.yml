@@ -50,7 +50,7 @@ jobs:
           pin_status=""
 
           while [[ "$pin_status" != "Pinned" ]]; do
-            response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$cid")
+            response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$CID")
             pin_status=$(echo $response | jq -r '.pins[0].status')
             echo "Current pin status: $pin_status"
 
