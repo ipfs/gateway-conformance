@@ -32,25 +32,25 @@ jobs:
         env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
         run: |
-          response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car "https://api.web3.storage/car")
-          status=$?
+          set -e
+          set -o pipefail
 
-          if [ $status -eq 0 ]; then
-            cid=$(echo $response | jq -r .cid)
-            echo "Pinned fixtures to w3.storage with CID: $cid"
-            echo "cid=$cid" >> "$GITHUB_OUTPUT"
-          else
-            exit $status
-          fi
+          response=$(curl --fail --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car "https://api.web3.storage/car")
+          cid=$(echo $response | jq -r .cid)
+          echo "Pinned fixtures to w3.storage with CID: $cid"
+          echo "cid=$cid" >> "$GITHUB_OUTPUT"
       - name: Wait for pinning
         env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
           CID: ${{ steps.upload.outputs.cid }}
         run: |
+          set -e
+          set -o pipefail
+
           pin_status=""
 
           while [[ "$pin_status" != "Pinned" ]]; do
-            response=$(curl --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$CID")
+            response=$(curl --fail --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$CID")
             pin_status=$(echo $response | jq -r '.pins[0].status')
             echo "Current pin status: $pin_status"
 
