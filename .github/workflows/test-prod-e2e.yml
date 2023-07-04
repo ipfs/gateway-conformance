@@ -63,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["ipfs.runfission.com"]
+        target: ["ipfs.runfission.com", "w3s.link"]
     defaults:
       run:
         shell: bash
