@@ -31,7 +31,7 @@ jobs:
         env: 
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
         run: |
-          curl --headers "Authorization: Bearer $W3STORAGE_TOKEN" --data-binary @fixtures.car
+          curl --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car
   test:
     runs-on: 'ubuntu-latest'
     strategy:
