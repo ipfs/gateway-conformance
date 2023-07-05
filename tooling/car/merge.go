@@ -15,6 +15,18 @@ import (
 	"github.com/ipld/go-ipld-prime/storage/memstore"
 )
 
+// https://github.com/ipld/go-ipld-prime/blob/65bfa53512f2328d19273e471ce4fd6d964055a2/storage/bsadapter/bsadapter.go#L111C1-L120C2
+func cidFromBinString(key string) (cid.Cid, error) {
+	l, k, err := cid.CidFromBytes([]byte(key))
+	if err != nil {
+		return cid.Undef, fmt.Errorf("bsrvadapter: key was not a cid: %w", err)
+	}
+	if l != len(key) {
+		return cid.Undef, fmt.Errorf("bsrvadapter: key was not a cid: had %d bytes leftover", len(key)-l)
+	}
+	return k, nil
+}
+
 func Merge(inputPaths []string, outputPath string) error {
 	// First list all the roots in our fixtures
 	roots := make([]cid.Cid, 0)
@@ -61,12 +73,23 @@ func Merge(inputPaths []string, outputPath string) error {
 
 	// Adding to a map, they won't accept duplicate, hence the code above
 	node := fluent.MustBuildMap(basicnode.Prototype.Map, int64(len(roots)), func(ma fluent.MapAssembler) {
-		for _, root := range roots {
-			fmt.Println("adding root", root)
-			ma.AssembleEntry(root.String()).AssignLink(cidlink.Link{Cid: root})
-			// getting error:
-			// 2023/07/05 11:13:54 invalid key for map dagpb.PBNode: "bafybeicaj7kvxpcv4neaqzwhrqqmdstu4dhrwfpknrgebq6nzcecfucvyu": no such field
-		}
+		ma.AssembleEntry("Links").CreateList(int64(len(roots)), func(na fluent.ListAssembler) {
+			for _, root := range roots {
+				na.AssembleValue().CreateMap(3, func(fma fluent.MapAssembler) {
+					// fma.AssembleEntry("Name").AssignString("")
+					// fma.AssembleEntry("Tsize").AssignInt(262158)
+					fma.AssembleEntry("Hash").AssignLink(cidlink.Link{Cid: root})
+				})
+
+			}
+		})
+
+		// this code gives:
+		// 2023/07/05 11:13:54 invalid key for map dagpb.PBNode: "bafybeicaj7kvxpcv4neaqzwhrqqmdstu4dhrwfpknrgebq6nzcecfucvyu": no such field
+		// for _, root := range roots {
+		// 	fmt.Println("adding root", root)
+		// 	ma.AssembleEntry(root.String()).AssignLink(cidlink.Link{Cid: root})
+		// }
 	})
 
 	// NOTE: by default we generate super large CIDs (from the doc)
@@ -142,13 +165,24 @@ func Merge(inputPaths []string, outputPath string) error {
 			// return err
 		}
 
-		// blk, err := blocks.NewBlockWithCid(v, c)
-		// if err != nil {
-		// 	return err
-		// }
+		// https://github.com/ipld/go-ipld-prime/blob/65bfa53512f2328d19273e471ce4fd6d964055a2/storage/bsadapter/bsadapter.go#L87-L89
+		c, err = cidFromBinString(k)
+		if err != nil {
+			fmt.Println("Error here:", c, err)
+			// return err
+		}
 
-		blk := blocks.NewBlock(v)
-		rout.Put(context.Background(), blk)
+		blk, err := blocks.NewBlockWithCid(v, c)
+		if err != nil {
+			return err
+		}
+
+		// that call doesn't work: the cid produced is not the one we get as "root cid"
+		// blk := blocks.NewBlock(v)
+		err = rout.Put(context.Background(), blk)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Then aggregate all our blocks.
@@ -170,7 +204,7 @@ func Merge(inputPaths []string, outputPath string) error {
 		}
 
 		for c := range cids {
-			fmt.Printf("Adding %s\n", c.String())
+			// fmt.Printf("Adding %s\n", c.String())
 			block, err := robs.Get(context.Background(), c)
 			if err != nil {
 				fmt.Println("Error here:3", err)
