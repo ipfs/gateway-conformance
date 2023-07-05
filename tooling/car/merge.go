@@ -42,9 +42,30 @@ func Merge(inputPaths []string, outputPath string) error {
 	lsys.SetWriteStorage(&store)
 	lsys.SetReadStorage(&store)
 
-	node := fluent.MustBuildList(basicnode.Prototype.List, int64(len(roots)), func(na fluent.ListAssembler) {
+	// THIS was not compatible with dag pb I think,
+	// node := fluent.MustBuildList(basicnode.Prototype.List, int64(len(roots)), func(na fluent.ListAssembler) {
+	// 	for _, root := range roots {
+	// 		na.AssembleValue().AssignLink(cidlink.Link{Cid: root})
+	// 	}
+	// })
+
+	// creating list of uniq roots
+	uniqRoots := make(map[string]cid.Cid)
+	for _, root := range roots {
+		uniqRoots[root.String()] = root
+	}
+	roots = make([]cid.Cid, 0)
+	for _, root := range uniqRoots {
+		roots = append(roots, root)
+	}
+
+	// Adding to a map, they won't accept duplicate, hence the code above
+	node := fluent.MustBuildMap(basicnode.Prototype.Map, int64(len(roots)), func(ma fluent.MapAssembler) {
 		for _, root := range roots {
-			na.AssembleValue().AssignLink(cidlink.Link{Cid: root})
+			fmt.Println("adding root", root)
+			ma.AssembleEntry(root.String()).AssignLink(cidlink.Link{Cid: root})
+			// getting error:
+			// 2023/07/05 11:13:54 invalid key for map dagpb.PBNode: "bafybeicaj7kvxpcv4neaqzwhrqqmdstu4dhrwfpknrgebq6nzcecfucvyu": no such field
 		}
 	})
 
