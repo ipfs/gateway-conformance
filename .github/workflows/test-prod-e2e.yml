@@ -99,5 +99,5 @@ jobs:
         if: (failure() || success())
         uses: actions/upload-artifact@v3
         with:
-          name: conformance.html
+          name: conformance-${{ matrix.target }}.html
           path: ./output.html
