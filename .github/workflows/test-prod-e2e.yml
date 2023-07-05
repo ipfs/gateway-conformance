@@ -48,14 +48,21 @@ jobs:
           set -o pipefail
 
           pin_status=""
+          start_time=$(date +%s)
+          timeout=$((2 * 60)) # Timeout set to 2 minutes
 
           while [[ "$pin_status" != "Pinned" ]]; do
             response=$(curl --fail --oauth2-bearer "$W3STORAGE_TOKEN" "https://api.web3.storage/status/$CID")
             pin_status=$(echo $response | jq -r '.pins[0].status')
             echo "Current pin status: $pin_status"
 
-            if [[ "$pin_status" != "Pinned" ]]; then
+            current_time=$(date +%s)
+            elapsed_time=$((current_time - start_time))
+
+            if [[ "$pin_status" != "Pinned" && $elapsed_time -lt $timeout ]]; then
               sleep 10 # Sleep for 10 seconds before trying again
+            else
+              break
             fi
           done
   test:
