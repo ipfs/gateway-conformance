@@ -101,3 +101,29 @@ jobs:
         with:
           name: conformance-${{ matrix.target }}.html
           path: ./output.html
+      - name: Upload JSON output
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance-${{ matrix.target }}.json
+          path: ./output.json
+  aggregate:
+    runs-on: "ubuntu-latest"
+    needs: [test]
+    strategy:
+      fail-fast: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Aggregate results
+        run: |
+          set -e
+          set -o pipefail
+
+          ls ./artifacts
+        working-directory: ./artifacts
