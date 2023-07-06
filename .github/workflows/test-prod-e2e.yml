@@ -68,7 +68,6 @@ jobs:
   test:
     runs-on: "ubuntu-latest"
     strategy:
-      fail-fast: false
       matrix:
         target: ["ipfs.runfission.com", "w3s.link"]
     defaults:
@@ -110,8 +109,8 @@ jobs:
   aggregate:
     runs-on: "ubuntu-latest"
     needs: [test]
-    strategy:
-      fail-fast: true
+    # the tests might have failed
+    if: always()
     defaults:
       run:
         shell: bash
