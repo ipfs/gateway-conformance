@@ -634,7 +634,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 
 	tests := SugarTests{
 		{
-			Name: "GET CAR with dups=y of UnixFS Directory With Duplicate Files",
+			Name: "GET CAR with order=dfs and dups=y of UnixFS Directory With Duplicate Files",
 			Hint: `
 				The response MUST contain all the blocks found during traversal even if they
 				are duplicate. In this test, a directory that contains duplicate files is
@@ -664,11 +664,11 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET CAR with dups=n of UnixFS Directory With Duplicate Files",
+			Name: "GET CAR with order=dfs and dups=n of UnixFS Directory With Duplicate Files",
 			Hint: `
-				The response MUST NOT contain duplicate blocks.In this test, a directory that
-				contains duplicate files is requested. The blocks corresponding to the duplicate
-				files must be returned only ONCE.
+				The response MUST NOT contain duplicate blocks. Tested
+				directory contains duplicate files. The blocks corresponding to
+				the duplicate files must be returned only ONCE.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
@@ -693,10 +693,17 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET CAR with order=unk of UnixFS Directors",
+			Name: "GET CAR smoke-test with order=unk of UnixFS Directory",
 			Hint: `
-				The response with order=unk MUST contain all the blocks required to construct
-				the requested CID. However, it can be in any order and duplicates MAY occur.
+				The order=unk is usually used by gateway to explicitly indicate
+				it does not guarantee any block order. In this case, we use it
+				for basic smoke-test to confirm support of IPIP-412. The
+				response for request with explicit order=unk MUST include an
+				explicit order in returned Content-Type and contain all the
+				blocks required to construct the requested CID. However, the
+				gateway is free to return default ordering of own choosing,
+				which means the returned blocks can be in any order and
+				duplicates MAY occur.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
