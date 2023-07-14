@@ -725,6 +725,29 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...),
 				),
 		},
+		{
+			Name: "GET CAR with order=dfs and dups=y of identity CID",
+			Hint: `
+				Identity hashes MUST never be manifested as read blocks.
+				These are virtual ones and even when dups=y is set, they never
+				should be returned in CAR response body.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", "bafkqaf3imvwgy3zaneqgc3janfxgy2lomvscay3jmqfa").
+				Header("Accept", "application/vnd.ipld.car; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						Exactly().
+						InThatOrder(),
+				),
+		},
 	}
 
 	// TODO: add sub-specification for these tests.
