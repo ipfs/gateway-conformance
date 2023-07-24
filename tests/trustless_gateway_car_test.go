@@ -398,7 +398,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
-							missingBlockFixture.MustGetChildrenCids()[0],
+							"QmPKt7ptM2ZYSGPUc8PmPT2VBkLDK3iqpG9TBJY7PCE9rF",
 						).
 						Exactly(),
 				),
@@ -423,7 +423,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
-							missingBlockFixture.MustGetChildrenCids()[2],
+							"QmWXY482zQdwecnfBsj78poUUuPXvyw2JAFAEMw4tzTavV",
 						).
 						Exactly(),
 				),
@@ -631,6 +631,13 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 
 func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
+	multiblockCIDs := []string{
+		"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",
+		"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",
+		"bafkreigu7buvm3cfunb35766dn7tmqyh2um62zcio63en2btvxuybgcpue",
+		"bafkreicll3huefkc3qnrzeony7zcfo7cr3nbx64hnxrqzsixpceg332fhe",
+		"bafkreifst3pqztuvj57lycamoi7z34b4emf7gawxs74nwrc2c7jncmpaqm",
+	}
 
 	tests := SugarTests{
 		{
@@ -658,7 +665,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
-						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...).
+						HasBlocks(multiblockCIDs...).
 						Exactly().
 						InThatOrder(),
 				),
@@ -687,7 +694,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
 						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
-						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...).
+						HasBlocks(multiblockCIDs...).
 						Exactly().
 						InThatOrder(),
 				),
@@ -722,7 +729,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
-						HasBlocks(dirWithDuplicateFiles.MustGetChildrenCids("multiblock.txt")...),
+						HasBlocks(multiblockCIDs...),
 				),
 		},
 		{
