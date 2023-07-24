@@ -788,8 +788,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 		},
 	}
 
-	// TODO: add sub-specification for these tests.
-	RunWithSpecs(t, tests, specs.TrustlessGatewayCAR)
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAROptional)
 }
 
 func flattenStrings(t *testing.T, values ...interface{}) []string {
