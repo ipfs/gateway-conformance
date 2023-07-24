@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ipfs/boxo/ipns"
-	ipns_pb "github.com/ipfs/boxo/ipns/pb"
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p/core/peer"
 	mbase "github.com/multiformats/go-multibase"
@@ -13,19 +12,25 @@ import (
 )
 
 type IpnsRecord struct {
-	pb       *ipns_pb.IpnsEntry
+	rec      *ipns.Record
 	key      string
-	id       peer.ID
+	value    string
+	name     ipns.Name
 	validity time.Time
 }
 
 func UnmarshalIpnsRecord(data []byte, pubKey string) (*IpnsRecord, error) {
-	pb, err := ipns.UnmarshalIpnsEntry(data)
+	pb, err := ipns.UnmarshalRecord(data)
 	if err != nil {
 		return nil, err
 	}
 
-	validity, err := ipns.GetEOL(pb)
+	validity, err := pb.Validity()
+	if err != nil {
+		return nil, err
+	}
+
+	value, err := pb.Value()
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +40,17 @@ func UnmarshalIpnsRecord(data []byte, pubKey string) (*IpnsRecord, error) {
 		return nil, err
 	}
 
-	return &IpnsRecord{pb: pb, key: pubKey, id: id, validity: validity}, nil
+	return &IpnsRecord{
+		rec:      pb,
+		key:      pubKey,
+		name:     ipns.NameFromPeer(id),
+		validity: validity,
+		value:    value.String(),
+	}, nil
 }
 
 func (i *IpnsRecord) Value() string {
-	return string(i.pb.Value)
+	return i.value
 }
 
 func (i *IpnsRecord) Key() string {
@@ -51,11 +62,11 @@ func (i *IpnsRecord) Validity() time.Time {
 }
 
 func (i *IpnsRecord) Valid() error {
-	return ipns.ValidateWithPeerID(i.id, i.pb)
+	return ipns.ValidateWithName(i.rec, i.name)
 }
 
 func (i *IpnsRecord) idV1(codec multicodec.Code, base mbase.Encoding) (string, error) {
-	c := peer.ToCid(i.id)
+	c := i.name.Cid()
 	c = cid.NewCidV1(uint64(codec), c.Hash())
 	s, err := c.StringOfBase(base)
 	if err != nil {
@@ -85,5 +96,5 @@ func (i *IpnsRecord) IdV1() string {
 }
 
 func (i *IpnsRecord) B58MH() string {
-	return i.id.String()
+	return i.name.Peer().String()
 }
