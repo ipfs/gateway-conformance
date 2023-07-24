@@ -755,6 +755,37 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						InThatOrder(),
 				),
 		},
+		{
+			Name: "GET CAR with Accept and ?format, specific Accept header is prioritized",
+			Hint: `
+				The response MUST contain all the blocks found during traversal even if they
+				are duplicate. In this test, a directory that contains duplicate files is
+				requested. The blocks corresponding to the duplicate files must be returned.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Query("format", "car").
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(multiblockCIDs...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
 	}
 
 	// TODO: add sub-specification for these tests.
