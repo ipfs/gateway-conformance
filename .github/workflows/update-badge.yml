@@ -1,7 +1,6 @@
 name: Update Badge
 
 on:
-  pull_request:
   workflow_run:
     workflows:
       - Test Production (e2e)
