@@ -70,6 +70,7 @@ jobs:
     strategy:
       matrix:
         target: ["ipfs.runfission.com", "w3s.link"]
+      fail-fast: false
     defaults:
       run:
         shell: bash
@@ -115,16 +116,40 @@ jobs:
       run:
         shell: bash
     steps:
+      - uses: actions/checkout@v3
+        with:
+          path: "gateway-conformance"
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Aggregate results
+        working-directory: ./artifacts
         run: |
           set -e
           set -o pipefail
+          mkdir aggregates/
 
-          echo $PWD
           ls ./
-          ls ./*.json
-        working-directory: ./artifacts
+          ls ./*
+          ls ./*/*
+
+          # download-artifact downloads artifacts in a directory named after the artifact
+          # details: https://github.com/actions/download-artifact#download-all-artifacts
+          for folder in ./conformance-*.json; do
+            echo $folder;
+            file="${folder}/output.json"
+            new_file="aggregates/${folder#conformance-}"
+            jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
+          done
+
+          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > ./table.md
+      - name: Set summary
+        if: (failure() || success())
+        run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload one-page MD report
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance.md
+          path: ./table.md
