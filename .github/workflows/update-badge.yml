@@ -7,10 +7,9 @@ on:
       - Test Production (e2e)
     types:
       - completed
-      - completed-with-failure
-    branches:
-      - main
-      - feat/text-production-gateways # temporary
+    # branches:
+    #   - main
+    #   - feat/text-production-gateways # temporary
 
 defaults:
   run:
