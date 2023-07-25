@@ -139,9 +139,3 @@ jobs:
       - name: Set summary
         if: (failure() || success())
         run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY
-      - name: Upload one-page MD report
-        if: (failure() || success())
-        uses: actions/upload-artifact@v3
-        with:
-          name: conformance.md
-          path: ./table.md
