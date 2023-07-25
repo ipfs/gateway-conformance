@@ -124,5 +124,7 @@ jobs:
           set -e
           set -o pipefail
 
-          ls ./artifacts
+          echo $PWD
+          ls ./
+          ls ./*.json
         working-directory: ./artifacts
