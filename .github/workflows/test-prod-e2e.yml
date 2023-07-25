@@ -92,9 +92,6 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
-      - name: Set summary
-        if: (failure() || success())
-        run: cat ./output.md >> $GITHUB_STEP_SUMMARY
       - name: Upload one-page HTML report
         if: (failure() || success())
         uses: actions/upload-artifact@v3
@@ -128,16 +125,11 @@ jobs:
         run: |
           set -e
           set -o pipefail
-          mkdir aggregates/
-
-          ls ./
-          ls ./*
-          ls ./*/*
+          mkdir ./aggregates
 
           # download-artifact downloads artifacts in a directory named after the artifact
           # details: https://github.com/actions/download-artifact#download-all-artifacts
           for folder in ./conformance-*.json; do
-            echo $folder;
             file="${folder}/output.json"
             new_file="aggregates/${folder#conformance-}"
             jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
