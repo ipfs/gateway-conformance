@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - finalized port of Kubo's sharness tests. [PR](https://github.com/ipfs/gateway-conformance/pull/92)
+- `extract-fixtures --merged` generates a car version 1 with a single root now
 
 ## [0.2.0] - 2023-06-26
 ### Added
