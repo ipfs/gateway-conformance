@@ -398,6 +398,8 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
+                                                        // This CID is defined at the SPEC level
+                                                        // See the recipe for `file-3k-and-3-blocks-missing-block.car`
 							"QmPKt7ptM2ZYSGPUc8PmPT2VBkLDK3iqpG9TBJY7PCE9rF",
 						).
 						Exactly(),
@@ -423,6 +425,8 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
+                                                        // This CID is defined at the SPEC level
+                                                        // See the recipe for `file-3k-and-3-blocks-missing-block.car`
 							"QmWXY482zQdwecnfBsj78poUUuPXvyw2JAFAEMw4tzTavV",
 						).
 						Exactly(),
@@ -631,6 +635,8 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 
 func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
+        // This array is defined at the SPEC level and should not depend on library behavior
+        // See the recipe for `dir-with-duplicate-files.car`
 	multiblockCIDs := []string{
 		"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",
 		"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",
