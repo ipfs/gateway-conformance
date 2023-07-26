@@ -1,3 +1,5 @@
+# Note: this workflow requires the repository to give Write access to Github Workflows.
+# in Settings > Actions > General > Workflow permissions
 name: Update Badge
 
 on:
@@ -6,9 +8,8 @@ on:
       - Test Production (e2e)
     types:
       - completed
-    # branches:
-    #   - main
-    #   - feat/text-production-gateways # temporary
+    branches:
+      - main
 
 defaults:
   run:
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: pl-strflt/job-summary-url-action@v1
-        name: metadata
+        id: metadata
         with:
           workflow: test-prod-e2e.yml # ${{ github.event.workflow.path }}
           run_id: ${{ github.event.workflow_run.id }}
@@ -35,14 +36,16 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
       - run: |
-          GITHUB_JOB_SUMMARY_URL="${{ steps.metadata.outputs.job_summary_url }}"
-
+          echo GITHUB_JOB_SUMMARY_URL=${GITHUB_JOB_SUMMARY_URL}
           IN='[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](.*)'
           ESCAPED_IN=$(printf '%s\n' "$IN" | sed -e 's/[][\/!&]/\\&/g')
 
           OUT="[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](${GITHUB_JOB_SUMMARY_URL})"
 
           sed -i "s;${ESCAPED_IN};${OUT};" README.md
+        env:
+          GITHUB_JOB_SUMMARY_URL: ${{ steps.metadata.outputs.job_summary_url }}
+          REPOSITORY: ${{ github.repository }}
       - run: |
           if [[ -n $(git diff --shortstat 2> /dev/null | tail -n1) ]]; then
             echo "GIT_DIRTY=1" >> $GITHUB_ENV
