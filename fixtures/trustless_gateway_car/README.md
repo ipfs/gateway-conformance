@@ -33,7 +33,8 @@ EOF
 ASCII_CID=$(echo "hello application/vnd.ipld.car" | ipfs add --cid-version=1 -q)
 HELLO_CID=$(echo "hello world" | ipfs add --cid-version=1 -q)
 MULTIBLOCK_CID=$(echo -n $TEXT | ipfs add --cid-version=1 --chunker=size-256 -q)
-
+# Print the Multiblock CIDs (required for some tests)
+ipfs dag get $MULTIBLOCK_CID  | jq .Links | jq -r '.[].Hash."/"'
 ipfs files mkdir -p --cid-version 1 /dir-with-duplicate-files
 ipfs files cp /ipfs/$ASCII_CID /dir-with-duplicate-files/ascii-copy.txt
 ipfs files cp /ipfs/$ASCII_CID /dir-with-duplicate-files/ascii.txt
