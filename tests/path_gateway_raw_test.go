@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
+	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
@@ -44,28 +45,12 @@ func TestGatewayBlock(t *testing.T) {
 				),
 			Response: Expect().
 				Status(206).
+				Headers(
+					Header("Content-Type", "application/vnd.ipld.raw"),
+					Header("Content-Range", "bytes 6-16/57"),
+				).
 				Body(fixture.MustGetRawData("dir")[6:17]),
 		},
-		// This test is disabled as per the conversation in:
-		// https://github.com/ipfs/boxo/pull/369#issuecomment-1631159632
-		// {
-		// 	Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
-		// 	Request: Request().
-		// 		Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
-		// 		Headers(
-		// 			Header("Accept", "application/vnd.ipld.raw"),
-		// 			Header("Range", "bytes=6-16,0-4"),
-		// 		),
-		// 	Response: Expect().
-		// 		Status(206).
-		// 		Body(check.And(
-		// 			check.Contains("Content-Range: bytes 6-16/31"),
-		// 			check.Contains("Content-Type: application/vnd.ipld.raw"),
-		// 			check.Contains("application"),
-		// 			check.Contains("Content-Range: bytes 0-4/31"),
-		// 			check.Contains("hello"),
-		// 		)),
-		// },
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
 			Request: Request().
@@ -122,7 +107,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Cache-Control").
 						Hint("It should be public, immutable and have max-age of at least 31536000.").
 						Checks(func(v string) bool {
-							// TODO: port this to a regular check.
+							// TODO: port this to a regular
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
 							dir := make(map[string]string)
 							for _, directive := range directives {
@@ -157,4 +142,116 @@ func TestGatewayBlock(t *testing.T) {
 	}
 
 	RunWithSpecs(t, tests, specs.PathGatewayRaw)
+}
+
+func TestGatewayBlockMultiRangeRequest(t *testing.T) {
+	// Multi-range requests MUST conform to the HTTP semantics. The server does not
+	// need to be able to support returning multiple ranges. However, it must respond
+	// correctly.
+	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
+
+	var (
+		contentType  string
+		contentRange string
+	)
+
+	RunWithSpecs(t, SugarTests{
+		{
+			Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
+			Request: Request().
+				Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
+				Headers(
+					Header("Accept", "application/vnd.ipld.raw"),
+					Header("Range", "bytes=6-16,0-4"),
+				),
+			Response: Expect().
+				Status(206).
+				Headers(
+					Header("Content-Type").
+						Checks(func(v string) bool {
+							contentType = v
+							return v != ""
+						}),
+					Header("Content-Range").
+						Checks(func(v string) bool {
+							contentRange = v
+							return true
+						}),
+				),
+		},
+	}, specs.PathGatewayRaw)
+
+	if contentType == "application/vnd.ipld.raw" {
+		// The server is not able to respond to a multi-range request. Therefore,
+		// there might be only one range or... just the whole file, depending on the headers.
+
+		if contentRange == "" {
+			// Server does not support range requests and must send back the complete file.
+			RunWithSpecs(t, SugarTests{
+				{
+					Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
+					Request: Request().
+						Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
+						Headers(
+							Header("Accept", "application/vnd.ipld.raw"),
+							Header("Range", "bytes=6-16,0-4"),
+						),
+					Response: Expect().
+						Status(206).
+						Headers(
+							Header("Content-Type", "application/vnd.ipld.raw"),
+							Header("Content-Range").IsEmpty(),
+						).
+						Body(fixture.MustGetRawData("dir", "ascii.txt")),
+				},
+			}, specs.PathGatewayRaw)
+		} else {
+			// Server supports range requests but only the first range.
+			RunWithSpecs(t, SugarTests{
+				{
+					Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
+					Request: Request().
+						Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
+						Headers(
+							Header("Accept", "application/vnd.ipld.raw"),
+							Header("Range", "bytes=6-16,0-4"),
+						),
+					Response: Expect().
+						Status(206).
+						Headers(
+							Header("Content-Type", "application/vnd.ipld.raw"),
+							Header("Content-Range", "bytes 6-16/31"),
+						).
+						Body(fixture.MustGetRawData("dir", "ascii.txt")[6:17]),
+				},
+			}, specs.PathGatewayRaw)
+		}
+	} else if strings.Contains(contentType, "multipart/byteranges") {
+		// The server supports responding with multi-range requests.
+		RunWithSpecs(t, SugarTests{
+			{
+				Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
+				Request: Request().
+					Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
+					Headers(
+						Header("Accept", "application/vnd.ipld.raw"),
+						Header("Range", "bytes=6-16,0-4"),
+					),
+				Response: Expect().
+					Status(206).
+					Headers(
+						Header("Content-Type").Contains("multipart/byteranges"),
+					).
+					Body(And(
+						Contains("Content-Range: bytes 6-16/31"),
+						Contains("Content-Type: application/vnd.ipld.raw"),
+						Contains(string(fixture.MustGetRawData("dir", "ascii.txt")[6:17])),
+						Contains("Content-Range: bytes 0-4/31"),
+						Contains(string(fixture.MustGetRawData("dir", "ascii.txt")[0:5])),
+					)),
+			},
+		}, specs.PathGatewayRaw)
+	} else {
+		t.Error("Content-Type header did not match any of the accepted options")
+	}
 }
