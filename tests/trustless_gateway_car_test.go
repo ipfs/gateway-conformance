@@ -398,7 +398,9 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
-							missingBlockFixture.MustGetChildrenCids()[0],
+							// This CID is defined at the SPEC level
+							// See the recipe for `file-3k-and-3-blocks-missing-block.car`
+							"QmPKt7ptM2ZYSGPUc8PmPT2VBkLDK3iqpG9TBJY7PCE9rF",
 						).
 						Exactly(),
 				),
@@ -423,7 +425,9 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							missingBlockFixture.MustGetCid(),
-							missingBlockFixture.MustGetChildrenCids()[2],
+							// This CID is defined at the SPEC level
+							// See the recipe for `file-3k-and-3-blocks-missing-block.car`
+							"QmWXY482zQdwecnfBsj78poUUuPXvyw2JAFAEMw4tzTavV",
 						).
 						Exactly(),
 				),
@@ -627,6 +631,170 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 	}
 
 	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
+}
+
+func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
+	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
+	// This array is defined at the SPEC level and should not depend on library behavior
+	// See the recipe for `dir-with-duplicate-files.car`
+	multiblockCIDs := []string{
+		"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",
+		"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",
+		"bafkreigu7buvm3cfunb35766dn7tmqyh2um62zcio63en2btvxuybgcpue",
+		"bafkreicll3huefkc3qnrzeony7zcfo7cr3nbx64hnxrqzsixpceg332fhe",
+		"bafkreifst3pqztuvj57lycamoi7z34b4emf7gawxs74nwrc2c7jncmpaqm",
+	}
+
+	tests := SugarTests{
+		{
+			Name: "GET CAR with order=dfs and dups=y of UnixFS Directory With Duplicate Files",
+			Hint: `
+				The response MUST contain all the blocks found during traversal even if they
+				are duplicate. In this test, a directory that contains duplicate files is
+				requested. The blocks corresponding to the duplicate files must be returned.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(multiblockCIDs...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR with order=dfs and dups=n of UnixFS Directory With Duplicate Files",
+			Hint: `
+				The response MUST NOT contain duplicate blocks. Tested
+				directory contains duplicate files. The blocks corresponding to
+				the duplicate files must be returned only ONCE.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=n"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=n"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(multiblockCIDs...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR smoke-test with order=unk of UnixFS Directory",
+			Hint: `
+				The order=unk is usually used by gateway to explicitly indicate
+				it does not guarantee any block order. In this case, we use it
+				for basic smoke-test to confirm support of IPIP-412. The
+				response for request with explicit order=unk MUST include an
+				explicit order in returned Content-Type and contain all the
+				blocks required to construct the requested CID. However, the
+				gateway is free to return default ordering of own choosing,
+				which means the returned blocks can be in any order and
+				duplicates MAY occur.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Header("Accept", "application/vnd.ipld.car; version=1; order=unk"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order="),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(multiblockCIDs...),
+				),
+		},
+		{
+			Name: "GET CAR with order=dfs and dups=y of identity CID",
+			Hint: `
+				Identity hashes MUST never be manifested as read blocks.
+				These are virtual ones and even when dups=y is set, they never
+				should be returned in CAR response body.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", "bafkqaf3imvwgy3zaneqgc3janfxgy2lomvscay3jmqfa").
+				Header("Accept", "application/vnd.ipld.car; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						Exactly().
+						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR with Accept and ?format, specific Accept header is prioritized",
+			Hint: `
+				The response MUST contain all the blocks found during traversal even if they
+				are duplicate. In this test, a directory that contains duplicate files is
+				requested. The blocks corresponding to the duplicate files must be returned.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
+				Query("format", "car").
+				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=y"),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+					Header("Content-Type").Contains("dups=y"),
+				).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlock(dirWithDuplicateFiles.MustGetCid()).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
+						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
+						HasBlocks(multiblockCIDs...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAROptional)
 }
 
 func flattenStrings(t *testing.T, values ...interface{}) []string {
