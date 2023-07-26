@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - `--verbose` flag displays all the output to the console
+- `Expect.Headers.ChecksAll`: an expectation to test all the header values (0, 1, or more)
 
 ### Changed
 - finalized port of Kubo's sharness tests. [PR](https://github.com/ipfs/gateway-conformance/pull/92)

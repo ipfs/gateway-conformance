@@ -173,8 +173,10 @@ func TestGatewayBlockMultiRangeRequest(t *testing.T) {
 							return v != ""
 						}),
 					Header("Content-Range").
-						Checks(func(v string) bool {
-							contentRange = v
+						ChecksAll(func(v []string) bool {
+							if len(v) == 1 {
+								contentRange = v[0]
+							}
 							return true
 						}),
 				),
