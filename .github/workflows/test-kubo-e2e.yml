@@ -50,7 +50,7 @@ jobs:
           cars=$(find ./fixtures -name '*.car')
           for car in $cars
           do
-              ipfs dag import "$car" --pin-roots=false
+              ipfs dag import --pin-roots=false --stats "$car"
           done
 
           # Import ipns records

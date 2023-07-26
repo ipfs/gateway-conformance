@@ -4,6 +4,8 @@
 /merge-fixtures
 /entrypoint
 /gateway-conformance
+/dnslinks.json
+/*.ipns-record
 
 # Logs
 logs

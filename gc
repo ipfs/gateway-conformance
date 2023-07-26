@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
-docker run --rm -v "${PWD}:/workspace" -w "/workspace" --network=host gateway-conformance "$@"
+if docker image inspect gateway-conformance >/dev/null 2>&1; then
+    docker run --rm -v "${PWD}:/workspace" -w "/workspace" --network=host gateway-conformance "$@"
+else
+    echo "Docker image 'gateway-conformance' does not exist. Run 'make docker' first." >&2
+    exit 1
+fi

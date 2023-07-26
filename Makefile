@@ -1,4 +1,11 @@
-all: test-kubo
+all: gateway-conformance
+
+clean: clean-docker
+	rm -f ./gateway-conformance
+	rm -f *.ipns-record
+	rm -f fixtures.car
+	rm -f dnslinks.json
+	rm -f ./reports/*
 
 test-cargateway: provision-cargateway fixtures.car gateway-conformance
 	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8040 --specs -subdomain-gateway
@@ -31,12 +38,17 @@ test-docker: docker fixtures.car gateway-conformance
 ./reports/output.xml: ./reports/output.json
 	jq -ns 'inputs' ./reports/output.json > ./reports/output.json.alt
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -json:"./reports/output.json.alt" -xsl:/etc/gotest.xsl -o:"./reports/output.xml"
-	
+
 ./reports/output.html: ./reports/output.xml
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:./reports/output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:./reports/output.html
 	open ./reports/output.html
 
 docker:
 	docker build -t gateway-conformance .
+
+clean-docker:
+	@if command -v docker >/dev/null 2>&1 && docker image inspect gateway-conformance >/dev/null 2>&1; then \
+        docker image rm gateway-conformance; \
+    fi
 
 .PHONY: gateway-conformance
