@@ -105,27 +105,29 @@ func (c Collection) Disable() {
 }
 
 var (
-	TrustlessGatewayRaw  = Leaf{"trustless-block-gateway", stable}
-	TrustlessGatewayCAR  = Leaf{"trustless-car-gateway", stable}
-	TrustlessGatewayIPNS = Leaf{"trustless-ipns-gateway", stable}
-	TrustlessGateway     = Collection{"trustless-gateway", []Spec{TrustlessGatewayRaw, TrustlessGatewayCAR, TrustlessGatewayIPNS}}
-	PathGatewayUnixFS    = Leaf{"path-unixfs-gateway", stable}
-	PathGatewayIPNS      = Leaf{"path-ipns-gateway", stable}
-	PathGatewayTAR       = Leaf{"path-tar-gateway", stable}
-	PathGatewayDAG       = Leaf{"path-dag-gateway", stable}
-	PathGatewayRaw       = Leaf{"path-raw-gateway", stable}
-	PathGateway          = Collection{"path-gateway", []Spec{PathGatewayUnixFS, PathGatewayIPNS, PathGatewayTAR, PathGatewayDAG, PathGatewayRaw}}
-	SubdomainGatewayIPFS = Leaf{"subdomain-ipfs-gateway", stable}
-	SubdomainGatewayIPNS = Leaf{"subdomain-ipns-gateway", stable}
-	SubdomainGateway     = Collection{"subdomain-gateway", []Spec{SubdomainGatewayIPFS, SubdomainGatewayIPNS}}
-	DNSLinkGateway       = Leaf{"dnslink-gateway", stable}
-	RedirectsFile        = Leaf{"redirects-file", stable}
+	TrustlessGatewayRaw         = Leaf{"trustless-block-gateway", stable}
+	TrustlessGatewayCAR         = Leaf{"trustless-car-gateway", stable}
+	TrustlessGatewayCAROptional = Leaf{"trustless-car-gateway-optional", stable}
+	TrustlessGatewayIPNS        = Leaf{"trustless-ipns-gateway", stable}
+	TrustlessGateway            = Collection{"trustless-gateway", []Spec{TrustlessGatewayRaw, TrustlessGatewayCAR, TrustlessGatewayCAROptional, TrustlessGatewayIPNS}}
+	PathGatewayUnixFS           = Leaf{"path-unixfs-gateway", stable}
+	PathGatewayIPNS             = Leaf{"path-ipns-gateway", stable}
+	PathGatewayTAR              = Leaf{"path-tar-gateway", stable}
+	PathGatewayDAG              = Leaf{"path-dag-gateway", stable}
+	PathGatewayRaw              = Leaf{"path-raw-gateway", stable}
+	PathGateway                 = Collection{"path-gateway", []Spec{PathGatewayUnixFS, PathGatewayIPNS, PathGatewayTAR, PathGatewayDAG, PathGatewayRaw}}
+	SubdomainGatewayIPFS        = Leaf{"subdomain-ipfs-gateway", stable}
+	SubdomainGatewayIPNS        = Leaf{"subdomain-ipns-gateway", stable}
+	SubdomainGateway            = Collection{"subdomain-gateway", []Spec{SubdomainGatewayIPFS, SubdomainGatewayIPNS}}
+	DNSLinkGateway              = Leaf{"dnslink-gateway", stable}
+	RedirectsFile               = Leaf{"redirects-file", stable}
 )
 
 // All specs MUST be listed here.
 var specs = []Spec{
 	TrustlessGatewayRaw,
 	TrustlessGatewayCAR,
+	TrustlessGatewayCAROptional,
 	TrustlessGatewayIPNS,
 	TrustlessGateway,
 	PathGatewayUnixFS,
