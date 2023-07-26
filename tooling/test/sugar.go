@@ -267,6 +267,13 @@ func (h HeaderBuilder) Checks(f func(string) bool) HeaderBuilder {
 	return h
 }
 
+func (h HeaderBuilder) ChecksAll(f func([]string) bool) HeaderBuilder {
+	h.Check_ = check.CheckFunc[[]string]{
+		Fn: f,
+	}
+	return h
+}
+
 func (h HeaderBuilder) Not() HeaderBuilder {
 	h.Not_ = !h.Not_
 	return h
