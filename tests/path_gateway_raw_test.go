@@ -107,7 +107,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("Cache-Control").
 						Hint("It should be public, immutable and have max-age of at least 31536000.").
 						Checks(func(v string) bool {
-							// TODO: port this to a regular
+							// TODO: port this to a regular check.
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
 							dir := make(map[string]string)
 							for _, directive := range directives {
