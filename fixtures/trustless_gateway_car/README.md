@@ -16,6 +16,8 @@ ipfs dag export $CID > file-3k-and-3-blocks.car
 REMOVE_BLOCK=$(ipfs dag get $CID | jq '.Links[1].Hash["/"]' -r)
 echo $REMOVE_BLOCK | car filter --version 1 --inverse ./file-3k-and-3-blocks.car ./file-3k-and-3-blocks-missing-block.car
 ipfs pin rm $CID; ipfs repo gc
+# First and third outputted CIDs are used in the missing blocks tests.
+ipfs dag get $CID  | jq .Links | jq -r '.[].Hash."/"'
 ```
 
 ### [dir-with-duplicate-files.car](./dir-with-duplicate-files.car)
