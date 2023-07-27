@@ -29,16 +29,10 @@ jobs:
       # https://web3.storage/docs/how-tos/store/#storing-ipfs-content-archives
       - name: Upload fixtures
         id: upload
-        env:
-          W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
-        run: |
-          set -e
-          set -o pipefail
-
-          response=$(curl --fail --oauth2-bearer "$W3STORAGE_TOKEN" --data-binary @fixtures.car "https://api.web3.storage/car")
-          cid=$(echo $response | jq -r .cid)
-          echo "Pinned fixtures to w3.storage with CID: $cid"
-          echo "cid=$cid" >> "$GITHUB_OUTPUT"
+        uses: web3-storage/add-to-web3@v2
+        with:
+          web3_token: ${{ secrets.W3STORAGE_TOKEN }}
+          path_to_add: 'fixtures.car'
       - name: Wait for pinning
         env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
