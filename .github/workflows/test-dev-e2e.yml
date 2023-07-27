@@ -12,9 +12,13 @@ jobs:
     uses: singulargarden/bifrost-gateway2/.github/workflows/gateway-conformance.yml@main
     with:
       artifact_json_name: conformance-bifrost-gateway.json
+  kubo-gateway:
+    uses: singulargarden/kubo/.github/workflows/gateway-conformance.yml@master
+    with:
+      artifact_json_name: conformance-kubo-gateway.json
   aggregate:
     runs-on: "ubuntu-latest"
-    needs: [bifrost-gateway]
+    needs: [bifrost-gateway, kubo-gateway]
     # the tests might have failed
     if: always()
     defaults:
