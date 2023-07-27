@@ -11,10 +11,13 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - id: generate-fixtures
+      - name: Ganerate Fixtures
         env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
-        uses: bash
         run: |
           make fixtures.car
-          curl -X POST 'https://api.web3.storage/car' # token should be in W3STORAGE_TOKEN
+      - name: Upload fixtures
+        uses: web3-storage/add-to-web3@v2
+        with:
+          web3_token: ${{ secrets.W3STORAGE_TOKEN }}
+          path_to_add: 'fixtures.car'
