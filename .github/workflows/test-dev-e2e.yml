@@ -47,7 +47,8 @@ jobs:
             jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
           done
 
-          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > ./table.md
+          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > /tmp/table.md
+          node ../gateway-conformance/aggregate-update-names.js ../gateway-conformance/names.json /tmp/table.md > ./table.md
       - name: Set summary
         if: (failure() || success())
         run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY

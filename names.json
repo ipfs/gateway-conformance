@@ -1,0 +1,122 @@
+{
+    "Cors": [
+        "Cross-Origin Resource Sharing",
+        null
+    ],
+    "DAgPbConversion": [
+        "DAG Protobuf Conversion",
+        null
+    ],
+    "DNSLinkGateway": [
+        "DNS Link Gateway",
+        "https://specs.ipfs.tech/http-gateways/dnslink-gateway/"
+    ],
+    "DNSLinkGatewayUnixFSDirectoryListing": [
+        "DNS Link Gateway Unix FS Directory Listing",
+        "https://specs.ipfs.tech/http-gateways/dnslink-gateway/"
+    ],
+    "GatewayBlock": [
+        "Gateway Block",
+        null
+    ],
+    "GatewayCache": [
+        "Gateway Cache",
+        null
+    ],
+    "GatewayCacheWithIPNS": [
+        "Gateway Cache with IPNS",
+        null
+    ],
+    "GatewayIPNSRecord": [
+        "Gateway IPNS Record",
+        null
+    ],
+    "GatewayJSONCborAndIPNS": [
+        "Gateway JSON CBOR and IPNS",
+        null
+    ],
+    "GatewayJsonCbor": [
+        "Gateway JSON CBOR",
+        null
+    ],
+    "GatewaySubdomainAndIPNS": [
+        "Gateway Subdomain and IPNS",
+        null
+    ],
+    "GatewaySubdomains": [
+        "Gateway Subdomains",
+        null
+    ],
+    "GatewaySymlink": [
+        "Gateway Symbolic Link",
+        null
+    ],
+    "NativeDag": [
+        "Native DAG",
+        null
+    ],
+    "Pathing": [
+        "Pathing",
+        null
+    ],
+    "PlainCodec": [
+        "Plain Codec",
+        null
+    ],
+    "RedirectsFileSupport": [
+        "Redirects File Support",
+        "https://specs.ipfs.tech/http-gateways/web-redirects-file/"
+    ],
+    "RedirectsFileSupportWithDNSLink": [
+        "Redirects File Support with DNS Link",
+        "https://specs.ipfs.tech/http-gateways/web-redirects-file/"
+    ],
+    "SubdomainGatewayDNSLinkInlining": [
+        "Subdomain Gateway DNS Link Inlining",
+        null
+    ],
+    "Tar": [
+        "Tar",
+        null
+    ],
+    "TrustlessCarDagScopeAll": [
+        "Trustless Car DAG Scope All",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessCarDagScopeBlock": [
+        "Trustless Car DAG Scope Block",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessCarDagScopeEntity": [
+        "Trustless Car DAG Scope Entity",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessCarEntityBytes": [
+        "Trustless Car Entity Bytes",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessCarPathing": [
+        "Trustless Car Pathing",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessRaw": [
+        "Trustless Raw",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "UnixFSDirectoryListing": [
+        "Unix FS Directory Listing",
+        null
+    ],
+    "UnixFSDirectoryListingOnSubdomainGateway": [
+        "Unix FS Directory Listing on Subdomain Gateway",
+        null
+    ],
+    "conformance-bifrost-gateway": [
+        "Bifrost Gateway",
+        "https://github.com/ipfs/bifrost-gateway"
+    ],
+    "conformance-kubo-gateway": [
+        "Kubo Gateway",
+        "https://github.com/ipfs/kubo"
+    ]
+}
