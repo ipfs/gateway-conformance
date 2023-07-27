@@ -49,13 +49,14 @@ jobs:
         env:
           GITHUB_JOB_SUMMARY_URL: ${{ steps.metadata.outputs.job_summary_url }}
           REPOSITORY: ${{ github.repository }}
-      - run: |
+      - id: git
+         run: |
           if [[ -n $(git diff --shortstat 2> /dev/null | tail -n1) ]]; then
-            echo "GIT_DIRTY=1" >> $GITHUB_ENV
+            echo "dirty=1" >> $GITHUB_OUTPUT
           else
-            echo "GIT_DIRTY=0" >> $GITHUB_ENV
+            echo "dirty=0" >> $GITHUB_OUTPUT
           fi
-      - if: env.GIT_DIRTY == '1'
+      - if: steps.git.outputs.dirty == '1'
         run: |
           git add README.md
           git commit -m 'chore: update the link to the dashboard [skip ci]'
