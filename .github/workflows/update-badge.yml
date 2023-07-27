@@ -1,5 +1,8 @@
 # Note: this workflow requires the repository to give Write access to Github Workflows.
 # in Settings > Actions > General > Workflow permissions
+
+permissions:
+  contents: write
 name: Update Badge
 
 on:
