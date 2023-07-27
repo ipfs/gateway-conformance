@@ -93,7 +93,6 @@ func Merge(inputPaths []string, outputPath string) error {
 	options := []carv2.Option{blockstore.WriteAsCarV1(true)}
 	rout, err := blockstore.OpenReadWrite(outputPath, []cid.Cid{rootCid}, options...)
 	if err != nil {
-		fmt.Println("Error here:a", err)
 		return err
 	}
 
