@@ -95,8 +95,6 @@ jobs:
       - name: Aggregate results
         working-directory: ./artifacts
         run: |
-          set -e
-          set -o pipefail
           mkdir ./aggregates
 
           # download-artifact downloads artifacts in a directory named after the artifact
