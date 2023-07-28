@@ -1,0 +1,115 @@
+name: Test Production (e2e)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload-fixtures:
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.4
+      - uses: actions/checkout@v3
+        with:
+          path: "gateway-conformance"
+      - name: Extract fixtures
+        uses: ./gateway-conformance/.github/actions/extract-fixtures
+        with:
+          output: ./
+          merged: true
+      # https://web3.storage/docs/how-tos/store/#storing-ipfs-content-archives
+      - name: Upload fixtures
+        id: upload
+        uses: web3-storage/add-to-web3@v2
+        with:
+          web3_token: ${{ secrets.W3STORAGE_TOKEN }}
+          path_to_add: 'fixtures.car'
+      - name: Wait for pinning
+        run: |
+          sleep 180 # 3 minutes
+          # see rational in https://github.com/ipfs/gateway-conformance/pull/108#discussion_r1274628865
+  test:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        target: ["ipfs.runfission.com", "w3s.link"]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+    needs: upload-fixtures
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.4
+      - uses: actions/checkout@v3
+        with:
+          path: "gateway-conformance"
+      - name: Run the tests
+        uses: ./gateway-conformance/.github/actions/test
+        with:
+          gateway-url: https://${{ matrix.target }}
+          subdomain-url: https://${{ matrix.target }}
+          json: output.json
+          xml: output.xml
+          html: output.html
+          markdown: output.md
+      - name: Upload one-page HTML report
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance-${{ matrix.target }}.html
+          path: ./output.html
+      - name: Upload JSON output
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance-${{ matrix.target }}.json
+          path: ./output.json
+  aggregate:
+    runs-on: "ubuntu-latest"
+    needs: [test]
+    # the tests might have failed
+    if: always()
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: "gateway-conformance"
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Aggregate results
+        working-directory: ./artifacts
+        run: |
+          mkdir ./aggregates
+
+          # download-artifact downloads artifacts in a directory named after the artifact
+          # details: https://github.com/actions/download-artifact#download-all-artifacts
+          for folder in ./conformance-*.json; do
+            file="${folder}/output.json"
+            new_file="aggregates/${folder#conformance-}"
+            jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
+          done
+
+          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > ./table.md
+      - name: Set summary
+        if: (failure() || success())
+        run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY

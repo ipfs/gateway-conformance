@@ -1,0 +1,23 @@
+name: Release Fixtures
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Release]
+    types:
+      - completed
+    
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ganerate Fixtures
+        env:
+          W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
+        run: |
+          make fixtures.car
+      - name: Upload fixtures
+        uses: web3-storage/add-to-web3@v2
+        with:
+          web3_token: ${{ secrets.W3STORAGE_TOKEN }}
+          path_to_add: 'fixtures.car'

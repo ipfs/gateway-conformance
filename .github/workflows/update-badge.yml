@@ -1,0 +1,63 @@
+# Note: this workflow requires the repository to give Write access to Github Workflows.
+# in Settings > Actions > General > Workflow permissions
+
+permissions:
+  contents: write
+name: Update Badge
+
+on:
+  workflow_run:
+    workflows:
+      - Test Production (e2e)
+    types:
+      - completed
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pl-strflt/job-summary-url-action@v1
+        id: metadata
+        with:
+          workflow: test-prod-e2e.yml # ${{ github.event.workflow.path }}
+          run_id: ${{ github.event.workflow_run.id }}
+          run_attempt: ${{ github.event.workflow_run.run_attempt }}
+          job: aggregate
+      - uses: actions/checkout@v3
+      # https://github.com/orgs/community/discussions/26560
+      - run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+      - run: |
+          echo GITHUB_JOB_SUMMARY_URL=${GITHUB_JOB_SUMMARY_URL}
+          IN='[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](.*)'
+          ESCAPED_IN=$(printf '%s\n' "$IN" | sed -e 's/[][\/!&]/\\&/g')
+
+          OUT="[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](${GITHUB_JOB_SUMMARY_URL})"
+
+          sed -i "s;${ESCAPED_IN};${OUT};" README.md
+        env:
+          GITHUB_JOB_SUMMARY_URL: ${{ steps.metadata.outputs.job_summary_url }}
+          REPOSITORY: ${{ github.repository }}
+      - id: git
+         run: |
+          if [[ -n $(git diff --shortstat 2> /dev/null | tail -n1) ]]; then
+            echo "dirty=1" >> $GITHUB_OUTPUT
+          else
+            echo "dirty=0" >> $GITHUB_OUTPUT
+          fi
+      - if: steps.git.outputs.dirty == '1'
+        run: |
+          git add README.md
+          git commit -m 'chore: update the link to the dashboard [skip ci]'
+          git push
