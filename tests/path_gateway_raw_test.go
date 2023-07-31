@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/car"
-	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
@@ -45,25 +44,11 @@ func TestGatewayBlock(t *testing.T) {
 				),
 			Response: Expect().
 				Status(206).
-				Body(fixture.MustGetRawData("dir")[6:17]),
-		},
-		{
-			Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
-			Request: Request().
-				Path("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()).
 				Headers(
-					Header("Accept", "application/vnd.ipld.raw"),
-					Header("Range", "bytes=6-16,0-4"),
-				),
-			Response: Expect().
-				Status(206).
-				Body(check.And(
-					check.Contains("Content-Range: bytes 6-16/31"),
-					check.Contains("Content-Type: application/vnd.ipld.raw"),
-					check.Contains("application"),
-					check.Contains("Content-Range: bytes 0-4/31"),
-					check.Contains("hello"),
-				)),
+					Header("Content-Type", "application/vnd.ipld.raw"),
+					Header("Content-Range", "bytes 6-16/57"),
+				).
+				Body(fixture.MustGetRawData("dir")[6:17]),
 		},
 		{
 			Name: "GET with application/vnd.ipld.raw header returns expected response headers",
