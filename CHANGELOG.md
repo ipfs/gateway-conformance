@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [0.3.0] - 2023-07-31
 ### Added
 - `--verbose` flag displays all the output to the console
 - `Expect.Headers.ChecksAll`: an expectation to test all the header values (0, 1, or more)
@@ -12,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - finalized port of Kubo's sharness tests. [PR](https://github.com/ipfs/gateway-conformance/pull/92)
 - `extract-fixtures --merged` generates a car version 1 with a single root now
+- refactored multi-range requests. [PR](https://github.com/ipfs/gateway-conformance/pull/113)
 
 ## [0.2.0] - 2023-06-26
 ### Added
