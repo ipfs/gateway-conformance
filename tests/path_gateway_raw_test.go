@@ -104,7 +104,7 @@ func TestGatewayBlock(t *testing.T) {
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid()),
 					Header("Cache-Control").
-						Hint("It should be public, immutable and have max-age of at least 31536000.").
+						Hint("It should be public, immutable and have max-age of at least 29030400.").
 						Checks(func(v string) bool {
 							// TODO: port this to a regular check.
 							directives := strings.Split(strings.ReplaceAll(v, " ", ""), ",")
