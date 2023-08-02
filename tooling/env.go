@@ -6,6 +6,10 @@ import (
 	"runtime"
 )
 
+var (
+	Version = "dev"
+)
+
 func Home() string {
 	home := os.Getenv("GATEWAY_CONFORMANCE_HOME")
 	if home == "" {

@@ -1,3 +1,7 @@
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+DIRTY_SUFFIX := $(shell test -n "`git status --porcelain`" && echo "-dirty" || true)
+CLI_VERSION := dev-$(GIT_COMMIT)$(DIRTY_SUFFIX)
+
 all: gateway-conformance
 
 clean: clean-docker
@@ -30,7 +34,7 @@ fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.
 
 gateway-conformance:
-	go build -o ./gateway-conformance ./cmd/gateway-conformance
+	go build -ldflags="-X github.com/ipfs/gateway-conformance/tooling.Version=$(CLI_VERSION)" -o ./gateway-conformance ./cmd/gateway-conformance
 
 test-docker: docker fixtures.car gateway-conformance
 	./gc test
@@ -44,7 +48,7 @@ test-docker: docker fixtures.car gateway-conformance
 	open ./reports/output.html
 
 docker:
-	docker build -t gateway-conformance .
+	docker build --build-arg VERSION="$(CLI_VERSION)" -t gateway-conformance .
 
 clean-docker:
 	@if command -v docker >/dev/null 2>&1 && docker image inspect gateway-conformance >/dev/null 2>&1; then \
