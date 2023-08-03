@@ -25,4 +25,4 @@ runs:
         ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         args: extract-fixtures --directory="$OUTPUT" --merged="$MERGED"
-        build-args: --build-arg VERSION=${{ github.head_ref || github.ref_name }}
+        build-args: --build-arg VERSION=${{ steps.github.outputs.action_ref }}
