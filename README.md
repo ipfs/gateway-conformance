@@ -181,8 +181,9 @@ make test-kubo-subdomains
 
 If you are using a different gateway and would like to use a different configuration, the [Makefile](./Makefile) and configuration scripts are great, up-to-date, starting points.
 
-The test-suite is a regular go test-suite, which means that any IDE integration will work as-well.
-You can use env variables to configure the tests from your IDE.
+> [!NOTE]
+> The test-suite is a regular go test-suite, which means that any IDE integration will work as-well.
+> You can use env variables to configure the tests from your IDE.
 
 Here is an example for VSCode, `example.com` is the domain configured via [kubo-config.example.sh](./kubo-config.example.sh)
 
