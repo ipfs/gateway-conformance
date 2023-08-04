@@ -127,6 +127,9 @@ func main() {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
 
+					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s", tooling.Version)
+					args = append(args, ldFlag)
+
 					args = append(args, cCtx.Args().Slice()...)
 
 					fmt.Println("go " + strings.Join(args, " "))
