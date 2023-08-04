@@ -6,6 +6,8 @@ import (
 )
 
 func LogMetadata(t *testing.T, value interface{}) {
+	t.Helper()
+
 	jsonValue, err := json.Marshal(value)
 	if err != nil {
 		t.Errorf("Failed to encode value: %v", err)
