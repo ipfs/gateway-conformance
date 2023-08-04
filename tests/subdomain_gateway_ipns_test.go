@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
@@ -15,6 +16,8 @@ import (
 )
 
 func TestGatewaySubdomainAndIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupSubdomainGateway)
+
 	tests := SugarTests{}
 
 	rsaFixture := ipns.MustOpenIPNSRecordWithKey("subdomain_gateway/QmVujd5Vb7moysJj8itnGufN7MEtPRCNHkKpNuA4onsRa3.ipns-record")
@@ -159,6 +162,8 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 }
 
 func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
+	tooling.LogTestGroup(t, GroupSubdomainGateway)
+
 	tests := SugarTests{}
 
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)

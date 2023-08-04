@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -10,6 +11,8 @@ import (
 )
 
 func TestGatewayIPNSRecord(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	fixture := car.MustOpenUnixfsCar("ipns_records/fixtures.car")
 	file := fixture.MustGetRoot()
 	fileCID := file.Cid()

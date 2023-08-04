@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 )
 
@@ -16,6 +17,7 @@ type SugarTest struct {
 	Requests  []RequestBuilder
 	Response  ExpectBuilder
 	Responses ExpectsBuilder
+	IPIP      string
 }
 
 type SugarTests []SugarTest
@@ -51,6 +53,10 @@ func run(t *testing.T, tests SugarTests) {
 
 		if len(test.Requests) > 0 {
 			t.Run(test.Name, func(t *testing.T) {
+				if test.IPIP != "" {
+					tooling.LogIPIP(t, test.IPIP)
+				}
+
 				responses := make([]*http.Response, 0, len(test.Requests))
 
 				for _, req := range test.Requests {
@@ -63,6 +69,10 @@ func run(t *testing.T, tests SugarTests) {
 			})
 		} else {
 			t.Run(test.Name, func(t *testing.T) {
+				if test.IPIP != "" {
+					tooling.LogIPIP(t, test.IPIP)
+				}
+
 				_, res, localReport := runRequest(timeout, t, test, test.Request)
 				validateResponse(t, test.Response, res, localReport)
 			})

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestTrustlessRaw(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
 	tests := SugarTests{
@@ -128,6 +131,8 @@ func TestTrustlessRaw(t *testing.T) {
 }
 
 func TestTrustlessRawRanges(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	// Multi-range requests MUST conform to the HTTP semantics. The server does not
 	// need to be able to support returning multiple ranges. However, it must respond
 	// correctly.
