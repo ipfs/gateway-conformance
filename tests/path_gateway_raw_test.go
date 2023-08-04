@@ -5,12 +5,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayBlock(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
 	tests := SugarTests{

@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
+	tooling.LogTestGroup(t, GroupSubdomainGateway)
+
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
@@ -105,6 +108,8 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 }
 
 func TestGatewaySubdomains(t *testing.T) {
+	tooling.LogTestGroup(t, GroupSubdomainGateway)
+
 	fixture := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
 
 	CIDVal := string(fixture.MustGetRawData("hello-CIDv1")) // hello

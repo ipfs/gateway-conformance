@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestGatewayJsonCbor(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	fileJSON := fixture.MustGetNode("ą", "ę", "t.json")
@@ -66,6 +69,8 @@ func TestGatewayJsonCbor(t *testing.T) {
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
 // ## (returns representation defined in https://ipld.io/specs/codecs/dag-pb/spec/#logical-format)
 func TestDagPbConversion(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	dir := fixture.MustGetRoot()
@@ -205,6 +210,8 @@ func TestDagPbConversion(t *testing.T) {
 // # Requesting CID with plain json (0x0200) and cbor (0x51) codecs
 // # (note these are not UnixFS, not DAG-* variants, just raw block identified by a CID with a special codec)
 func TestPlainCodec(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	table := []struct {
 		Name        string
 		Format      string
@@ -308,6 +315,8 @@ func TestPlainCodec(t *testing.T) {
 
 // ## Pathing, traversal over DAG-JSON and DAG-CBOR
 func TestPathing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	dagJSONTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-json-traversal.car").MustGetRoot()
 	dagCBORTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
 
@@ -381,6 +390,8 @@ func TestPathing(t *testing.T) {
 // ## NATIVE TESTS for DAG-JSON (0x0129) and DAG-CBOR (0x71):
 // ## DAG- regression tests for core behaviors when native DAG-(CBOR|JSON) is requested
 func TestNativeDag(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	missingCID := car.RandomCID()
 
 	table := []struct {
@@ -570,6 +581,8 @@ func TestNativeDag(t *testing.T) {
 }
 
 func TestGatewayJSONCborAndIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	ipnsIdDagJSON := "k51qzi5uqu5dhjghbwdvbo6mi40htrq6e2z4pwgp15pgv3ho1azvidttzh8yy2"
 	ipnsIdDagCBOR := "k51qzi5uqu5dghjous0agrwavl8vzl64xckoqzwqeqwudfr74kfd11zcyk3b7l"
 

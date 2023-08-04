@@ -16,7 +16,7 @@ lines = lines.filter((line) => {
 // # extract test metadata
 //   action is output, and starts with ".* --- META: (.*)"
 //   see details in https://github.com/ipfs/gateway-conformance/pull/125
-const getMetadata = (line) => {
+const extractMetadata = (line) => {
   const { Action, Output } = line;
 
   if (Action !== "output") {
@@ -34,7 +34,7 @@ const getMetadata = (line) => {
 }
 
 lines = lines.map((line) => {
-  const metadata = getMetadata(line);
+  const metadata = extractMetadata(line);
 
   if (!metadata) {
     return line;
@@ -87,6 +87,44 @@ lines.forEach((line) => {
   });
 })
 
+// prepare metadata up the tree
+const metadataTree = {};
+
+// sort lines so that the one with the longest path is processed first
+const sortedLines = lines.sort((a, b) => {
+  return b.Path.length - a.Path.length;
+});
+
+sortedLines.forEach((line) => {
+  const { Path, Action, Metadata } = line;
+  let current = metadataTree;
+
+  if (Action !== "meta") {
+    return;
+  }
+
+  Path.forEach((path) => {
+    if (!current[path]) {
+      current[path] = {};
+    }
+    current = current[path];
+    current["meta"] = { ...current["meta"], ...Metadata };
+  });
+});
+
+const getMetadata = (path) => {
+  let current = metadataTree;
+
+  path.forEach((path) => {
+    if (!current[path]) {
+      return null;
+    }
+    current = current[path];
+  });
+
+  return current["meta"];
+}
+
 // # Drop all lines where the Test "Path" does not point to a leaf
 //   if the test has children then we don't really care about it's pass / fail / skip status,
 //   we'll aggregate its children results'
@@ -118,7 +156,7 @@ lines.forEach((line) => {
   const key = path.join(" > ");
 
   if (!current[key]) {
-    current[key] = { Path: path, "pass": 0, "fail": 0, "skip": 0, "total": 0, "meta": {} };
+    current[key] = { Path: path, "pass": 0, "fail": 0, "skip": 0, "total": 0, "meta": getMetadata(path) || {} };
   }
   current = current[key];
 

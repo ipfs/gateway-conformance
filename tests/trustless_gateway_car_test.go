@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/helpers"
@@ -11,6 +12,8 @@ import (
 )
 
 func TestTrustlessCarPathing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 	dirWithDagCborWithLinksFixture := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-dag-cbor-with-links.car")
@@ -118,6 +121,8 @@ func TestTrustlessCarPathing(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeBlock(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 
@@ -201,6 +206,8 @@ func TestTrustlessCarDagScopeBlock(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeEntity(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	subdirTwoSingleBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-two-single-block-files.car")
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
@@ -335,6 +342,8 @@ func TestTrustlessCarDagScopeEntity(t *testing.T) {
 }
 
 func TestTrustlessCarDagScopeAll(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
 
 	tests := SugarTests{
@@ -398,6 +407,8 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 }
 
 func TestTrustlessCarEntityBytes(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")
 	missingBlockFixture := car.MustOpenUnixfsCar("trustless_gateway_car/file-3k-and-3-blocks-missing-block.car")
@@ -658,6 +669,8 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 }
 
 func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTrustlessGateway)
+
 	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
 	// This array is defined at the SPEC level and should not depend on library behavior
 	// See the recipe for `dir-with-duplicate-files.car`
