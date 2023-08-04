@@ -11,8 +11,6 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
-// TODO(laurent): this was in t0115_gateway_dir_listing_test.go
-
 func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
