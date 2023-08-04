@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
@@ -13,6 +14,8 @@ import (
 )
 
 func TestUnixFSDirectoryListing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
@@ -76,6 +79,8 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 }
 
 func TestGatewayCache(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("gateway-cache/fixtures.car")
 
 	tests := SugarTests{
@@ -308,6 +313,8 @@ func TestGatewayCache(t *testing.T) {
 }
 
 func TestGatewayCacheWithIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("gateway-cache/fixtures.car")
 	ipns := ipns.MustOpenIPNSRecordWithKey("gateway-cache/k51qzi5uqu5dlxdsdu5fpuu7h69wu4ohp32iwm9pdt9nq3y5rpn3ln9j12zfhe.ipns-record")
 	ipnsKey := ipns.Key()
@@ -404,6 +411,8 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 }
 
 func TestGatewaySymlink(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixture := car.MustOpenUnixfsCar("path_gateway_unixfs/symlink.car")
 	rootDirCID := fixture.MustGetCid()
 
@@ -443,6 +452,8 @@ func TestGatewaySymlink(t *testing.T) {
 }
 
 func TestGatewayUnixFSFileRanges(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	// Multi-range requests MUST conform to the HTTP semantics. The server does not
 	// need to be able to support returning multiple ranges. However, it must respond
 	// correctly.

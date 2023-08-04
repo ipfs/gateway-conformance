@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -11,6 +12,8 @@ import (
 )
 
 func TestTar(t *testing.T) {
+	tooling.LogTestGroup(t, GroupPathGateway)
+
 	fixtureOutside := car.MustOpenUnixfsCar("path_gateway_tar/outside-root.car")
 	fixtureInside := car.MustOpenUnixfsCar("path_gateway_tar/inside-root.car")
 

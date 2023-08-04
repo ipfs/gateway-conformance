@@ -11,3 +11,11 @@ func TestMetadata(t *testing.T) {
 	tooling.LogJobURL(t)
 	tooling.LogGatewayURL(t)
 }
+
+const (
+	GroupTrustlessGateway = "Trustless Gateway"
+	GroupPathGateway      = "Path Gateway"
+	GroupSubdomainGateway = "Subdomain Gateway"
+	GroupCORS             = "CORS"
+	GroupIPNS             = "IPNS"
+)
