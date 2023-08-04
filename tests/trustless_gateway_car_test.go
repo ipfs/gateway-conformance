@@ -88,6 +88,30 @@ func TestTrustlessCarPathing(t *testing.T) {
 						InThatOrder(),
 				),
 		},
+		{
+			Name: "GET default CAR response for non-existing file",
+			Hint: `
+				CAR stream of a non-existing path must return 200 OK and all the blocks necessary
+				to traverse the path up to and including the parent of the first non-existing
+				segment of the path, in order to allow the client to verify that the request
+				path does not exist.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}/subdir/i-do-not-exist", subdirTwoSingleBlockFilesFixture.MustGetCidWithCodec(0x70)).
+				Query("format", "car"),
+			Response: Expect().
+				Status(200).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlocks(
+							subdirTwoSingleBlockFilesFixture.MustGetCid(),
+							subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
+						).
+						Exactly().
+						InThatOrder(),
+				),
+		},
 	}
 
 	RunWithSpecs(t, helpers.StandardCARTestTransforms(t, tests), specs.TrustlessGatewayCAR)
