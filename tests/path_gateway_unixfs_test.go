@@ -63,6 +63,13 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 						Contains(`<a class="ipfs-hash" translate="no" href="/ipfs/{{cid}}?filename=file-%25C5%25BA%25C5%2582.txt">`, file.Cid())),
 				),
 		},
+		{
+			Name: "GET for /ipfs/cid/file UnixFS file that does not exist returns 404",
+			Request: Request().
+				Path("/ipfs/{{cid}}/i-do-not-exist", root.Cid()),
+			Response: Expect().
+				Status(404),
+		},
 	}
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)

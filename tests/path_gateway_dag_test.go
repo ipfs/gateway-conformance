@@ -11,8 +11,6 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
-// TODO(laurent): this was t0123_gateway_json_cbor_test
-
 func TestGatewayJsonCbor(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
@@ -67,7 +65,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
 // ## (returns representation defined in https://ipld.io/specs/codecs/dag-pb/spec/#logical-format)
-func TestDAgPbConversion(t *testing.T) {
+func TestDagPbConversion(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	dir := fixture.MustGetRoot()
@@ -340,6 +338,13 @@ func TestPathing(t *testing.T) {
 				),
 		},
 		{
+			Name: "GET DAG-JSON returns 404 on non-existing link",
+			Request: Request().
+				Path("/ipfs/{{cid}}/foo/i-do-not-exist", dagJSONTraversalCID),
+			Response: Expect().
+				Status(404),
+		},
+		{
 			Name: "GET DAG-CBOR traversal returns 501 if there is path remainder",
 			Request: Request().
 				Path("/ipfs/{{cid}}/foo", dagCBORTraversalCID).
@@ -360,6 +365,13 @@ func TestPathing(t *testing.T) {
 					// 		 but we might prefer matching abstract values, something like "IsJSONEqual(someFixture.formatedAsJSON))"
 					IsJSONEqual([]byte(`{"hello": "this is not a link"}`)),
 				),
+		},
+		{
+			Name: "GET DAG-CBOR returns 404 on non-existing link",
+			Request: Request().
+				Path("/ipfs/{{cid}}/foo/i-do-not-exist", dagCBORTraversalCID),
+			Response: Expect().
+				Status(404),
 		},
 	}
 
