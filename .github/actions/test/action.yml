@@ -42,7 +42,7 @@ runs:
         SPECS: ${{ inputs.specs }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
-        ref: ${{ steps.github.outputs.action_ref }}
+        ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
         args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
