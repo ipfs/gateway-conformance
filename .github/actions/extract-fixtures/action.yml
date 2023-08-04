@@ -22,6 +22,6 @@ runs:
         MERGED: ${{ inputs.merged }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
-        ref: ${{ steps.github.outputs.action_ref }}
+        ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         args: extract-fixtures --directory="$OUTPUT" --merged="$MERGED"
