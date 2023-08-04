@@ -1,6 +1,8 @@
 const fs = require("fs");
 
 const TestMetadata = "TestMetadata";
+const METADATA_TEST_GROUP = "group";
+const METADATA_IPIP = "ipip";
 
 // retrieve the list of input files from the command line
 const files = process.argv.slice(2);
@@ -10,13 +12,18 @@ const inputs = files.map((file) => {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
 });
 
-// merge all the unique keys from all the inputs
+// merge all the unique keys & metadata from all the inputs
 let keys = new Set();
+const metadata = {}
 inputs.forEach((input) => {
     Object.keys(input).forEach((key) => {
         keys.add(key);
+
+        // add metadata keys (do not care about different metadatas for now)
+        metadata[key] = { ...metadata[key], ...input[key]["meta"] || {} };
     });
 });
+
 keys.delete(TestMetadata); // Extract TestMetadata which is a special case
 keys = Array.from(keys).sort();
 
@@ -26,8 +33,18 @@ const columns = [];
 // add the leading column ("gateway", "version", "key1", "key2", ... "keyN")
 const leading = ["gateway", "version"];
 keys.forEach((key) => {
+    const m = metadata[key];
+
     // Skip the "Test" prefix
-    const niceKey = key.replace(/^Test/, '');
+    let niceKey = key.replace(/^Test/, '');
+
+    niceKey = m[METADATA_TEST_GROUP] || niceKey;
+
+    // Add ipip link if available
+    if (m[METADATA_IPIP]) {
+        niceKey = `[${niceKey}](https://specs.ipfs.tech/ipips/${m[METADATA_IPIP]})`;
+    }
+
     leading.push(niceKey);
 });
 columns.push(leading);
