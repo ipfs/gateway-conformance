@@ -9,6 +9,7 @@ on:
   workflow_run:
     workflows:
       - Test Production (e2e)
+      - Test Dev (e2e)
     types:
       - completed
     branches:
@@ -23,41 +24,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  update-badge:
+  update-badge-prod:
     runs-on: ubuntu-latest
     steps:
       - uses: pl-strflt/job-summary-url-action@v1
         id: metadata
         with:
-          workflow: test-prod-e2e.yml # ${{ github.event.workflow.path }}
+          workflow: ${{ github.event.workflow.path }}
           run_id: ${{ github.event.workflow_run.id }}
           run_attempt: ${{ github.event.workflow_run.run_attempt }}
           job: aggregate
       - uses: actions/checkout@v3
+      - id: update
+        uses: actions/github-script@v6
+        env:
+          WORKFLOW_PATH: ${{ github.event.workflow.path }}
+          BADGE_URL: ${{ github.event.workflow.badge_url }}
+          SUMMARY_URL: ${{ steps.metadata.outputs.job_summary_url }}
+        with:
+          script: |
+            const fs = require('fs')
+
+            const workflowPath = process.env.WORKFLOW_PATH
+            const badgeURL = process.env.BADGE_URL
+            const refName = process.env.GITHUB_REF_NAME
+            const summaryURL = process.env.SUMMARY_URL
+
+            console.log(`
+              workflowPath: ${workflowPath}
+              badgeURL: ${badgeURL}
+              refName: ${refName}
+              summaryURL: ${summaryURL}
+            `)
+
+            function escapeRegExp(string) {
+              return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            const searchValue = new RegExp(`\\[!\\[([^\\]]+)\\]\\(.*${escapeRegExp(badgeURL)}.*\\)\\]\\(.*\\)`, 'g')
+            const replaceValue = `[![$1](${badgeURL}?branch=${refName})](${summaryURL})`
+
+            console.log(`Searching for: ${searchValue}`)
+            console.log(`To replace it with: ${replaceValue}`)
+
+            const readme = fs.readFileSync('README.md').toString()
+            const updatedReadme = readme.replace(searchValue, replaceValue)
+
+            if (readme !== updatedReadme) {
+              console.log('Updating README')
+              fs.writeFileSync('README.md', updatedReadme)
+              return true
+            } else {
+              console.log('README does not need to be updated')
+              return false
+            }
       # https://github.com/orgs/community/discussions/26560
-      - run: |
+      - if: steps.update.outputs.result == 'true'
+        run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-      - run: |
-          echo GITHUB_JOB_SUMMARY_URL=${GITHUB_JOB_SUMMARY_URL}
-          IN='[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](.*)'
-          ESCAPED_IN=$(printf '%s\n' "$IN" | sed -e 's/[][\/!&]/\\&/g')
-
-          OUT="[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)](${GITHUB_JOB_SUMMARY_URL})"
-
-          sed -i "s;${ESCAPED_IN};${OUT};" README.md
-        env:
-          GITHUB_JOB_SUMMARY_URL: ${{ steps.metadata.outputs.job_summary_url }}
-          REPOSITORY: ${{ github.repository }}
-      - id: git
-         run: |
-          if [[ -n $(git diff --shortstat 2> /dev/null | tail -n1) ]]; then
-            echo "dirty=1" >> $GITHUB_OUTPUT
-          else
-            echo "dirty=0" >> $GITHUB_OUTPUT
-          fi
-      - if: steps.git.outputs.dirty == '1'
+      - if: steps.update.outputs.result == 'true'
         run: |
           git add README.md
-          git commit -m 'chore: update the link to the dashboard [skip ci]'
+          git commit -m 'chore: update the link to the interop dashboard [skip ci]'
           git push

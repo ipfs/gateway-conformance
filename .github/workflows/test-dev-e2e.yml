@@ -1,0 +1,54 @@
+name: Test Dev (e2e)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  bifrost-gateway:
+    uses: singulargarden/bifrost-gateway2/.github/workflows/gateway-conformance.yml@main
+    with:
+      artifact_json_name: conformance-bifrost-gateway.json
+  kubo-gateway:
+    uses: singulargarden/kubo/.github/workflows/gateway-conformance.yml@master
+    with:
+      artifact_json_name: conformance-kubo-gateway.json
+  aggregate:
+    runs-on: "ubuntu-latest"
+    needs: [bifrost-gateway, kubo-gateway]
+    # the tests might have failed
+    if: always()
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: "gateway-conformance"
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Aggregate results
+        working-directory: ./artifacts
+        run: |
+          set -e
+          set -o pipefail
+          mkdir ./aggregates
+
+          # download-artifact downloads artifacts in a directory named after the artifact
+          # details: https://github.com/actions/download-artifact#download-all-artifacts
+          for folder in ./conformance-*.json; do
+            file="${folder}/output.json"
+            new_file="aggregates/${folder#conformance-}"
+            jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
+          done
+
+          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > /tmp/table.md
+          node ../gateway-conformance/aggregate-update-names.js ../gateway-conformance/names.json /tmp/table.md > ./table.md
+      - name: Set summary
+        if: (failure() || success())
+        run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY

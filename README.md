@@ -2,7 +2,9 @@
 
 `gateway-conformance` is a tool designed to test if an IPFS Gateway implementation complies with the IPFS Gateway Specification correctly. The tool is distributed as a Docker image, as well as a GitHub Action(s).
 
-[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)]()
+[![Conformance Production Dashboard](https://github.com/singulargarden/gateway-conformance/workflows/Test%20Dev%20(e2e)/badge.svg?branch=main)]()
+
+[![Conformance Dev Dashboard](https://github.com/singulargarden/gateway-conformance/workflows/Test%20Production%20(e2e)/badge.svg?branch=main)]()
 
 ## Table of Contents
 

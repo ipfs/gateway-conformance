@@ -110,6 +110,7 @@ jobs:
           done
 
           node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > ./table.md
+          node ../gateway-conformance/aggregate-update-names.js ../gateway-conformance/names.json ./table.md > ./table.md
       - name: Set summary
         if: (failure() || success())
         run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY

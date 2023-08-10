@@ -1,0 +1,122 @@
+{
+    "Cors": [
+        "Cross-Origin Resource Sharing",
+        null
+    ],
+    "DagPbConversion": [
+        "DAG-PB Conversion to DAG-CBOR/JSON",
+        "https://ipld.io/specs/codecs/dag-pb/spec/#logical-format"
+    ],
+    "DNSLinkGateway": [
+        "DNSLink Gateway",
+        "https://specs.ipfs.tech/http-gateways/dnslink-gateway/"
+    ],
+    "DNSLinkGatewayUnixFSDirectoryListing": [
+        "Generated UnixFS Directory Listing for DNSLink",
+        "https://specs.ipfs.tech/http-gateways/dnslink-gateway/"
+    ],
+    "GatewayBlock": [
+        "Gateway Block",
+        null
+    ],
+    "GatewayCache": [
+        "HTTP Caching",
+        null
+    ],
+    "GatewayCacheWithIPNS": [
+        "HTTP Caching with IPNS",
+        null
+    ],
+    "GatewayIPNSRecord": [
+        "Signed IPNS Record",
+        null
+    ],
+    "GatewayJSONCborAndIPNS": [
+        "[DAG-]CBOR/JSON on IPNS",
+        null
+    ],
+    "GatewayJsonCbor": [
+        "[DAG-]CBOR/JSON",
+        "https://specs.ipfs.tech/http-gateways/path-gateway/#traversing-through-dag-json-and-dag-cbor"
+    ],
+    "GatewaySubdomainAndIPNS": [
+        "Subdomain Gateway with IPNS",
+        "https://specs.ipfs.tech/http-gateways/subdomain-gateway/"
+    ],
+    "GatewaySubdomains": [
+        "Subdomain Gateway",
+        "https://specs.ipfs.tech/http-gateways/subdomain-gateway/"
+    ],
+    "GatewaySymlink": [
+        "UnixFS Symlink",
+        null
+    ],
+    "NativeDag": [
+        "Native DAG-CBOR/JSON",
+        null
+    ],
+    "Web Pathing": [
+        "Pathing",
+        "https://specs.ipfs.tech/http-gateways/path-gateway/#content-resolution"
+    ],
+    "PlainCodec": [
+        "Plain CBOR/JSON",
+        null
+    ],
+    "RedirectsFileSupport": [
+        "_redirects File Support",
+        "https://specs.ipfs.tech/http-gateways/web-redirects-file/"
+    ],
+    "RedirectsFileSupportWithDNSLink": [
+        "_redirects File Support with DNSLink",
+        "https://specs.ipfs.tech/http-gateways/web-redirects-file/"
+    ],
+    "SubdomainGatewayDNSLinkInlining": [
+        "Subdomain Gateway DNSLink Inlining",
+        "https://specs.ipfs.tech/http-gateways/subdomain-gateway/#host-request-header"
+    ],
+    "Tar": [
+        "TAR Responses",
+        null
+    ],
+    "TrustlessCarDagScopeAll": [
+        "CAR with dag-scope=all",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/#dag-scope-request-query-parameter"
+    ],
+    "TrustlessCarDagScopeBlock": [
+        "CAR with dag-scope=block",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/#dag-scope-request-query-parameter"
+    ],
+    "TrustlessCarDagScopeEntity": [
+        "CAR with dag-scope=entity",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/#dag-scope-request-query-parameter"
+    ],
+    "TrustlessCarEntityBytes": [
+        "CAR with entity-bytes",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/#entity-bytes-request-query-parameter"
+    ],
+    "TrustlessCarPathing": [
+        "Trustless CAR with Web Pathing",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "TrustlessRaw": [
+        "Trustless Raw Block (application/vnd.ipld.raw)",
+        "https://specs.ipfs.tech/http-gateways/trustless-gateway/"
+    ],
+    "UnixFSDirectoryListing": [
+        "UnixFS Directory Listing",
+        null
+    ],
+    "UnixFSDirectoryListingOnSubdomainGateway": [
+        "UnixFS Directory Listing on Subdomain Gateway",
+        null
+    ],
+    "conformance-bifrost-gateway": [
+        "ipfs/bifrost-gateway",
+        "https://github.com/ipfs/bifrost-gateway"
+    ],
+    "conformance-kubo-gateway": [
+        "ipfs/kubo",
+        "https://github.com/ipfs/kubo"
+    ]
+}
