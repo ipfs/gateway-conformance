@@ -10,7 +10,7 @@ import (
 func TestRedirectCanonicalIPNS(t *testing.T) {
 	tests := SugarTests{
 		{
-			Name: "GET for /ipns/{b58-multihash} redirects to /ipns/{cidv1-libp2p-key-base36}",
+			Name: "GET for /ipns/{b58-multihash-of-ed25519-key} redirects to /ipns/{cidv1-libp2p-key-base36}",
 			Request: Request().
 				Path("/ipns/12D3KooWRBy97UB99e3J6hiPesre1MZeuNQvfan4gBziswrRJsNK/root2/"),
 			Response: Expect().
@@ -20,7 +20,7 @@ func TestRedirectCanonicalIPNS(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET for /ipns/{cidv0} redirects to /ipns/{cidv1-libp2p-key-base36}",
+			Name: "GET for /ipns/{cidv0-like-b58-multihash-of-rsa-key} redirects to /ipns/{cidv1-libp2p-key-base36}",
 			Request: Request().
 				Path("/ipns/QmcJM7PRfkSbcM5cf1QugM5R37TLRKyJGgBEhXjLTB8uA2/root2/"),
 			Response: Expect().
