@@ -1,17 +1,14 @@
 # gateway-conformance
 
-`gateway-conformance` is a tool designed to test if an IPFS Gateway implementation complies with the IPFS Gateway Specification correctly. The tool is distributed as a Docker image, as well as a GitHub Action(s).
-
-[![Conformance Production Dashboard](https://github.com/ipfs/gateway-conformance/actions/workflows/test-prod-e2e.yml/badge.svg?branch=master)]()
-
-## Table of Contents
+> A tool designed to test if an IPFS Gateway implementation complies with the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/) correctly.  
+> Distributed as a Docker image, as well as a GitHub Action(s).
 
 - [Commands](#commands)
-  - [test](#test)
+  - [`test`](#test)
     - [Inputs](#inputs)
     - [Subdomain Testing and `subdomain-url`](#subdomain-testing-and-subdomain-url)
     - [Usage](#usage)
-  - [extract-fixtures](#extract-fixtures)
+  - [`extract-fixtures`](#extract-fixtures)
     - [Inputs](#inputs-1)
     - [Outputs](#outputs)
     - [Usage](#usage-1)
@@ -27,7 +24,7 @@
 
 ### test
 
-The `test` command is the main command of the tool. It is used to test a given IPFS Gateway implementation against the IPFS Gateway Specification.
+The `test` command is the main command of the tool. It is used to test a given IPFS Gateway implementation against the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/).
 
 #### Inputs
 
