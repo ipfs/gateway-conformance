@@ -46,7 +46,8 @@ runs:
         dockerfile: Dockerfile
         opts: --network=host
         args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
-        build-args: --build-arg VERSION=${{ steps.github.outputs.action_ref }}
+        build-args: |
+          VERSION:${{ steps.github.outputs.action_ref }}
     - name: Create the XML
       if: (inputs.xml || inputs.html || inputs.markdown) && (failure() || success())
       uses: pl-strflt/gotest-json-to-junit-xml@v1
