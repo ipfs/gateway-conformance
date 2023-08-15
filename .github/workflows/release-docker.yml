@@ -2,6 +2,9 @@ name: Release Docker
 on:
   workflow_dispatch:
     inputs:
+      tag:
+        description: 'The tag that is being released.'
+        required: false
       tags:
         description: 'Comma separated list of tags to apply to the image.'
         required: false
@@ -27,6 +30,7 @@ jobs:
     outputs:
       draft: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].draft || false }}
       tags: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].tags || github.event.inputs.tags }}
+      tag: ${{ fromJSON(steps.workflow-run.outputs.artifacts)['release'].files['release.json'].tag || github.event.inputs.tag }}
     steps:
       # This step will download the release artifact either from the workflow
       # run that triggered this workflow or from the artifacts-url input. It
@@ -65,6 +69,8 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           context: .
+          build-args: |
+            VERSION:${{ needs.release.outputs.tag }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}

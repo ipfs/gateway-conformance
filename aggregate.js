@@ -1,5 +1,8 @@
 const fs = require("fs");
 
+// # we group test results by Path, depth is the number of levels to group by
+const depth = process.argv[2] && parseInt(process.argv[2], 10) || 1;
+
 // # read json from stdin:
 let lines = fs.readFileSync(0, "utf-8");
 lines = JSON.parse(lines);
@@ -10,9 +13,44 @@ lines = lines.filter((line) => {
   return Test !== undefined;
 });
 
+// # extract test metadata
+//   action is output, and starts with ".* --- META: (.*)"
+//   see details in https://github.com/ipfs/gateway-conformance/pull/125
+const getMetadata = (line) => {
+  const { Action, Output } = line;
+
+  if (Action !== "output") {
+    return null;
+  }
+
+  const match = Output.match(/.* --- META: (.*)/);
+
+  if (!match) {
+    return null;
+  }
+
+  const metadata = match[1];
+  return JSON.parse(metadata);
+}
+
+lines = lines.map((line) => {
+  const metadata = getMetadata(line);
+
+  if (!metadata) {
+    return line;
+  }
+
+  return {
+    ...line,
+    Action: "meta",
+    Metadata: metadata,
+  }
+});
+
+// # keep the test result lines and metadata only
 lines = lines.filter((line) => {
   const { Action } = line;
-  return ["pass", "fail", "skip"].includes(Action);
+  return ["pass", "fail", "skip", "meta"].includes(Action);
 });
 
 // # add "Path" field by parsing "Name" and split by "/"
@@ -69,8 +107,6 @@ lines = lines.filter((line) => {
 
 // # Aggregate by Path and count actions
 
-const depth = process.argv[2] && parseInt(process.argv[2], 10) || 1;
-
 // test result is a map { [path_str]: { [path], [action]: count } }
 const testResults = {};
 
@@ -82,12 +118,18 @@ lines.forEach((line) => {
   const key = path.join(" > ");
 
   if (!current[key]) {
-    current[key] = {Path: path, "pass": 0, "fail": 0, "skip": 0, "total": 0};
+    current[key] = { Path: path, "pass": 0, "fail": 0, "skip": 0, "total": 0, "meta": {} };
   }
   current = current[key];
 
-  current[Action] += 1;
-  current["total"] += 1;
+  if (Action === "meta") {
+    const { Metadata } = line;
+    current["meta"] = { ...current["meta"], ...Metadata };
+    return;
+  } else {
+    current[Action] += 1;
+    current["total"] += 1;
+  }
 });
 
 // output result to stdout

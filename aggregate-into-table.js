@@ -1,13 +1,14 @@
 const fs = require("fs");
 
+const TestMetadata = "TestMetadata";
+
 // retrieve the list of input files from the command line
 const files = process.argv.slice(2);
 
 // read all input files (json)
 const inputs = files.map((file) => {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
-}
-);
+});
 
 // merge all the unique keys from all the inputs
 let keys = new Set();
@@ -16,13 +17,14 @@ inputs.forEach((input) => {
         keys.add(key);
     });
 });
+keys.delete(TestMetadata); // Extract TestMetadata which is a special case
 keys = Array.from(keys).sort();
 
 // generate a table
 const columns = [];
 
-// add the leading column ("gateway", "key1", "key2", ... "keyN")
-const leading = ["gateway"];
+// add the leading column ("gateway", "version", "key1", "key2", ... "keyN")
+const leading = ["gateway", "version"];
 keys.forEach((key) => {
     // Skip the "Test" prefix
     const niceKey = key.replace(/^Test/, '');
@@ -53,7 +55,13 @@ inputs.forEach((input, index) => {
     // clean name (remove path and extension)
     let name = files[index].replace(/\.json$/, '').replace(/^.*\//, '');
 
-    const col = [name];
+    // extract TestMetadata & version
+    const metadata = input[TestMetadata]["meta"];
+    const version = metadata['version'];
+
+    const col = [name, version];
+
+    // extract results
     keys.forEach((key) => {
         col.push(cellRender(input[key] || null));
     });

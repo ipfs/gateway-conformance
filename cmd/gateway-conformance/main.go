@@ -78,8 +78,9 @@ func main() {
 	var verbose bool
 
 	app := &cli.App{
-		Name:  "gateway-conformance",
-		Usage: "Tooling for the gateway test suite",
+		Name:    "gateway-conformance",
+		Usage:   "Tooling for the gateway test suite",
+		Version: tooling.Version,
 		Commands: []*cli.Command{
 			{
 				Name:    "test",
@@ -125,6 +126,9 @@ func main() {
 					if specs != "" {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
+
+					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s", tooling.Version)
+					args = append(args, ldFlag)
 
 					args = append(args, cCtx.Args().Slice()...)
 
