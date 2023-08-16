@@ -13,32 +13,75 @@ const inputs = files.map((file) => {
 });
 
 // merge all the unique keys & metadata from all the inputs
-let keys = new Set();
 const metadata = {}
 inputs.forEach((input) => {
     Object.keys(input).forEach((key) => {
-        keys.add(key);
-
-        // add metadata keys (do not care about different metadatas for now)
         metadata[key] = { ...metadata[key], ...input[key]["meta"] || {} };
     });
 });
+delete metadata[TestMetadata]; // Extract TestMetadata which is a special case
 
-keys.delete(TestMetadata); // Extract TestMetadata which is a special case
-keys = Array.from(keys).sort();
+// generate groups: an array of {group, key} objects
+// where group is the group name (or undefined), and key is the test key name (or undefined)
+// It represents the table leftmost column.
+// 
+// Group1
+//  Group1 - Test1
+//  Group1 - Test2
+// Group2
+// ...
+const groups = []
+const groupsAdded = new Set();
+Object.entries(metadata).forEach(([key, value]) => {
+    const group = value[METADATA_TEST_GROUP] || undefined;
+
+    if (!groupsAdded.has(group)) {
+        groups.push({ group, key: undefined });
+        groupsAdded.add(group);
+    }
+
+    groups.push({ group, key });
+});
+
+// sort the groups so that the tests are ordered by group, then by key.
+// undefined groups are always at the end.
+groups.sort((a, b) => {
+    if (a.group === b.group) {
+        if (a.key === undefined) {
+            return -1;
+        }
+        if (b.key === undefined) {
+            return 1;
+        }
+        return a.key.localeCompare(b.key);
+    }
+
+    if (a.group === undefined) {
+        return 1;
+    }
+
+    if (b.group === undefined) {
+        return -1;
+    }
+
+    return a.group.localeCompare(b.group);
+});
 
 // generate a table
 const columns = [];
 
 // add the leading column ("gateway", "version", "key1", "key2", ... "keyN")
 const leading = ["gateway", "version"];
-keys.forEach((key) => {
+groups.forEach(({ group, key }) => {
+    if (key === undefined) {
+        leading.push(`**${group || 'Other'}**`);
+        return;
+    }
+
     const m = metadata[key];
 
     // Skip the "Test" prefix
     let niceKey = key.replace(/^Test/, '');
-
-    niceKey = m[METADATA_TEST_GROUP] || niceKey;
 
     // Add ipip link if available
     if (m[METADATA_IPIP]) {
@@ -79,7 +122,11 @@ inputs.forEach((input, index) => {
     const col = [name, version];
 
     // extract results
-    keys.forEach((key) => {
+    groups.forEach(({ group, key }) => {
+        if (key === undefined) {
+            col.push(null);
+            return;
+        }
         col.push(cellRender(input[key] || null));
     });
     columns.push(col);
