@@ -39,7 +39,7 @@ jobs:
           path_to_add: 'fixtures.car'
       - name: Wait for pinning
         run: |
-          sleep 180 # 3 minutes
+          sleep 20 # 20 seconds
           # see rational in https://github.com/ipfs/gateway-conformance/pull/108#discussion_r1274628865
   test:
     runs-on: "ubuntu-latest"
