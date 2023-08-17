@@ -8,6 +8,7 @@ import (
 
 var (
 	Version = "dev"
+	JobURL  = ""
 )
 
 func Home() string {

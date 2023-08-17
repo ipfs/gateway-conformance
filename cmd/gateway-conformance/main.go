@@ -72,6 +72,7 @@ func main() {
 	var gatewayURL string
 	var subdomainGatewayURL string
 	var jsonOutput string
+	var jobURL string
 	var specs string
 	var directory string
 	var merged bool
@@ -108,6 +109,13 @@ func main() {
 						Destination: &jsonOutput,
 					},
 					&cli.StringFlag{
+						Name:        "job-url",
+						Aliases:     []string{},
+						Usage:       "The Job URL where this run will be visible.",
+						Value:       "",
+						Destination: &jobURL,
+					},
+					&cli.StringFlag{
 						Name:        "specs",
 						Usage:       "Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec).",
 						Value:       "",
@@ -127,7 +135,7 @@ func main() {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
 
-					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s", tooling.Version)
+					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s -X github.com/ipfs/gateway-conformance/tooling.JobURL=%s", tooling.Version, jobURL)
 					args = append(args, ldFlag)
 
 					args = append(args, cCtx.Args().Slice()...)

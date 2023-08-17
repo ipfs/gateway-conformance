@@ -40,12 +40,13 @@ runs:
         SUBDOMAIN: ${{ inputs.subdomain-url }}
         JSON: ${{ inputs.json }}
         SPECS: ${{ inputs.specs }}
+        JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" --job-url="$JOB_URL" -- ${{ inputs.args }}
         build-args: |
           VERSION:${{ steps.github.outputs.action_ref }}
     - name: Create the XML

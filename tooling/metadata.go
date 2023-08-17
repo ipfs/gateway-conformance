@@ -23,3 +23,11 @@ func LogVersion(t *testing.T) {
 		Version: Version,
 	})
 }
+
+func LogJobURL(t *testing.T) {
+	LogMetadata(t, struct {
+		JobURL string `json:"job_url"`
+	}{
+		JobURL: JobURL,
+	})
+}
