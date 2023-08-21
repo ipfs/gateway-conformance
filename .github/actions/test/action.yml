@@ -25,6 +25,10 @@ inputs:
     description: "A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec)."
     required: false
     default: ""
+  skips:
+    description: "A json array of regexp to skip tests."
+    required: false
+    default: ""
   args:
     description: "[DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests."
     required: false
@@ -33,6 +37,16 @@ runs:
   steps:
     - id: github
       uses: pl-strflt/docker-container-action/.github/actions/github@v1
+    - id: prepare-args
+      shell: bash
+      env:
+        SKIPS: ${{ inputs.skips }}
+      run: |
+        SKIPS_ARGS=""
+        if [ -n "$SKIPS" ]; then
+          SKIPS_ARGS=$(echo "$SKIPS" | jq -r '.[]' | sed -e 's/^/--skip="/' -e 's/$/"/' | paste -s -d ' ' -)
+        fi
+        echo "SKIPS_ARGS=$SKIPS_ARGS" >> $GITHUB_OUTPUT
     - name: Run the test
       uses: pl-strflt/docker-container-action@v1
       env:
@@ -40,12 +54,13 @@ runs:
         SUBDOMAIN: ${{ inputs.subdomain-url }}
         JSON: ${{ inputs.json }}
         SPECS: ${{ inputs.specs }}
+        SKIPS: ${{ steps.prepare-args.outputs.SKIPS_ARGS }}
       with:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
         opts: --network=host
-        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" ${SKIPS} --subdomain-url="$SUBDOMAIN" -- ${{ inputs.args }}
         build-args: |
           VERSION:${{ steps.github.outputs.action_ref }}
     - name: Create the XML

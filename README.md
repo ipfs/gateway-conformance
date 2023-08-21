@@ -37,6 +37,7 @@ The `test` command is the main command of the tool. It is used to test a given I
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
 | markdown | GitHub Action | The path where the summary Markdown test report should be generated. | `./report.md` |
 | specs | Both | A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). | Mature specs only |
+| skip | Both | Run only the those tests that do not match the regular expression. Similar to golang's skip, the expression is split by slash (/) into a sequence and each part must match the corresponding part in the test name, if any | empty |
 | args | Both | [DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
 
 ##### Specs
@@ -79,6 +80,7 @@ A few examples:
     markdown: report.md
     html: report.html
     args: -timeout 30m
+    skips: '["TestGatewaySubdomains", "TestGatewayCar/GET_response_for_application/.*/Header_Content-Length"]'
 ```
 
 ##### Docker
@@ -235,10 +237,11 @@ gateway-conformance test --specs trustless-gateway,-trustless-gateway-ipns
 
 ### Skip a specific test
 
-Tests are skipped using Go's standard syntax:
+Tests are skipped using the `--skip` parameter and Go's standard syntax:
 
 ```bash
-gateway-conformance test -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
+gateway-conformance test --skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
+gateway-conformance test --skip 'TestGatewayCar/.*/vnd.ipld.car' --skip 'TestGatewayCar/GET_response_for_application/vnd.*'
 ```
 
 ### Extracting the test fixtures
