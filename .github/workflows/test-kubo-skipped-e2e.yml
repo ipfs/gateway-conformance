@@ -1,0 +1,81 @@
+name: Test Kubo Skipped (e2e)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: 'ubuntu-latest'
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ['latest', 'master']
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.4
+      - uses: actions/checkout@v3
+        with:
+          path: 'gateway-conformance'
+      - name: Extract fixtures
+        uses: ./gateway-conformance/.github/actions/extract-fixtures
+        with:
+          output: fixtures
+      - uses: protocol/cache-go-action@v1
+      - run: go install github.com/ipfs/kubo/cmd/ipfs@${{ matrix.target }}
+        shell: bash
+        env:
+          GOPROXY: direct
+      - name: Configure Kubo Gateway
+        run: |
+          ipfs init;
+          source ./gateway-conformance/kubo-config.example.sh "$(pwd)/fixtures"
+          echo "IPFS_NS_MAP=${IPFS_NS_MAP}" >> $GITHUB_ENV
+        # note: the IPFS_NS_MAP set above will be passed the daemon
+      - uses: ipfs/start-ipfs-daemon-action@v1
+        with:
+          args: '--offline'
+          wait-for-addrs: false
+      - name: Provision Kubo Gateway
+        run: |
+          # Import car files
+          cars=$(find ./fixtures -name '*.car')
+          for car in $cars
+          do
+              ipfs dag import --pin-roots=false --stats "$car"
+          done
+
+          # Import ipns records
+          records=$(find ./fixtures -name '*.ipns-record')
+          for record in $records
+          do
+              key=$(basename -s .ipns-record "$record" | cut -d'_' -f1)
+              ipfs routing put --allow-offline "/ipns/$key" "$record"
+          done
+      - name: Run the tests
+        uses: ./gateway-conformance/.github/actions/test
+        with:
+          gateway-url: http://127.0.0.1:8080
+          subdomain-url: http://example.com
+          json: output.json
+          xml: output.xml
+          html: output.html
+          markdown: output.md
+          skips: '["TestTrustlessCarPathing", "TestNativeDag/GET_plain_JSON_codec_from_.*"]'
+      - name: Set summary
+        if: (failure() || success())
+        run: cat ./output.md >> $GITHUB_STEP_SUMMARY
+      - name: Upload one-page HTML report
+        if: (failure() || success())
+        uses: actions/upload-artifact@v3
+        with:
+          name: conformance-${{ matrix.target }}.html
+          path: ./output.html
