@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `--version` flag shows the current version
 - Metadata logging used to associate tests with custom data like versions, specs identifiers, etc.
+- Output Github's workflow URL with metadata. [PR](https://github.com/ipfs/gateway-conformance/pull/145)
 
 ## [0.3.0] - 2023-07-31
 ### Added
