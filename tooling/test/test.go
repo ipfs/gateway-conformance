@@ -44,6 +44,7 @@ func RunWithSpecs(
 
 func run(t *testing.T, tests SugarTests) {
 	t.Helper()
+	MustNotBeSkipped(t)
 
 	for _, test := range tests {
 		timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -51,6 +52,7 @@ func run(t *testing.T, tests SugarTests) {
 
 		if len(test.Requests) > 0 {
 			t.Run(test.Name, func(t *testing.T) {
+				MustNotBeSkipped(t)
 				responses := make([]*http.Response, 0, len(test.Requests))
 
 				for _, req := range test.Requests {
@@ -63,6 +65,7 @@ func run(t *testing.T, tests SugarTests) {
 			})
 		} else {
 			t.Run(test.Name, func(t *testing.T) {
+				MustNotBeSkipped(t)
 				_, res, localReport := runRequest(timeout, t, test, test.Request)
 				validateResponse(t, test.Response, res, localReport)
 			})

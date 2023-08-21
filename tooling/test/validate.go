@@ -25,6 +25,7 @@ func validateResponse(
 
 	for _, header := range expected.Headers_ {
 		t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
+			MustNotBeSkipped(t)
 			actual := res.Header.Values(header.Key_)
 
 			c := header.Check_
@@ -45,6 +46,7 @@ func validateResponse(
 
 	if expected.Body_ != nil {
 		t.Run("Body", func(t *testing.T) {
+			MustNotBeSkipped(t)
 			defer res.Body.Close()
 			resBody, err := io.ReadAll(res.Body)
 			if err != nil {

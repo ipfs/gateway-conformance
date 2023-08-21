@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -76,6 +77,7 @@ func main() {
 	var directory string
 	var merged bool
 	var verbose bool
+	var skips cli.StringSlice
 
 	app := &cli.App{
 		Name:    "gateway-conformance",
@@ -113,6 +115,13 @@ func main() {
 						Value:       "",
 						Destination: &specs,
 					},
+					&cli.StringSliceFlag{
+						Name: "skip",
+						Usage: "Accepts a test path to skip.\nCan be used multiple times.\n" +
+							"Example: --skip \"TestTar/GET_TAR_with_format=.*/Body\" --skip \"TestGatewayBlock\" --skip \"TestTrustlessCarPathing\"\n" +
+							"It uses the same syntax as the -skip flag of go test.",
+						Destination: &skips,
+					},
 					&cli.BoolFlag{
 						Name:        "verbose",
 						Usage:       "Prints all the output to the console.",
@@ -134,10 +143,17 @@ func main() {
 
 					fmt.Println("go " + strings.Join(args, " "))
 
+					// json encode the string array for parameter
+					skipsList := skips.Value()
+					skipsJSON, err := json.Marshal(skipsList)
+					if err != nil {
+						return fmt.Errorf("failed to marshal skips: %w", err)
+					}
+
 					output := &bytes.Buffer{}
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
-					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
+					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL), fmt.Sprintf("TEST_SKIPS=%s", skipsJSON))
 
 					if subdomainGatewayURL != "" {
 						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
