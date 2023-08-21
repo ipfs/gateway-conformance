@@ -40,6 +40,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2 # TODO: pin
         with:
           workflow: gateway-conformance.yml
+          workflow_conclusion: "completed" # TODO: ideally we could request success|failure (https://github.com/dawidd6/action-download-artifact#usage)
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ steps.get-details.outputs.default-branch }}
           name: gateway-conformance.json
