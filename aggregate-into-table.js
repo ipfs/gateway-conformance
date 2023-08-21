@@ -58,8 +58,14 @@ inputs.forEach((input, index) => {
     // extract TestMetadata & version
     const metadata = input[TestMetadata]["meta"];
     const version = metadata['version'];
+    const jobURL = metadata['job_url'];
 
-    const col = [name, version];
+    let versionCell = version
+    if (jobURL) {
+        versionCell = `[${version}](${jobURL})`;
+    }
+
+    const col = [name, versionCell];
 
     // extract results
     keys.forEach((key) => {

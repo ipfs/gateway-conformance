@@ -34,7 +34,10 @@ fixtures.car: gateway-conformance
 	./gateway-conformance extract-fixtures --merged=true --dir=.
 
 gateway-conformance:
-	go build -ldflags="-X github.com/ipfs/gateway-conformance/tooling.Version=$(CLI_VERSION)" -o ./gateway-conformance ./cmd/gateway-conformance
+	go build \
+		-ldflags="-X github.com/ipfs/gateway-conformance/tooling.Version=$(CLI_VERSION)" \
+		-o ./gateway-conformance \
+		./cmd/gateway-conformance
 
 test-docker: docker fixtures.car gateway-conformance
 	./gc test

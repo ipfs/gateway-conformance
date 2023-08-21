@@ -6,6 +6,8 @@ import (
 )
 
 func LogMetadata(t *testing.T, value interface{}) {
+	t.Helper()
+
 	jsonValue, err := json.Marshal(value)
 	if err != nil {
 		t.Errorf("Failed to encode value: %v", err)
@@ -19,5 +21,13 @@ func LogVersion(t *testing.T) {
 		Version string `json:"version"`
 	}{
 		Version: Version,
+	})
+}
+
+func LogJobURL(t *testing.T) {
+	LogMetadata(t, struct {
+		JobURL string `json:"job_url"`
+	}{
+		JobURL: JobURL,
 	})
 }
