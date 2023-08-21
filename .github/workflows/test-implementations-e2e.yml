@@ -79,7 +79,7 @@ jobs:
           # details: https://github.com/actions/download-artifact#download-all-artifacts
           for folder in ./conformance-*.json; do
             file="${folder}/output.json"
-            new_file="aggregates/${folder#conformance-}"
+            new_file="aggregates/${folder#.\/conformance-}" # drop the ./conformance- prefix
             jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
           done
 
