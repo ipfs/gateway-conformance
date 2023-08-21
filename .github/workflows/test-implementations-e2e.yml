@@ -18,7 +18,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        target: ["singulargarden/kubo", "singulargarden/bifrost-gateway2"]
+        target: ["ipfs/kubo", "ipfs/boxo", "ipfs/bifrost-gateway"]
       fail-fast: false
     defaults:
       run:
