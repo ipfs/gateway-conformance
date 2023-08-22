@@ -1,0 +1,17 @@
+baseURL: http://example.org/
+languageCode: en-us
+title: Gateway Conformance Dashboard
+
+theme:
+  - conformance
+  - sk1
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+
+taxonomies:
+  ipip: ipips
+  test: tests
+  result: results

@@ -1,0 +1,61 @@
+name: Deploy Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # https://github.com/actions/starter-workflows/blob/4a8f18e34dd13d2b6ee4d8da2ba72629eafe1609/pages/hugo.yml#L1
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.117.0
+    steps:
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v1
+      - name: Build with Hugo
+        run: |
+          hugo \
+            --minify \
+            --baseURL ${{ steps.pages.outputs.base_url }}
+        working-directory: www
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./www/public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
