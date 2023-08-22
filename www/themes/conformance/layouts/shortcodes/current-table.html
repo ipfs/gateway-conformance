@@ -1,1 +1,4 @@
-(Current Table Work In Progress)
+<div>
+    {{ $file := "data/table.md" }}
+    {{ $file | readFile | markdownify }}
+</div>
