@@ -62,7 +62,7 @@ runs:
         mode: no-frames
         input: ${{ inputs.xml }}
         output: ${{ inputs.html }}
-    - name: Create the HTML
+    - name: Create the Markdown
       if: inputs.markdown && (failure() || success())
       uses: pl-strflt/junit-xml-to-html@v1
       with:
