@@ -4,12 +4,16 @@ title: Gateway Conformance Dashboard
 
 theme:
   - conformance
-  - sk1
 
 markup:
   goldmark:
     renderer:
       unsafe: true
+blackfriday:
+  extensions: hardLineBreak
+
+# menu:
+#   main:
 
 taxonomies:
   ipip: ipips

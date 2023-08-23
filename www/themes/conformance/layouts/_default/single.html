@@ -1,16 +1,16 @@
 {{define "main"}}
 
-<!--Title-->
-<h2>{{.Title}}</h2>
+<article>
+	<h2>{{.Title}}</h2>
 
-<!--Date-->
-{{.Date.Format "2006-01-02"}}
+	{{ with .Date }}
+		{{.Format "2006-01-02"}}
+	{{ end }}
 
-<!--TOC-->
-{{.TableOfContents}}
+	{{.TableOfContents}}
 
-<!--Content-->
-{{.Content}}
+	{{.Content}}
+</article>
 
 <!--Tag-->
 <ul>

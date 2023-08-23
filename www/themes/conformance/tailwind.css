@@ -1,3 +1,119 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+article {
+  @apply text-gray-700 leading-relaxed;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold mt-8 mb-4;
+  }
+
+  h1 {
+    @apply text-4xl;
+  }
+
+  h2 {
+    @apply text-3xl;
+  }
+
+  h3 {
+    @apply text-2xl;
+  }
+
+  h4 {
+    @apply text-xl;
+  }
+
+  h5 {
+    @apply text-lg;
+  }
+
+  p,
+  ol,
+  ul {
+    @apply my-4;
+  }
+
+  a {
+    @apply text-blue-500 underline hover:text-blue-700;
+  }
+
+  strong,
+  b {
+    @apply font-semibold;
+  }
+
+  em,
+  i {
+    @apply italic;
+  }
+
+  ol,
+  ul {
+    @apply list-decimal pl-5;
+  }
+
+  ul {
+    @apply list-disc;
+  }
+
+  li {
+    @apply mb-2;
+  }
+
+  blockquote {
+    @apply border-l-4 border-gray-300 pl-4 italic;
+  }
+
+  code {
+    @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+  }
+
+  pre {
+    @apply bg-gray-800 p-4 rounded text-sm overflow-x-auto;
+    code {
+      @apply bg-transparent px-0 py-0 text-white;
+    }
+  }
+
+  hr {
+    @apply border-t border-gray-300 my-8;
+  }
+
+  img {
+    @apply max-w-full h-auto my-4;
+  }
+
+  figure {
+    @apply text-center;
+  }
+
+  figcaption {
+    @apply text-gray-500 text-sm italic mt-2;
+  }
+
+  table {
+    @apply w-full text-left border-collapse;
+  }
+
+  th,
+  td {
+    @apply border-b border-gray-300 p-2;
+  }
+
+  th {
+    @apply font-medium;
+  }
+}
+
+.test-result {
+  a {
+    @apply no-underline;
+  }
+}
