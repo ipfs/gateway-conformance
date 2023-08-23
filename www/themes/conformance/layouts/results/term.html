@@ -1,0 +1,41 @@
+{{define "main"}}
+
+<article>
+	<h2>{{.Title}}</h2>
+
+	{{ with .Date }}
+		{{.Format "2006-01-02"}}
+	{{ end }}
+
+	{{.TableOfContents}}
+
+	{{.Content}}
+    {{ partial "result-table.html" .Params }}
+
+    <h3>Logs</h3>
+
+    {{ if (and (isset .Params "version") (isset .Params "implementation_id") (isset .Params "full_name")) }}
+        {{ partial "logs.html" .Params }}
+    {{end}}
+</article>
+
+<!--Tag-->
+<ul>
+  {{range (.GetTerms "tags")}}
+  <li><a href="{{.RelPermalink}}">{{.LinkTitle}}</a></li>
+  {{end}}
+</ul>
+
+<!--Prev/Next-->
+{{with .PrevInSection}}Prev <a href="{{.RelPermalink}}">{{.Title}}</a>{{end}}
+{{with .NextInSection}}Next <a href="{{.RelPermalink}}">{{.Title}}</a>{{end}}
+
+<!--Related-->
+{{$related := .Site.RegularPages.Related . | first 5}} {{with $related}}
+<h3>See Also</h3>
+<ul>
+  {{range .}}
+  <li><a href="{{.RelPermalink}}">{{.Title}}</a></li>
+  {{end}}
+</ul>
+{{end}} {{end}}

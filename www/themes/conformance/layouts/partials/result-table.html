@@ -16,32 +16,51 @@
     {{- end -}}
 {{ end }}
 
-{{ $scratch := newScratch }}
-{{ $scratch.Set "baseTestGroup" .baseTestGroup }}
+{{ $requestedTestGroup := (default "null" .full_name) }}
+{{ $requestedVersion := (default "" .version) }}
+{{ $requestedImplem := (default "" .implementation_id) }}
 
-<table class="min-w-full divide-y divide-gray-300 test-result">
+<table class="min-w-full divide-y divide-gray-300 test-result table-fixed">
   <thead class="text-center">
     <tr>
-      <th class="px-2 text-right text-md font-semibold text-gray-800">Implementation</th>
-      {{ range $implementation, $versions := site.Data.testruns }}
-        {{ range $version := $versions }}
-        <th class="whitespace-nowrap px-1 text-sm font-medium text-gray-900">
-          <a class="text-center inline-block min-w-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
-             href="{{ absURL (path.Join "results" $implementation) }}">
-            {{ $implementation }}
-          </a>
-        </th>
+      <th class="px-2 text-right text-md font-semibold text-gray-800 overflow-clip" style="width: 15rem;">Implementation</th>
+      {{ range $implementation, $versionsInfo := site.Data.testruns }}
+        {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
+            {{ continue }}
+        {{ end }}
+        
+        {{ range $versionInfo := $versionsInfo }}
+          {{ $version := $versionInfo.version }}
+          {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
+              {{ continue }}
+          {{ end }}
+
+          <th class="whitespace-nowrap px-1 text-sm font-medium text-gray-900">
+            <a class="text-center inline-block min-w-full min-h-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
+              href="{{ absURL (path.Join "results" $implementation) }}">
+              {{ $implementation }}
+            </a>
+          </th>
         {{ end }}
       {{ end }}
     </tr>
     <tr>
       <th class="text-right text-md font-semibold text-gray-800 py-2 px-2">Conformance Version</th>
-      {{ range $implementation, $versions := site.Data.testruns }}
-        {{ range $version := $versions }}
+      {{ range $implementation, $versionsInfo := site.Data.testruns }}
+        {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
+            {{ continue }}
+        {{ end }}
+
+        {{ range $versionInfo := $versionsInfo }}
+          {{ $version := $versionInfo.version }}
+            {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
+                {{ continue }}
+            {{ end }}
+
             <th class="whitespace-nowrap text-sm font-medium text-gray-500 px-1">
               <a class="text-center inline-block min-w-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
-                 href="{{ absURL (path.Join "results" $implementation $version.version) }}">
-                {{ $version.version }}
+                 href="{{ absURL (path.Join "results" $implementation $version) }}">
+                {{ $version }}
               </a>
             </th>
         {{ end }}
@@ -49,22 +68,61 @@
     </tr>
   </thead>
   <tbody>
-    {{ range $name, $content := (index site.Data.testgroups ($scratch.Get "baseTestGroup")) }}
+      {{ if (ne $requestedTestGroup "null") }}
+        <tr class="text-center border-b-4 border-t-4">
+          <th scope="row" class="py-0.5">
+            <span class="text-right inline-block min-w-full px-2 py-1 text-sm font-semibold">
+              Total
+            </span>
+          </th>
+          {{ range $implementation, $versionsInfo := site.Data.testruns }}
+            {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
+                {{ continue }}
+            {{ end }}
+
+          {{ range $versionInfo := $versionsInfo }}
+            {{ $version := $versionInfo.version }}
+              {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
+                  {{ continue }}
+              {{ end }}
+
+              {{ $result := (index site.Data "testresults" $implementation $version $requestedTestGroup) }}
+              <td>
+                {{ if $result }}
+                  <a href="{{ absURL (path.Join "results" $implementation $version $result.slug) }}"
+                      class="inline-block min-w-full min-h-full  px-2 py-1 text-sm font-semibold rounded bg-blue-50 shadow-sm hover:bg-blue-100">
+                    {{ template "cell" $result }}
+                  </a>
+                {{ else }} <!-- nothing --> {{ end }}
+              </td>
+            {{ end }}
+          {{ end }}
+        </tr>
+      {{ end }}
+    {{ range $name, $content := (index site.Data.testgroups $requestedTestGroup) }}
       <tr class="text-center">
-        <th scope="row" class="py-0.5">
+        <th scope="row" class="py-0.5 overflow-clip">
             <a class="text-right inline-block min-w-full px-2 py-1 text-sm font-semibold shadow-sm rounded bg-slate-50 hover:bg-slate-200"
                href="{{ absURL (path.Join "tests" $content.slug) }}">{{ $content.name }}</a>
         </th>
-        {{ range $implementation, $versions := site.Data.testruns }}
-            {{ range $version := $versions }}
-            <td>
-                {{ if in $content.versions $version.version }}
-                    <a href="{{ absURL (path.Join "results" $implementation $version.version $content.slug) }}"
-                        class="inline-block min-w-full px-2 py-1 text-sm font-semibold rounded bg-blue-50 shadow-sm hover:bg-blue-100">
-                        {{ template "cell" (index site.Data "testresults" $implementation $version.version $content.full_name) }}
-                    </a>
-                {{ else }} <!-- nothing --> {{ end }}
-            </td>
+        {{ range $implementation, $versionsInfo := site.Data.testruns }}
+            {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
+                {{ continue }}
+            {{ end }}
+
+            {{ range $versionInfo := $versionsInfo }}
+              {{ $version := $versionInfo.version }}
+              {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
+                  {{ continue }}
+              {{ end }}
+              <td>
+                  {{ if in $content.versions $version }}
+                      <a href="{{ absURL (path.Join "results" $implementation $version $content.slug) }}"
+                          class="inline-block min-w-full min-h-full px-2 py-1 text-sm font-semibold rounded bg-blue-50 shadow-sm hover:bg-blue-100">
+                          {{ template "cell" (index site.Data "testresults" $implementation $version $content.full_name) }}
+                      </a>
+                  {{ else }} <!-- nothing --> {{ end }}
+              </td>
             {{ end }}
         {{ end }}
       </tr>

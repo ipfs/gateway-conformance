@@ -1,0 +1,13 @@
+<h4>
+    {{ .full_name  }}
+</h4>
+
+{{ $logs := (index site.Data.testlogs .implementation_id .version .full_name) }}
+<pre>
+    {{- $logs -}}
+</pre>
+
+{{ $params := . }}
+{{ range $name, $content := (index site.Data.testgroups .full_name) }}
+    {{ partial "logs.html" (dict "full_name" $name "version" $params.version "implementation_id" $params.implementation_id) }}
+{{ end }}
