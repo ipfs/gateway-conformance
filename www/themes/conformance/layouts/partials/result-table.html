@@ -1,43 +1,33 @@
 {{ define "cell" }}
-    <span class="status">
+    <span class="status mr-2">
         {{- if gt .failed_leaves 0 -}} ❌
         {{- else if gt .skipped_leaves 0 -}} ⏭️
         {{- else -}} ✅ {{- end -}}
     </span>
 
-    <ul
-    class="results"
-    style="
-        list-style-type: none;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        margin: 0;
-    "
-    >
     {{- if gt .failed_leaves 0 -}}
-        <li class="failed">{{ .failed_leaves }}</li>
+      <span class="failed text-red-600 mr-2">{{ .failed_leaves }}</span>
     {{- end -}}
     {{- if gt .skipped_leaves 0 -}}
-        <li class="skipped">{{ .skipped_leaves }}</li>
+      <span class="skipped text-amber-500 mr-2">{{ .skipped_leaves }}</span>
     {{- end -}}
     {{- if gt .passed_leave 0 -}}
-        <li class="passed">{{ .passed_leave }}</li>
+      <span class="passed text-green-600 mr-2">{{ .passed_leave }}</span>
     {{- end -}}
-    </ul>
 {{ end }}
 
 {{ $scratch := newScratch }}
 {{ $scratch.Set "baseTestGroup" .baseTestGroup }}
 
-<table class="dashboard-table">
-  <thead>
+<table class="min-w-full divide-y divide-gray-300">
+  <thead class="text-center">
     <tr>
-      <th>Implementation</th>
+      <th class="px-2 text-right text-md font-semibold text-gray-900">Implementation</th>
       {{ range $implementation, $versions := site.Data.testruns }}
         {{ range $version := $versions }}
-        <th>
-          <a href="{{ absURL (path.Join "results" $implementation) }}">
+        <th class="whitespace-nowrap px-1 text-sm font-medium text-gray-900">
+          <a class="text-center inline-block min-w-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
+             href="{{ absURL (path.Join "results" $implementation) }}">
             {{ $implementation }}
           </a>
         </th>
@@ -45,11 +35,12 @@
       {{ end }}
     </tr>
     <tr>
-      <th>Version</th>
+      <th class="text-right text-md font-semibold text-gray-900 py-2 px-2">Version</th>
       {{ range $implementation, $versions := site.Data.testruns }}
         {{ range $version := $versions }}
-            <th>
-              <a href="{{ absURL (path.Join "results" $implementation $version.version) }}">
+            <th class="whitespace-nowrap text-sm font-medium text-gray-900 px-1">
+              <a class="text-center inline-block min-w-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
+                 href="{{ absURL (path.Join "results" $implementation $version.version) }}">
                 {{ $version.version }}
               </a>
             </th>
@@ -58,38 +49,25 @@
     </tr>
   </thead>
   <tbody>
-      <tr>
-        <th>Total</th>
-        {{ range $implementation, $versions := site.Data.testruns }}
-          {{ range $version := $versions }}
-            {{ $result := (index site.Data "testresults" $implementation $version.version ($scratch.Get "baseTestGroup")) }}
-            <td>
-              {{ if $result }}
-                <a href="{{ absURL (path.Join "results" $implementation $version.version ($scratch.Get "baseTestGroup")) }}">
-                  {{ template "cell" $result }}
-                </a>
-              {{ else }} <!-- nothing --> {{ end }}
-            </td>
-          {{ end }}
-        {{ end }}
-      </tr>
     {{ range $name, $content := (index site.Data.testgroups ($scratch.Get "baseTestGroup")) }}
-        <tr>
-        <th scope="row">
-            <a href="{{ absURL (path.Join "tests" $content.slug) }}">{{ $content.name }}</a>
+      <tr class="text-center">
+        <th scope="row" class="py-0.5">
+            <a class="text-right inline-block min-w-full px-2 py-1 text-sm font-semibold shadow-sm rounded bg-slate-50 hover:bg-slate-200"
+               href="{{ absURL (path.Join "tests" $content.slug) }}">{{ $content.name }}</a>
         </th>
         {{ range $implementation, $versions := site.Data.testruns }}
             {{ range $version := $versions }}
             <td>
                 {{ if in $content.versions $version.version }}
-                    <a href="{{ absURL (path.Join "results" $implementation $version.version $content.slug) }}">
+                    <a href="{{ absURL (path.Join "results" $implementation $version.version $content.slug) }}"
+                        class="inline-block min-w-full px-2 py-1 text-sm font-semibold rounded bg-blue-50 shadow-sm hover:bg-blue-100">
                         {{ template "cell" (index site.Data "testresults" $implementation $version.version $content.full_name) }}
                     </a>
                 {{ else }} <!-- nothing --> {{ end }}
             </td>
             {{ end }}
         {{ end }}
-        </tr>
+      </tr>
     {{ end }}
   </tbody>
 </table>
