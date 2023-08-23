@@ -1,4 +1,1 @@
-<div>
-    {{ $file := "data/table.md" }}
-    {{ $file | readFile | markdownify }}
-</div>
+{{ partial "result-table.html" (dict "baseTestGroup" "null") }}

@@ -1,0 +1,95 @@
+{{ define "cell" }}
+    <span class="status">
+        {{- if gt .failed_leaves 0 -}} ❌
+        {{- else if gt .skipped_leaves 0 -}} ⏭️
+        {{- else -}} ✅ {{- end -}}
+    </span>
+
+    <ul
+    class="results"
+    style="
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        margin: 0;
+    "
+    >
+    {{- if gt .failed_leaves 0 -}}
+        <li class="failed">{{ .failed_leaves }}</li>
+    {{- end -}}
+    {{- if gt .skipped_leaves 0 -}}
+        <li class="skipped">{{ .skipped_leaves }}</li>
+    {{- end -}}
+    {{- if gt .passed_leave 0 -}}
+        <li class="passed">{{ .passed_leave }}</li>
+    {{- end -}}
+    </ul>
+{{ end }}
+
+{{ $scratch := newScratch }}
+{{ $scratch.Set "baseTestGroup" .baseTestGroup }}
+
+<table class="dashboard-table">
+  <thead>
+    <tr>
+      <th>Implementation</th>
+      {{ range $implementation, $versions := site.Data.testruns }}
+        {{ range $version := $versions }}
+        <th>
+          <a href="{{ absURL (path.Join "results" $implementation) }}">
+            {{ $implementation }}
+          </a>
+        </th>
+        {{ end }}
+      {{ end }}
+    </tr>
+    <tr>
+      <th>Version</th>
+      {{ range $implementation, $versions := site.Data.testruns }}
+        {{ range $version := $versions }}
+            <th>
+              <a href="{{ absURL (path.Join "results" $implementation $version.version) }}">
+                {{ $version.version }}
+              </a>
+            </th>
+        {{ end }}
+      {{ end }}
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <th>Total</th>
+        {{ range $implementation, $versions := site.Data.testruns }}
+          {{ range $version := $versions }}
+            {{ $result := (index site.Data "testresults" $implementation $version.version ($scratch.Get "baseTestGroup")) }}
+            <td>
+              {{ if $result }}
+                <a href="{{ absURL (path.Join "results" $implementation $version.version ($scratch.Get "baseTestGroup")) }}">
+                  {{ template "cell" $result }}
+                </a>
+              {{ else }} <!-- nothing --> {{ end }}
+            </td>
+          {{ end }}
+        {{ end }}
+      </tr>
+    {{ range $name, $content := (index site.Data.testgroups ($scratch.Get "baseTestGroup")) }}
+        <tr>
+        <th scope="row">
+            <a href="{{ absURL (path.Join "tests" $content.slug) }}">{{ $content.name }}</a>
+        </th>
+        {{ range $implementation, $versions := site.Data.testruns }}
+            {{ range $version := $versions }}
+            <td>
+                {{ if in $content.versions $version.version }}
+                    <a href="{{ absURL (path.Join "results" $implementation $version.version $content.slug) }}">
+                        {{ template "cell" (index site.Data "testresults" $implementation $version.version $content.full_name) }}
+                    </a>
+                {{ else }} <!-- nothing --> {{ end }}
+            </td>
+            {{ end }}
+        {{ end }}
+        </tr>
+    {{ end }}
+  </tbody>
+</table>
