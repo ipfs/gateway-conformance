@@ -29,7 +29,7 @@ const main = async () => {
 
     // Query to fetch all test runs
     const implementationsQuery = `
-        SELECT implementation_id AS id, version, time
+        SELECT implementation_id AS id, version, time, job_url
         FROM TestRun
         ORDER BY implementation_id, version, time;
     `;
@@ -37,11 +37,11 @@ const main = async () => {
 
     const runs = {};
     for (const row of allRuns) {
-        const { id, version, time } = row;
+        const { id, version, ...rest } = row;
         if (!runs[id]) {
-            runs[id] = [];
+            runs[id] = {};
         }
-        runs[id].push({ version, time });
+        runs[id][version] = rest;
     }
     outputJSON("data/testruns.json", runs);
 

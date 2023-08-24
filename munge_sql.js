@@ -31,6 +31,7 @@ const main = async () => {
             implementation_id TEXT,
             version TEXT,
             time DATETIME,
+            job_url TEXT,
 
             PRIMARY KEY (implementation_id, version)
         );
@@ -107,14 +108,15 @@ const main = async () => {
         const { TestMetadata, ...tests } = content;
 
         const time = TestMetadata?.time;
-        const { version } = TestMetadata?.meta || {};
+        const { version, job_url } = TestMetadata?.meta || {};
 
         await run(`
-            INSERT INTO TestRun (implementation_id, version, time)
-            VALUES (?, ?, ?)
+            INSERT INTO TestRun (implementation_id, version, time, job_url)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT (implementation_id, version) DO UPDATE SET
-                time = excluded.time
-        `, [implemId, version, time]);
+                time = excluded.time,
+                job_url = excluded.job_url
+        `, [implemId, version, time, job_url]);
 
         // process all the tests. Start with the roots.
         const sorted = Object.keys(tests).sort();
