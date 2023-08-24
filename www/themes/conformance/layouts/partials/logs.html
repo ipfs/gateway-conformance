@@ -3,7 +3,7 @@
 </h4>
 
 {{ $logs := (index site.Data.testlogs .implementation_id .version .full_name) }}
-<pre>
+<pre class="text-gray-200" >
     {{- $logs -}}
 </pre>
 

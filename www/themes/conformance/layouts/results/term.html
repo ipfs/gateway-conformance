@@ -12,7 +12,17 @@
 	{{.Content}}
     {{ partial "result-table.html" .Params }}
 
-    <h3>Logs</h3>
+    <h3>Logs
+    {{ if (and (isset .Params "implementation_id") (isset .Params "version")) }}
+        {{ with (index site.Data "testruns" .Params.implementation_id .Params.version "job_url") }}
+        - <a class="text-md" href="{{ . }}"
+        target="_blank"
+        rel="noopener noreferrer">
+        Job URL
+    </a>
+    {{ end }}
+    {{ end }}
+    </h3>
 
     {{ if (and (isset .Params "version") (isset .Params "implementation_id") (isset .Params "full_name")) }}
         {{ partial "logs.html" .Params }}

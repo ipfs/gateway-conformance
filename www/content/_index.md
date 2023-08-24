@@ -19,12 +19,10 @@ menu:
 
 <div class="flex items-center justify-center my-3">
     <a  href="{{< ref "/current" >}}"
-        class=" no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
+        class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200  text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
         Current Dashboard
     </a>
 </div>
-
-
 
 ## List of Gateway Implementation Tested
 

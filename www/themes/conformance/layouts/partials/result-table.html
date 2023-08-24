@@ -24,13 +24,12 @@
   <thead class="text-center">
     <tr>
       <th class="px-2 text-right text-md font-semibold text-gray-800 overflow-clip" style="width: 15rem;">Implementation</th>
-      {{ range $implementation, $versionsInfo := site.Data.testruns }}
+      {{ range $implementation, $versions := site.Data.testruns }}
         {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
             {{ continue }}
         {{ end }}
         
-        {{ range $versionInfo := $versionsInfo }}
-          {{ $version := $versionInfo.version }}
+        {{ range $version, $detail := $versions }}
           {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
               {{ continue }}
           {{ end }}
@@ -46,17 +45,15 @@
     </tr>
     <tr>
       <th class="text-right text-md font-semibold text-gray-800 py-2 px-2">Conformance Version</th>
-      {{ range $implementation, $versionsInfo := site.Data.testruns }}
+      {{ range $implementation, $versions := site.Data.testruns }}
         {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
             {{ continue }}
         {{ end }}
 
-        {{ range $versionInfo := $versionsInfo }}
-          {{ $version := $versionInfo.version }}
+          {{ range $version, $detail := $versions }}
             {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
                 {{ continue }}
             {{ end }}
-
             <th class="whitespace-nowrap text-sm font-medium text-gray-500 px-1">
               <a class="text-center inline-block min-w-full px-2 py-1 text-sm font-medium shadow-sm rounded bg-slate-50 hover:bg-slate-200"
                  href="{{ absURL (path.Join "results" $implementation $version) }}">
@@ -75,13 +72,12 @@
               Total
             </span>
           </th>
-          {{ range $implementation, $versionsInfo := site.Data.testruns }}
+          {{ range $implementation, $versions := site.Data.testruns }}
             {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
                 {{ continue }}
             {{ end }}
 
-          {{ range $versionInfo := $versionsInfo }}
-            {{ $version := $versionInfo.version }}
+            {{ range $version, $detail := $versions }}
               {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
                   {{ continue }}
               {{ end }}
@@ -105,13 +101,12 @@
             <a class="text-right inline-block min-w-full px-2 py-1 text-sm font-semibold shadow-sm rounded bg-slate-50 hover:bg-slate-200"
                href="{{ absURL (path.Join "tests" $content.slug) }}">{{ $content.name }}</a>
         </th>
-        {{ range $implementation, $versionsInfo := site.Data.testruns }}
+        {{ range $implementation, $versions := site.Data.testruns }}
             {{ if (and (ne $requestedImplem "") (ne $requestedImplem $implementation)) }}
                 {{ continue }}
             {{ end }}
 
-            {{ range $versionInfo := $versionsInfo }}
-              {{ $version := $versionInfo.version }}
+            {{ range $version, $detail := $versions }}
               {{ if (and (ne $requestedVersion "") (ne $requestedVersion $version)) }}
                   {{ continue }}
               {{ end }}
