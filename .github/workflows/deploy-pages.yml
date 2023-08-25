@@ -86,20 +86,21 @@ jobs:
         with:
           path: artifacts
       - name: Generate Data Aggregates
-        working-directory: ./artifacts
+        working-directory: ./
         run: |
-          mkdir ../munged
+          npm ci
+          mkdir ./munged
 
           # download-artifact downloads artifacts in a directory named after the artifact
           # details: https://github.com/actions/download-artifact#download-all-artifacts
-          for folder in ./conformance-*.json; do
+          for folder in ./artifacts/conformance-*.json; do
             file="${folder}/output.json"
-            new_file="../munged/${folder#.\/conformance-}" # drop the ./conformance- prefix
-            cat "$file" | node ../munge.js > "${new_file}"
+            new_file="./munged/${folder#.\/artifacts\/conformance-}" # drop the ./artifacts/conformance- prefix
+            cat "$file" | node ./munge.js > "${new_file}"
           done
 
           # generate the sqlite database from our munged files
-          node ../munge_sql.js ../aggregates.db ../munged/*.json
+          node ./munge_sql.js ./aggregates.db ./munged/*.json
       - name: Upload Data Aggregates
         # will be very useful for local debugging
         if: (failure() || success())
@@ -111,9 +112,7 @@ jobs:
             ./aggregates.db
       - name: Generate Content
         run: |
-          node ./aggregate-into-table.js ./aggregates/*.json > ./table.md
-          cp ./table.md ./www/data/table.md
-          cat ./table.md >> $GITHUB_STEP_SUMMARY
+          node ./munge_aggregates.js ./aggregates.db ./www
       - name: Build with Hugo
         run: |
           hugo \
