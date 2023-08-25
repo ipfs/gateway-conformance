@@ -56,9 +56,14 @@ inputs.forEach((input, index) => {
     let name = files[index].replace(/\.json$/, '').replace(/^.*\//, '');
 
     // extract TestMetadata & version
-    const metadata = input[TestMetadata]["meta"];
-    const version = metadata['version'];
-    const jobURL = metadata['job_url'];
+    let version = 'unknown';
+    let jobURL = null;
+
+    if (input[TestMetadata]) {
+        const metadata = input[TestMetadata]["meta"];
+        version = metadata['version'];
+        jobURL = metadata['job_url'];
+    }
 
     let versionCell = version
     if (jobURL) {

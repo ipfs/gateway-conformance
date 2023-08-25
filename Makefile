@@ -50,6 +50,9 @@ test-docker: docker fixtures.car gateway-conformance
 	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:./reports/output.xml -xsl:/etc/junit-noframes-saxon.xsl -o:./reports/output.html
 	open ./reports/output.html
 
+./reports/output.md: ./reports/output.xml
+	docker run --rm -v "${PWD}:/workspace" -w "/workspace" ghcr.io/pl-strflt/saxon:v1 -s:./reports/output.xml -xsl:/etc/junit-summary.xsl -o:./reports/output.md
+
 docker:
 	docker build --build-arg VERSION="$(CLI_VERSION)" -t gateway-conformance .
 

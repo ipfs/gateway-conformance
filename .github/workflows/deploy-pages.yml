@@ -1,19 +1,29 @@
-name: Generate Implementations Dashboard
+name: Deploy Pages
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-  pull_request:
   schedule:
     - cron: "* */1 * * *" # every one hour
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  group: "pages"
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
+  # Pulls the output.json from the latest successful run of the gateway-conformance.yml workflow
+  # and stores these as an artifacts for the build job.
   pull-outputs:
     runs-on: "ubuntu-latest"
     strategy:
@@ -54,36 +64,69 @@ jobs:
         with:
           name: conformance-${{ steps.get-details.outputs.name }}.json
           path: ./output.json
-  aggregate:
-    runs-on: "ubuntu-latest"
+  # https://github.com/actions/starter-workflows/blob/4a8f18e34dd13d2b6ee4d8da2ba72629eafe1609/pages/hugo.yml#L1
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HUGO_VERSION: 0.117.0
     needs: [pull-outputs]
-    # the tests might have failed
-    if: always()
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v3
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@16361eb4acea8698b220b76c0d4e84e1fd22c61d # v2.6.0
         with:
-          path: "gateway-conformance"
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v1
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
           path: artifacts
-      - name: Aggregate results
+      - name: Generate Data Aggregates
         working-directory: ./artifacts
         run: |
-          mkdir ./aggregates
+          mkdir ../aggregates
 
           # download-artifact downloads artifacts in a directory named after the artifact
           # details: https://github.com/actions/download-artifact#download-all-artifacts
           for folder in ./conformance-*.json; do
             file="${folder}/output.json"
-            new_file="aggregates/${folder#.\/conformance-}" # drop the ./conformance- prefix
-            jq -ns 'inputs' "$file" | node ../gateway-conformance/aggregate.js 1 > "${new_file}"
+            new_file="../aggregates/${folder#.\/conformance-}" # drop the ./conformance- prefix
+            jq -ns 'inputs' "$file" | node ../aggregate.js 1 > "${new_file}"
           done
-
-          node ../gateway-conformance/aggregate-into-table.js ./aggregates/*.json > ./table.md
-      - name: Set summary
+      - name: Upload Data Aggregates
+        # will be very useful for local debugging
         if: (failure() || success())
-        run: cat ./artifacts/table.md >> $GITHUB_STEP_SUMMARY
+        uses: actions/upload-artifact@v3
+        with:
+          name: dashboard-aggregates
+          path: ./aggregates
+      - name: Generate Content
+        run: |
+          node ./aggregate-into-table.js ./aggregates/*.json > ./table.md
+          cp ./table.md ./www/data/table.md
+          cat ./table.md >> $GITHUB_STEP_SUMMARY
+      - name: Build with Hugo
+        run: |
+          hugo \
+            --minify \
+            --baseURL ${{ steps.pages.outputs.base_url }}
+        working-directory: www
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./www/public
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

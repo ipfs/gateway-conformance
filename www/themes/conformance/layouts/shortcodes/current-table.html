@@ -1,0 +1,4 @@
+<div>
+    {{ $file := "data/table.md" }}
+    {{ $file | readFile | markdownify }}
+</div>
