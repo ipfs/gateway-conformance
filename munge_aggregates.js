@@ -259,10 +259,16 @@ const main = async () => {
 }
 
 const slugify = (str) => {
-    return str
-        .toLowerCase()
+    // https://byby.dev/js-slugify-string
+    return String(str)
+        .normalize('NFKD') // split accented characters into their base characters and diacritical marks
+        .replace(/[\u0300-\u036f]/g, '') // remove all the accents, which happen to be all in the \u03xx UNICODE block.
+        .trim() // trim leading or trailing whitespace
+        .toLowerCase() // convert to lowercase
+        .replace(/\s+/g, '_') // replace spaces with underscore
+        .replace(/_+/g, '_') // remove consecutive underscores
         .replace(/[\/]/g, "__")
-        .replace(/[\s\=\.\:]/g, "-");
+        .replace(/[^a-z0-9 -]/g, '-') // remove non-alphanumeric characters
 }
 
 const outputJSON = (p, data) => {
