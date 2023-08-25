@@ -66,7 +66,7 @@ const main = async () => {
             groups[parent_test_full_name] = {};
         }
 
-        groups[parent_test_full_name][full_name] = { versions: versions.split(','), name, full_name, slug };
+        groups[parent_test_full_name][full_name] = { versions: versions?.split(',') || [], name, full_name, slug };
     }
     outputJSON("data/testgroups.json", groups);
 
