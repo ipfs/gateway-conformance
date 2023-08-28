@@ -21,6 +21,9 @@ inputs:
   markdown:
     description: "The path where the summary Markdown test report should be generated."
     required: false
+  report:
+    description: "The path where the summary JSON test report should be generated."
+    required: false
   specs:
     description: "A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec)."
     required: false
@@ -69,3 +72,13 @@ runs:
         mode: summary
         input: ${{ inputs.xml }}
         output: ${{ inputs.markdown }}
+    - name: Create the JSON Report
+      if: inputs.report && (failure() || success())
+      shell: bash
+      env:
+        JSON: ${{ inputs.json }}
+        REPORT: ${{ inputs.report }}
+      run: |
+        # TODO: checkout here.
+        wget 'https://raw.githubusercontent.com/singulargarden/gateway-conformance/main/munge.js' -O munge.js
+        cat "${JSON}" | node munge.js > "${REPORT}"
