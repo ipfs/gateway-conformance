@@ -9,4 +9,5 @@ import (
 func TestMetadata(t *testing.T) {
 	tooling.LogVersion(t)
 	tooling.LogJobURL(t)
+	tooling.LogGatewayURL(t)
 }
