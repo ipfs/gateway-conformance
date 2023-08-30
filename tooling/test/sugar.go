@@ -1,7 +1,9 @@
 package test
 
 import (
+	"net/http"
 	"net/url"
+	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/tmpl"
@@ -133,6 +135,10 @@ func (r RequestBuilder) Clone() RequestBuilder {
 	}
 }
 
+type ExpectValidator interface {
+	Validate(t *testing.T, res *http.Response, localReport Reporter)
+}
+
 type ExpectBuilder struct {
 	StatusCode_     int             `json:"statusCode,omitempty"`
 	StatusCodeFrom_ int             `json:"statusCodeFrom,omitempty"`
@@ -225,6 +231,47 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 	}
 
 	return e
+}
+
+func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+
+	checks := validateResponse(t, e, res)
+	for _, c := range checks {
+		t.Run(c.testName, func(t *testing.T) {
+			if !c.checkOutput.Success {
+				localReport(t, c.checkOutput.Reason)
+			}
+		})
+	}
+}
+
+type AnyOfExpectBuilder struct {
+	Expect_ []ExpectBuilder `json:"expect,omitempty"`
+}
+
+func AnyOf(expect ...ExpectBuilder) AnyOfExpectBuilder {
+	return AnyOfExpectBuilder{Expect_: expect}
+}
+
+func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+
+	for _, expect := range e.Expect_ {
+		checks := validateResponse(t, expect, res)
+		responseSucceeded := true
+		for _, c := range checks {
+			if !c.checkOutput.Success {
+				responseSucceeded = false
+				break
+			}
+		}
+		if responseSucceeded {
+			return
+		}
+	}
+
+	localReport(t, "none of the response options were valid")
 }
 
 type HeaderBuilder struct {

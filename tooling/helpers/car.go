@@ -18,7 +18,11 @@ func StandardCARTestTransforms(t *testing.T, sts test.SugarTests) test.SugarTest
 }
 
 func applyStandardCarResponseHeaders(t *testing.T, st test.SugarTest) test.SugarTest {
-	st.Response = st.Response.Headers(
+	resp, ok := st.Response.(test.ExpectBuilder)
+	if !ok {
+		t.Fatal("can only apply test transformation on an ExpectBuilder")
+	}
+	st.Response = resp.Headers(
 		// TODO: Go always sends Content-Length and it's not possible to explicitly disable the behavior.
 		// For now, we ignore this check. It should be able to be resolved soon: https://github.com/ipfs/boxo/pull/177
 		// test.Header("Content-Length").

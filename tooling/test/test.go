@@ -19,7 +19,7 @@ type SugarTest struct {
 	Specs     []string
 	Request   RequestBuilder
 	Requests  []RequestBuilder
-	Response  ExpectBuilder
+	Response  ExpectValidator
 	Responses ExpectsBuilder
 }
 
@@ -79,7 +79,9 @@ func run(t *testing.T, tests SugarTests) {
 
 				for _, req := range test.Requests {
 					_, res, localReport := runRequest(timeout, t, test, req)
-					validateResponse(t, test.Response, res, localReport)
+					if test.Response != nil {
+						test.Response.Validate(t, res, localReport)
+					}
 					responses = append(responses, res)
 				}
 
@@ -89,7 +91,9 @@ func run(t *testing.T, tests SugarTests) {
 			t.Run(name, func(t *testing.T) {
 				tooling.LogSpecs(t, test.AllSpecs()...)
 				_, res, localReport := runRequest(timeout, t, test, test.Request)
-				validateResponse(t, test.Response, res, localReport)
+				if test.Response != nil {
+					test.Response.Validate(t, res, localReport)
+				}
 			})
 		}
 	}
