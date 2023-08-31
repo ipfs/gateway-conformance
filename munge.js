@@ -107,7 +107,7 @@ const groupTest = (test) => {
         return { ...acc, ...line };
     }) : undefined;
 
-    const outcomeLine = (pass || fail || skip)[0]; // This might throw, on purpose.
+    const outcomeLine = (pass || fail || skip || [{ Action: "Unknown" }])[0];
     const time = outcomeLine["Time"];
 
     return {
