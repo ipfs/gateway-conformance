@@ -8,6 +8,11 @@ inputs:
     description: "The Subdomain URL of the IPFS Gateway implementation to be tested."
     default: "http://example.com"
     required: false
+  accept-test-failure:
+    # see https://github.com/orgs/community/discussions/15452
+    description: "When set to `true`, the action will not fail (become red) if the tests fail. Use the reports to determine the outcome of the tests."
+    default: "false"
+    required: false
   json:
     description: "The path where the JSON test report should be generated."
     required: true
@@ -48,6 +53,7 @@ runs:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
+        allow-exit-codes: ${{ inputs.accept-test-failure == 'false' && '0' || '0,1' }}
         opts: --network=host
         args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" --job-url="$JOB_URL" -- ${{ inputs.args }}
         build-args: |
