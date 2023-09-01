@@ -9,7 +9,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.15",
     "postcss-import": "^15.1.0",
