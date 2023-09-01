@@ -36,10 +36,10 @@ func LogJobURL(t *testing.T) {
 
 func LogGatewayURL(t *testing.T) {
 	LogMetadata(t, struct {
-		GatewayURL string `json:"gateway_url"`
+		GatewayURL          string `json:"gateway_url"`
 		SubdomainGatewayURL string `json:"subdomain_gateway_url"`
 	}{
-		GatewayURL: test.GatewayURL,
+		GatewayURL:          test.GatewayURL,
 		SubdomainGatewayURL: test.SubdomainGatewayURL,
 	})
 }
