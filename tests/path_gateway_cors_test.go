@@ -9,7 +9,7 @@ import (
 )
 
 func TestCors(t *testing.T) {
-	tooling.LogTestGroup(t, GroupPathGateway)
+	tooling.LogTestGroup(t, GroupCORS)
 
 	cidHello := "bafkqabtimvwgy3yk" // hello
 

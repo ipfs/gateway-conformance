@@ -13,7 +13,7 @@ import (
 )
 
 func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
-	tooling.LogTestGroup(t, GroupSubdomainGateway)
+	tooling.LogTestGroup(t, GroupUnixFS)
 
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
@@ -108,7 +108,7 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 }
 
 func TestGatewaySubdomains(t *testing.T) {
-	tooling.LogTestGroup(t, GroupSubdomainGateway)
+	tooling.LogTestGroup(t, GroupSubdomains)
 
 	fixture := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
 

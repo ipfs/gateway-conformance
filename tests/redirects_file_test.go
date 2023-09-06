@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
@@ -235,6 +236,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 }
 
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
+	tooling.LogTestGroup(t, GroupDNSLink)
 	dnsLinks := dnslink.MustOpenDNSLink("redirects_file/dnslink.yml")
 	dnsLink := dnsLinks.MustGet("custom-dnslink")
 

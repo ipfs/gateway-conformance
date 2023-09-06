@@ -13,9 +13,12 @@ func TestMetadata(t *testing.T) {
 }
 
 const (
-	GroupTrustlessGateway = "Trustless Gateway"
-	GroupPathGateway      = "Path Gateway"
-	GroupSubdomainGateway = "Subdomain Gateway"
-	GroupCORS             = "CORS"
-	GroupIPNS             = "IPNS"
+	GroupSubdomains = "Subdomains"
+	GroupCORS       = "CORS"
+	GroupIPNS       = "IPNS"
+	GroupDNSLink    = "DNSLink"
+	GroupJSONCbor   = "JSON-CBOR"
+	GroupBlockCar   = "Block-CAR"
+	GroupTar        = "Tar"
+	GroupUnixFS     = "UnixFS"
 )

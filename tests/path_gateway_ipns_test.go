@@ -9,7 +9,7 @@ import (
 )
 
 func TestRedirectCanonicalIPNS(t *testing.T) {
-	tooling.LogTestGroup(t, GroupPathGateway)
+	tooling.LogTestGroup(t, GroupIPNS)
 
 	tests := SugarTests{
 		{

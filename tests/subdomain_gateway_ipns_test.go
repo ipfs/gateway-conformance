@@ -16,7 +16,7 @@ import (
 )
 
 func TestGatewaySubdomainAndIPNS(t *testing.T) {
-	tooling.LogTestGroup(t, GroupSubdomainGateway)
+	tooling.LogTestGroup(t, GroupSubdomains)
 
 	tests := SugarTests{}
 
@@ -162,7 +162,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 }
 
 func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
-	tooling.LogTestGroup(t, GroupSubdomainGateway)
+	tooling.LogTestGroup(t, GroupSubdomains)
 
 	tests := SugarTests{}
 

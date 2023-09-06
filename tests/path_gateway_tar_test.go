@@ -12,7 +12,7 @@ import (
 )
 
 func TestTar(t *testing.T) {
-	tooling.LogTestGroup(t, GroupPathGateway)
+	tooling.LogTestGroup(t, GroupTar)
 
 	fixtureOutside := car.MustOpenUnixfsCar("path_gateway_tar/outside-root.car")
 	fixtureInside := car.MustOpenUnixfsCar("path_gateway_tar/inside-root.car")
