@@ -13,7 +13,7 @@ import (
 )
 
 func TestTrustlessRaw(t *testing.T) {
-	tooling.LogTestGroup(t, GroupTrustlessGateway)
+	tooling.LogTestGroup(t, GroupBlockCar)
 
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
@@ -131,7 +131,7 @@ func TestTrustlessRaw(t *testing.T) {
 }
 
 func TestTrustlessRawRanges(t *testing.T) {
-	tooling.LogTestGroup(t, GroupTrustlessGateway)
+	tooling.LogTestGroup(t, GroupBlockCar)
 
 	// Multi-range requests MUST conform to the HTTP semantics. The server does not
 	// need to be able to support returning multiple ranges. However, it must respond

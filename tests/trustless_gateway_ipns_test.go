@@ -11,7 +11,7 @@ import (
 )
 
 func TestGatewayIPNSRecord(t *testing.T) {
-	tooling.LogTestGroup(t, GroupTrustlessGateway)
+	tooling.LogTestGroup(t, GroupIPNS)
 
 	fixture := car.MustOpenUnixfsCar("ipns_records/fixtures.car")
 	file := fixture.MustGetRoot()

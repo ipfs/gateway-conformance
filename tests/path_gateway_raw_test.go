@@ -12,7 +12,7 @@ import (
 )
 
 func TestGatewayBlock(t *testing.T) {
-	tooling.LogTestGroup(t, GroupPathGateway)
+	tooling.LogTestGroup(t, GroupBlockCar)
 
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
