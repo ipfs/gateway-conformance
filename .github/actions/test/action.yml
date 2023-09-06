@@ -8,6 +8,11 @@ inputs:
     description: "The Subdomain URL of the IPFS Gateway implementation to be tested."
     default: "http://example.com"
     required: false
+  accept-test-failure:
+    # see https://github.com/orgs/community/discussions/15452
+    description: "When set to `true`, the action will not fail (become red) if the tests fail. Use the reports to determine the outcome of the tests."
+    default: "false"
+    required: false
   json:
     description: "The path where the JSON test report should be generated."
     required: true
@@ -20,6 +25,9 @@ inputs:
     required: false
   markdown:
     description: "The path where the summary Markdown test report should be generated."
+    required: false
+  report:
+    description: "The path where the summary JSON test report should be generated."
     required: false
   specs:
     description: "A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec)."
@@ -45,6 +53,7 @@ runs:
         repository: ${{ steps.github.outputs.action_repository }}
         ref: ${{ steps.github.outputs.action_sha || steps.github.outputs.action_ref }}
         dockerfile: Dockerfile
+        allow-exit-codes: ${{ inputs.accept-test-failure == 'false' && '0' || '0,1' }}
         opts: --network=host
         args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" --job-url="$JOB_URL" -- ${{ inputs.args }}
         build-args: |
@@ -69,3 +78,13 @@ runs:
         mode: summary
         input: ${{ inputs.xml }}
         output: ${{ inputs.markdown }}
+    - name: Create the JSON Report
+      if: inputs.report && (failure() || success())
+      shell: bash
+      env:
+        JSON: ${{ inputs.json }}
+        REPORT: ${{ inputs.report }}
+      run: |
+        # TODO: checkout here.
+        wget 'https://raw.githubusercontent.com/singulargarden/gateway-conformance/main/munge.js' -O munge.js
+        cat "${JSON}" | node munge.js > "${REPORT}"

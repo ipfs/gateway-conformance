@@ -1,0 +1,18 @@
+{
+  "name": "gateway-conformance",
+  "version": "1.0.0",
+  "description": "> A tool designed to test if an IPFS Gateway implementation complies with the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/) correctly.   > Distributed as a Docker image, as well as a GitHub Action(s).",
+  "main": "aggregate-into-table.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "sqlite3": "^5.1.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": ""
+}

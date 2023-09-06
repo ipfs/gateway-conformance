@@ -1,7 +1,9 @@
 ---
-date: 2023-08-14
+title: Current Dashboard
+published: true
+menu:
+    main:
+        weight: 10
 ---
-
-# Current
 
 {{< current-table >}}
