@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -67,6 +68,7 @@ func validateResponse(
 			outputs = append(outputs, testCheckOutput{testName: "Body", checkOutput: check.CheckOutput{Success: false, Reason: err.Error()}})
 			return outputs
 		}
+		res.Body = io.NopCloser(bytes.NewBuffer(resBody))
 
 		var output check.CheckOutput
 

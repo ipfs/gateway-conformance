@@ -6,6 +6,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
@@ -231,6 +232,8 @@ func TestPlainCodec(t *testing.T) {
 		plainCID := plain.Cid()
 		plainOrDagCID := plainOrDag.Cid()
 
+		var dagFormattedResponse []byte
+
 		tests := SugarTests{
 			{
 				Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
@@ -250,6 +253,28 @@ func TestPlainCodec(t *testing.T) {
 					plain.RawData(),
 				),
 			},
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is, with single range request`, row.Name, row.Format),
+					Hint: `
+				No explicit format, just codec in CID
+				`,
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainCID).
+						Headers(
+							Header("Range", "bytes=6-10"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Disposition").
+								Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
+							Header("Content-Type").
+								Contains(Fmt("application/{{format}}", row.Format)),
+						),
+				},
+				helpers.SimpleByteRange(6, 10, plain.RawData()[6:11]),
+				plain.RawData(),
+			),
 			{
 				Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 				Hint: `
@@ -269,6 +294,29 @@ func TestPlainCodec(t *testing.T) {
 					plain.RawData(),
 				),
 			},
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
+					Hint: `
+				Explicit format still gives correct output, just codec in CID
+				`,
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainCID).
+						Query("format", row.Format).
+						Headers(
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+							Header("Content-Type").
+								Contains("application/{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, plain.RawData()[6:17]),
+				plain.RawData(),
+			),
 			{
 				Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 				Hint: `
@@ -288,6 +336,29 @@ func TestPlainCodec(t *testing.T) {
 					plain.RawData(),
 				),
 			},
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
+					Hint: `
+				Explicit format still gives correct output, just codec in CID
+				`,
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainCID).
+						Headers(
+							Header("Accept", Fmt("application/{{format}}", row.Format)),
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+							Header("Content-Type").
+								Contains("application/{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, plain.RawData()[6:17]),
+				plain.RawData(),
+			),
 			{
 				Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
 				Hint: `
@@ -305,12 +376,47 @@ func TestPlainCodec(t *testing.T) {
 						Header("Content-Type").
 							Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 					).Body(
-					row.Checker(formatted),
+					Checks("", func(t []byte) bool {
+						innerCheck := row.Checker(formatted).Check(t)
+						if innerCheck.Success {
+							dagFormattedResponse = t
+							return true
+						}
+						return false
+					}),
 				),
 			},
 		}
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
+
+		if dagFormattedResponse != nil {
+			rangeTest := helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body, with single range request", row.Name, row.Format),
+					Hint: `
+				Explicit dag-* format passed, attempt to parse as dag* variant
+				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
+				`,
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainOrDagCID).
+						Query("format", Fmt("dag-{{format}}", row.Format)).
+						Headers(
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
+							Header("Content-Type").
+								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, dagFormattedResponse[6:17]),
+				dagFormattedResponse,
+			)
+			RunWithSpecs(t, SugarTests{rangeTest}, specs.PathGatewayDAG)
+		}
 	}
 }
 
@@ -576,9 +682,167 @@ func TestNativeDag(t *testing.T) {
 					Contains("</html>"),
 				),
 			},
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} on /ipfs with no explicit header and single range", row.Name),
+					Request: Request().
+						Path("/ipfs/{{cid}}/", dagTraversalCID).
+						Headers(
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+				dagTraversal.RawData(),
+			),
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} on /ipfs with dag content headers and single range", row.Name),
+					Request: Request().
+						Path("/ipfs/{{cid}}/", dagTraversalCID).
+						Headers(
+							Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+				dagTraversal.RawData(),
+			),
+			helpers.SingleRangeTestTransform(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} on /ipfs with non-dag content headers and single range", row.Name),
+					Request: Request().
+						Path("/ipfs/{{cid}}/", dagTraversalCID).
+						Headers(
+							Header("Accept", "application/{{format}}", row.Format),
+							Header("Range", "bytes=6-16"),
+						),
+					Response: Expect().
+						Headers(
+							Header("Content-Type", "application/{{format}}", row.Format),
+						),
+				},
+				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+				dagTraversal.RawData(),
+			),
 		}
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
+	}
+
+	dagCborFixture := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
+	dagCborCID := dagCborFixture.Cid()
+	var dagJsonConvertedData []byte
+	RunWithSpecs(t, SugarTests{
+		SugarTest{
+			Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json",
+			Hint: "",
+			Request: Request().
+				Path("/ipfs/{{cid}}/", dagCborCID).
+				Headers(
+					Header("Accept", "application/vnd.ipld.dag-json"),
+				),
+			Response: Expect().Body(Checks("", func(t []byte) bool {
+				innerCheck := IsJSONEqual(dagCborFixture.Formatted("dag-json")).Check(t)
+				if innerCheck.Success {
+					dagJsonConvertedData = t
+					return true
+				}
+				return false
+			})),
+		},
+	}, specs.PathGatewayDAG)
+
+	if dagJsonConvertedData != nil {
+		rangeTests := SugarTests{
+			helpers.SingleRangeTestTransform(t, SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with single range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "application/vnd.ipld.dag-json"),
+						Header("Range", "bytes=1-5"),
+					),
+				Response: Expect(),
+			}, helpers.SimpleByteRange(1, 5, dagJsonConvertedData[1:6]), dagJsonConvertedData),
+			helpers.MultiRangeTestTransform(t, SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with multiple range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "application/vnd.ipld.dag-json"),
+						Header("Range", "bytes=1-5,93-104"),
+					),
+				Response: Expect(),
+			}, helpers.ByteRanges{
+				helpers.SimpleByteRange(1, 5, dagJsonConvertedData[1:6]),
+				helpers.SimpleByteRange(93, 104, dagJsonConvertedData[93:105])},
+				dagJsonConvertedData),
+		}
+
+		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
+	}
+
+	var dagCborHTMLRendering []byte
+	RunWithSpecs(t, SugarTests{
+		SugarTest{
+			Name: "Convert application/vnd.ipld.dag-cbor to text/html",
+			Hint: "",
+			Request: Request().
+				Path("/ipfs/{{cid}}/", dagCborCID).
+				Headers(
+					Header("Accept", "text/html"),
+				),
+			Response: Expect().Body(Checks("", func(t []byte) bool {
+				innerCheck := Contains("</html>").Check(string(t))
+				if innerCheck.Success {
+					dagCborHTMLRendering = t
+					return true
+				}
+				return false
+			})),
+		},
+	}, specs.PathGatewayDAG)
+
+	if dagCborHTMLRendering != nil {
+		rangeTests := SugarTests{
+			helpers.SingleRangeTestTransform(t, SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to text/html with single range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "text/html"),
+						Header("Range", "bytes=1-5"),
+					),
+				Response: Expect(),
+			}, helpers.SimpleByteRange(1, 5, dagCborHTMLRendering[1:6]), dagCborHTMLRendering),
+			helpers.MultiRangeTestTransform(t, SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to text/html with multiple range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "text/html"),
+						Header("Range", "bytes=1-5,93-104"),
+					),
+				Response: Expect(),
+			}, helpers.ByteRanges{
+				helpers.SimpleByteRange(1, 5, dagCborHTMLRendering[1:6]),
+				helpers.SimpleByteRange(93, 104, dagCborHTMLRendering[93:105])},
+				dagCborHTMLRendering),
+		}
+
+		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 	}
 }
 

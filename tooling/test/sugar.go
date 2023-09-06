@@ -148,6 +148,8 @@ type ExpectBuilder struct {
 	Specs_          []string        `json:"specs,omitempty"`
 }
 
+var _ ExpectValidator = (*ExpectBuilder)(nil)
+
 func Expect() ExpectBuilder {
 	return ExpectBuilder{Body_: nil}
 }
@@ -246,9 +248,29 @@ func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Re
 	}
 }
 
+type AllOfExpectBuilder struct {
+	Expect_ []ExpectValidator `json:"expect,omitempty"`
+}
+
+var _ ExpectValidator = (*AllOfExpectBuilder)(nil)
+
+func AllOf(expect ...ExpectValidator) AllOfExpectBuilder {
+	return AllOfExpectBuilder{Expect_: expect}
+}
+
+func (e AllOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+
+	for _, expect := range e.Expect_ {
+		expect.Validate(t, res, localReport)
+	}
+}
+
 type AnyOfExpectBuilder struct {
 	Expect_ []ExpectBuilder `json:"expect,omitempty"`
 }
+
+var _ ExpectValidator = (*AnyOfExpectBuilder)(nil)
 
 func AnyOf(expect ...ExpectBuilder) AnyOfExpectBuilder {
 	return AnyOfExpectBuilder{Expect_: expect}
