@@ -154,7 +154,7 @@ func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
 	return e
 }
 
-func (e ExpectBuilder) StatusRange(from, to int) ExpectBuilder {
+func (e ExpectBuilder) StatusBetween(from, to int) ExpectBuilder {
 	e.StatusCodeFrom_ = from
 	e.StatusCodeTo_ = to
 	return e

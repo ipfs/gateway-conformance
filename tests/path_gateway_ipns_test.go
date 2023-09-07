@@ -32,14 +32,14 @@ func TestGatewayIPNSPath(t *testing.T) {
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1),
 			Response: Expect().
-				StatusRange(500, 599),
+				StatusBetween(500, 599),
 		},
 		{
 			Name: "GET an IPNS Path (V1+V2) with broken ValueV1 from the gateway fails with 5xx",
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2BrokenValueV1),
 			Response: Expect().
-				StatusRange(500, 599),
+				StatusBetween(500, 599),
 		},
 		{
 			Name: "GET an IPNS Path (V1+V2) with broken SignatureV1, but valid SignatureV2 succeeds",
@@ -68,7 +68,7 @@ func TestGatewayIPNSPath(t *testing.T) {
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2BrokenSigV2),
 			Response: Expect().
-				StatusRange(500, 599),
+				StatusBetween(500, 599),
 		},
 	}
 
