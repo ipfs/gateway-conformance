@@ -21,6 +21,10 @@ func validateResponse(
 		if res.StatusCode != expected.StatusCode_ {
 			localReport(t, "Status code is not %d. It is %d", expected.StatusCode_, res.StatusCode)
 		}
+	} else if expected.StatusCodeFrom_ != 0 && expected.StatusCodeTo_ != 0 {
+		if res.StatusCode < expected.StatusCodeFrom_ || res.StatusCode > expected.StatusCodeTo_ {
+			localReport(t, "Status code is not between %d and %d. It is %d", expected.StatusCodeFrom_, expected.StatusCodeTo_, res.StatusCode)
+		}
 	}
 
 	for _, header := range expected.Headers_ {

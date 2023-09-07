@@ -134,9 +134,11 @@ func (r RequestBuilder) Clone() RequestBuilder {
 }
 
 type ExpectBuilder struct {
-	StatusCode_ int             `json:"statusCode,omitempty"`
-	Headers_    []HeaderBuilder `json:"headers,omitempty"`
-	Body_       interface{}     `json:"body,omitempty"`
+	StatusCode_     int             `json:"statusCode,omitempty"`
+	StatusCodeFrom_ int             `json:"statusCodeFrom,omitempty"`
+	StatusCodeTo_   int             `json:"statusCodeTo,omitempty"`
+	Headers_        []HeaderBuilder `json:"headers,omitempty"`
+	Body_           interface{}     `json:"body,omitempty"`
 }
 
 func Expect() ExpectBuilder {
@@ -149,6 +151,12 @@ func ResponsesAreEqual() ExpectBuilder {
 
 func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
 	e.StatusCode_ = statusCode
+	return e
+}
+
+func (e ExpectBuilder) StatusRange(from, to int) ExpectBuilder {
+	e.StatusCodeFrom_ = from
+	e.StatusCodeTo_ = to
 	return e
 }
 
