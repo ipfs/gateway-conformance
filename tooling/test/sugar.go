@@ -137,6 +137,7 @@ type ExpectBuilder struct {
 	StatusCode_ int             `json:"statusCode,omitempty"`
 	Headers_    []HeaderBuilder `json:"headers,omitempty"`
 	Body_       interface{}     `json:"body,omitempty"`
+	Specs_      []string        `json:"specs,omitempty"`
 }
 
 func Expect() ExpectBuilder {
@@ -154,6 +155,16 @@ func (e ExpectBuilder) Status(statusCode int) ExpectBuilder {
 
 func (e ExpectBuilder) Header(h HeaderBuilder) ExpectBuilder {
 	e.Headers_ = append(e.Headers_, h)
+	return e
+}
+
+func (e ExpectBuilder) Spec(spec string) ExpectBuilder {
+	e.Specs_ = []string{spec}
+	return e
+}
+
+func (e ExpectBuilder) Specs(specs ...string) ExpectBuilder {
+	e.Specs_ = specs
 	return e
 }
 
@@ -213,6 +224,7 @@ type HeaderBuilder struct {
 	Value_ string                `json:"value,omitempty"`
 	Check_ check.Check[[]string] `json:"check,omitempty"`
 	Hint_  string                `json:"hint,omitempty"`
+	Specs_ []string              `json:"specs,omitempty"`
 	Not_   bool                  `json:"not,omitempty"`
 }
 
@@ -242,6 +254,16 @@ func (h HeaderBuilder) Matches(value string, rest ...any) HeaderBuilder {
 
 func (h HeaderBuilder) Hint(hint string) HeaderBuilder {
 	h.Hint_ = hint
+	return h
+}
+
+func (h HeaderBuilder) Specs(specs ...string) HeaderBuilder {
+	h.Specs_ = specs
+	return h
+}
+
+func (h HeaderBuilder) Spec(spec string) HeaderBuilder {
+	h.Specs_ = []string{spec}
 	return h
 }
 

@@ -202,6 +202,7 @@ func TestGatewayCache(t *testing.T) {
 		// ==========
 		{
 			Name: "GET for /ipfs/ file with matching Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -212,6 +213,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ dir with index.html file with matching Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/", fixture.MustGetCid()).
 				Headers(
@@ -222,6 +224,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with matching third Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -232,6 +235,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with matching weak Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -242,6 +246,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with wildcard Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -252,6 +257,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(

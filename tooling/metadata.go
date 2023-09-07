@@ -3,8 +3,6 @@ package tooling
 import (
 	"encoding/json"
 	"testing"
-
-	"github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func LogMetadata(t *testing.T, value interface{}) {
@@ -44,12 +42,14 @@ func LogJobURL(t *testing.T) {
 	})
 }
 
-func LogGatewayURL(t *testing.T) {
+func LogSpecs(t *testing.T, specs ...string) {
+	if len(specs) == 0 {
+		return
+	}
+
 	LogMetadata(t, struct {
-		GatewayURL          string `json:"gateway_url"`
-		SubdomainGatewayURL string `json:"subdomain_gateway_url"`
+		Specs []string `json:"specs"`
 	}{
-		GatewayURL:          test.GatewayURL,
-		SubdomainGatewayURL: test.SubdomainGatewayURL,
+		Specs: specs,
 	})
 }

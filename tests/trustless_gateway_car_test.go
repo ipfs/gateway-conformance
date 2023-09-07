@@ -408,6 +408,7 @@ func TestTrustlessCarDagScopeAll(t *testing.T) {
 
 func TestTrustlessCarEntityBytes(t *testing.T) {
 	tooling.LogTestGroup(t, GroupBlockCar)
+	tooling.LogSpecs(t, "specs.ipfs.tech/http-gateways/trustless-gateway/#entity-bytes-request-query-parameter")
 
 	singleLayerHamtMultiBlockFilesFixture := car.MustOpenUnixfsCar("trustless_gateway_car/single-layer-hamt-with-multi-block-files.car")
 	subdirWithMixedBlockFiles := car.MustOpenUnixfsCar("trustless_gateway_car/subdir-with-mixed-block-files.car")

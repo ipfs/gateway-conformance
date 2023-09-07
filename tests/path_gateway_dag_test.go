@@ -42,6 +42,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 		},
 		{
 			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type - with headers",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#accept-request-header",
 			Hint: `
 			## Quick regression check for JSON stored on UnixFS:
 			## it has nothing to do with DAG-JSON and JSON codecs,
@@ -478,7 +479,7 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-						Header("Content-Length").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
+						Header("Content-Length").Spec("specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
 						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dagTraversalCID, row.Format),
 						Header("X-Content-Type-Options").Hint("includes nosniff hint").Contains("nosniff"),
 					),
@@ -552,6 +553,7 @@ func TestNativeDag(t *testing.T) {
 			},
 			{
 				Name: Fmt("HEAD {{name}} with only-if-cached for missing block returns HTTP 412 Precondition Failed", row.Name),
+				Spec: "specs.ipfs.tech/http-gateways/path-gateway/#only-if-cached",
 				Request: Request().
 					Path("/ipfs/{{cid}}", missingCID).
 					Header("Cache-Control", "only-if-cached").
