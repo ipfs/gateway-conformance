@@ -3,13 +3,13 @@ module github.com/ipfs/gateway-conformance
 go 1.20
 
 require (
-	github.com/ipfs/boxo v0.10.3-0.20230724084731-f6b448b4263a
+	github.com/ipfs/boxo v0.12.0
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/go-unixfsnode v1.7.1
 	github.com/ipld/go-car v0.6.1
 	github.com/ipld/go-car/v2 v2.10.2-0.20230622090957-499d0c909d33
 	github.com/ipld/go-codec-dagpb v1.6.0
-	github.com/ipld/go-ipld-prime v0.20.0
+	github.com/ipld/go-ipld-prime v0.21.0
 	github.com/libp2p/go-libp2p v0.26.3
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.3
