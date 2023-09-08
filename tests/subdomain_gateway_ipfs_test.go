@@ -120,6 +120,9 @@ func TestGatewaySubdomains(t *testing.T) {
 	CIDv1_TOO_LONG := fixture.MustGetCid("hello-CIDv1_TOO_LONG")
 	CIDWikipedia := "QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
 
+	dirWithPercentEncodedFilename := car.MustOpenUnixfsCar("path_gateway_unixfs/dir-with-percent-encoded-filename.car")
+	dirWithPercentEncodedFilenameCID := dirWithPercentEncodedFilename.MustGetCid()
+
 	tests := SugarTests{}
 
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
@@ -148,6 +151,15 @@ func TestGatewaySubdomains(t *testing.T) {
 						Header("Location").
 							Hint("request for example.com/ipfs/{CIDv1} returns Location HTTP header for subdomain redirect in browsers").
 							Contains("{{scheme}}://{{cid}}.ipfs.{{host}}/", u.Scheme, CIDv1, u.Host),
+					),
+			},
+			{
+				Name:    "request for example.com/ipfs/{CIDv1}/{filename with percent encoding} redirects to subdomain",
+				Request: Request().URL("{{url}}/ipfs/{{cid}}/Portugal%252C+España=Peninsula%20Ibérica.txt", gatewayURL, dirWithPercentEncodedFilenameCID),
+				Response: Expect().
+					Status(301).
+					Headers(
+						Header("Location").Equals("{{scheme}}://{{cid}}.ipfs.{{host}}/Portugal%252C+Espa%C3%B1a=Peninsula%20Ib%C3%A9rica.txt", u.Scheme, dirWithPercentEncodedFilenameCID, u.Host),
 					),
 			},
 			{

@@ -39,3 +39,16 @@ ipfs files ls -l
 # Manually CID of "dir-with-files" and then...
 ipfs dag export $CID
 ```
+
+### [dir-with-percent-encoded-filename.car](./dir-with-percent-encoded-name-file.car)
+
+```sh
+ipfs version
+# ipfs version 0.22.0
+CID=$(echo "hello from a percent encoded filename" | ipfs add --cid-version=1 -q)
+ipfs files mkdir -p --cid-version 1 /dir-with-percent-encoded-filename
+ipfs files cp /ipfs/$CID "/dir-with-percent-encoded-filename/Portugal%2C+España=Peninsula Ibérica.txt"
+ipfs files ls -l
+# Manually CID of "dir-with-percent-encoded-filename" and then...
+ipfs dag export $CID
+```

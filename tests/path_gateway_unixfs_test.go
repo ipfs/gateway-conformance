@@ -577,3 +577,20 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
 }
+
+func TestPathGatewayMiscellaneous(t *testing.T) {
+	fixture := car.MustOpenUnixfsCar("path_gateway_unixfs/dir-with-percent-encoded-filename.car")
+	rootDirCID := fixture.MustGetCid()
+
+	tests := SugarTests{
+		{
+			Name: "GET for /ipfs/ file whose filename contains percentage-encoded characters works",
+			Request: Request().
+				Path("/ipfs/{{CID}}/Portugal%252C+España=Peninsula%20Ibérica.txt", rootDirCID),
+			Response: Expect().
+				Body(fixture.MustGetRawData("Portugal%2C+España=Peninsula Ibérica.txt")),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
+}
