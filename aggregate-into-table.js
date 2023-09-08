@@ -23,7 +23,7 @@ delete metadata[TestMetadata]; // Extract TestMetadata which is a special case
 // generate groups: an array of {group, key} objects
 // where group is the group name (or undefined), and key is the test key name (or undefined)
 // It represents the table leftmost column.
-// 
+//
 // Group1
 //  Group1 - Test1
 //  Group1 - Test2
@@ -69,7 +69,7 @@ groups.sort((a, b) => {
 // generate a table
 const columns = [];
 
-// add the leading column ("gateway", "version", "key1", "key2", ... "keyN")
+// add the leading column ("gateway", "version", "group1", "test11", ... "test42")
 const leading = ["gateway", "version"];
 groups.forEach(({ group, key }) => {
     if (key === undefined) {
@@ -77,10 +77,18 @@ groups.forEach(({ group, key }) => {
         return;
     }
 
-    const m = metadata[key];
-
     // Skip the "Test" prefix
     let niceKey = key.replace(/^Test/, '');
+
+    const m = metadata[key];
+    if (m.specs && m.specs.length > 0) {
+        if (m.specs.length === 1) {
+            niceKey = `[${niceKey}](https://${m.specs[0]})`
+        } else {
+            const urls = m.specs.map((url, index) => `[${index}](https://${url})`);
+            niceKey = `${niceKey} (${urls.join(', ')})`;
+        }
+    }
 
     leading.push(niceKey);
 });
