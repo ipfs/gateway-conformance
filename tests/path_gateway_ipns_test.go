@@ -1,29 +1,39 @@
 package tests
 
 import (
+	"strings"
 	"testing"
 
+	. "github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	"github.com/ipfs/go-cid"
+	"github.com/multiformats/go-multihash"
 )
 
 var (
-	// See fixtures/ipns_records/README.md for information
+	// See fixtures/ipns_records/README.md for information. These are invalid records, so we cannot load them with MustOpenIPNSRecordWithKey
 	ipnsV1                = "k51qzi5uqu5dm4tm0wt8srkg9h9suud4wuiwjimndrkydqm81cqtlb5ak6p7ku"
 	ipnsV1V2BrokenValueV1 = "k51qzi5uqu5dlmit2tuwdvnx4sbnyqgmvbxftl0eo3f33wwtb9gr7yozae9kpw"
 	ipnsV1V2BrokenSigV2   = "k51qzi5uqu5diamp7qnnvs1p1gzmku3eijkeijs3418j23j077zrkok63xdm8c"
 
-	ipnsV1V2BrokenSigV1     = "k51qzi5uqu5dilgf7gorsh9vcqqq4myo6jd4zmqkuy9pxyxi5fua3uf7axph4y"
-	bodyIPNSV1V2BrokenSigV1 = []byte("v1+v2 with broken signature v1")
+	ipnsV1V2BrokenSigV1     = MustOpenIPNSRecordWithKey("ipns_records/k51qzi5uqu5dilgf7gorsh9vcqqq4myo6jd4zmqkuy9pxyxi5fua3uf7axph4y_v1-v2-broken-signature-v1.ipns-record")
+	bodyIPNSV1V2BrokenSigV1 = mustBytesFromRawCID(strings.TrimPrefix(ipnsV1V2BrokenSigV1.Value(), "/ipfs/"))
 
-	ipnsV1V2     = "k51qzi5uqu5dlkw8pxuw9qmqayfdeh4kfebhmreauqdc6a7c3y7d5i9fi8mk9w"
-	bodyIPNSV1V2 = []byte("v1+v2 record")
-	cidIPNSV1V2  = "bafkqaddwgevxmmraojswg33smq"
+	ipnsV1V2     = MustOpenIPNSRecordWithKey("ipns_records/k51qzi5uqu5dlkw8pxuw9qmqayfdeh4kfebhmreauqdc6a7c3y7d5i9fi8mk9w_v1-v2.ipns-record")
+	bodyIPNSV1V2 = mustBytesFromRawCID(strings.TrimPrefix(ipnsV1V2.Value(), "/ipfs/"))
 
-	ipnsV2     = "k51qzi5uqu5dit2ku9mutlfgwyz8u730on38kd10m97m36bjt66my99hb6103f"
-	bodyIPNSV2 = []byte("v2-only record")
-	cidIPNSV2  = "bafkqadtwgiww63tmpeqhezldn5zgi"
+	ipnsV2     = MustOpenIPNSRecordWithKey("ipns_records/k51qzi5uqu5dit2ku9mutlfgwyz8u730on38kd10m97m36bjt66my99hb6103f_v2.ipns-record")
+	bodyIPNSV2 = mustBytesFromRawCID(strings.TrimPrefix(ipnsV2.Value(), "/ipfs/"))
 )
+
+func mustBytesFromRawCID(c string) []byte {
+	mh, err := multihash.Decode(cid.MustParse(c).Hash())
+	if err != nil {
+		panic(err)
+	}
+	return mh.Digest
+}
 
 func TestGatewayIPNSPath(t *testing.T) {
 	tests := SugarTests{
@@ -44,7 +54,7 @@ func TestGatewayIPNSPath(t *testing.T) {
 		{
 			Name: "GET an IPNS Path (V1+V2) with broken SignatureV1, but valid SignatureV2 succeeds",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV1V2BrokenSigV1),
+				Path("/ipns/{{name}}", ipnsV1V2BrokenSigV1.Key()),
 			Response: Expect().
 				Status(200).
 				Body(bodyIPNSV1V2BrokenSigV1),
@@ -52,14 +62,14 @@ func TestGatewayIPNSPath(t *testing.T) {
 		{
 			Name: "GET an IPNS Path (V1+V2) from the gateway",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV1V2),
+				Path("/ipns/{{name}}", ipnsV1V2.Key()),
 			Response: Expect().
 				Body(bodyIPNSV1V2),
 		},
 		{
 			Name: "GET an IPNS Path (V2) from the gateway",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV2),
+				Path("/ipns/{{name}}", ipnsV2.Key()),
 			Response: Expect().
 				Body(bodyIPNSV2),
 		},

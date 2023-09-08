@@ -13,7 +13,7 @@ func TestGatewayIPNSRecord(t *testing.T) {
 		{
 			Name: "GET IPNS Record (V1+V2) with format=ipns-record has expected HTTP headers and valid key",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV1V2).
+				Path("/ipns/{{name}}", ipnsV1V2.Key()).
 				Query("format", "ipns-record"),
 			Response: Expect().
 				Headers(
@@ -22,15 +22,15 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=1800"),
 				).
 				Body(
-					IsIPNSRecord(ipnsV1V2).
+					IsIPNSRecord(ipnsV1V2.Key()).
 						IsValid().
-						PointsTo("/ipfs/{{cid}}", cidIPNSV1V2),
+						PointsTo(ipnsV1V2.Value()),
 				),
 		},
 		{
 			Name: "GET IPNS Record (V2) with format=ipns-record has expected HTTP headers and valid key",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV2).
+				Path("/ipns/{{name}}", ipnsV2.Key()).
 				Query("format", "ipns-record"),
 			Response: Expect().
 				Headers(
@@ -39,15 +39,15 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=1800"),
 				).
 				Body(
-					IsIPNSRecord(ipnsV2).
+					IsIPNSRecord(ipnsV2.Key()).
 						IsValid().
-						PointsTo("/ipfs/{{cid}}", cidIPNSV2),
+						PointsTo(ipnsV2.Value()),
 				),
 		},
 		{
 			Name: "GET IPNS Record (V1+V2) with 'Accept: application/vnd.ipfs.ipns-record' has expected HTTP headers and valid key",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV1V2).
+				Path("/ipns/{{name}}", ipnsV1V2.Key()).
 				Header("Accept", "application/vnd.ipfs.ipns-record"),
 			Response: Expect().
 				Headers(
@@ -56,15 +56,15 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=1800"),
 				).
 				Body(
-					IsIPNSRecord(ipnsV1V2).
+					IsIPNSRecord(ipnsV1V2.Key()).
 						IsValid().
-						PointsTo("/ipfs/{{cid}}", cidIPNSV1V2),
+						PointsTo(ipnsV1V2.Value()),
 				),
 		},
 		{
 			Name: "GET IPNS Record (V2) with 'Accept: application/vnd.ipfs.ipns-record' has expected HTTP headers and valid key",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV2).
+				Path("/ipns/{{name}}", ipnsV2.Key()).
 				Header("Accept", "application/vnd.ipfs.ipns-record"),
 			Response: Expect().
 				Headers(
@@ -73,15 +73,15 @@ func TestGatewayIPNSRecord(t *testing.T) {
 					Header("Cache-Control").Contains("public, max-age=1800"),
 				).
 				Body(
-					IsIPNSRecord(ipnsV2).
+					IsIPNSRecord(ipnsV2.Key()).
 						IsValid().
-						PointsTo("/ipfs/{{cid}}", cidIPNSV2),
+						PointsTo(ipnsV2.Value()),
 				),
 		},
 		{
 			Name: "GET IPNS Record with explicit ?filename= succeeds with modified Content-Disposition header",
 			Request: Request().
-				Path("/ipns/{{name}}", ipnsV1V2).
+				Path("/ipns/{{name}}", ipnsV1V2.Key()).
 				Query("format", "ipns-record").
 				Query("filename", "testтест.ipns-record"),
 			Response: Expect().
