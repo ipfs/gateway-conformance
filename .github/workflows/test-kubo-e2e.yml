@@ -77,13 +77,10 @@ jobs:
           TARGET: ${{ matrix.target }}
         run: |
           echo "Results against Kubo ${{ matrix.target }}:" > comment.md
+          echo "(check the action's summary for the full results)" >> comment.md
 
           # Strip everything after the results table
           cat output.md | sed '/Failures\/Errors/,$d' >> comment.md
-
-          cat >> comment.md <<EOF
-            Check the action's summary for the full results.
-          EOF
       - name: Find latest comment
         id: find-comment
         if: github.event.pull_request
