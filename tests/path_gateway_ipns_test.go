@@ -38,21 +38,45 @@ func mustBytesFromRawCID(c string) []byte {
 func TestGatewayIPNSPath(t *testing.T) {
 	tests := SugarTests{
 		{
-			Name: "GET an IPNS Path (V1) from the gateway fails with 5xx",
+			Name: "GET for /ipns/name with V1-only signature MUST fail with 5XX",
+			Hint: `
+			Legacy V1 IPNS records are considered insecure. A gateway should
+			never return data when IPNS Record is missing V2 signature, EVEN
+			when V1 signature matches the payload.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1),
 			Response: Expect().
 				StatusBetween(500, 599),
 		},
 		{
-			Name: "GET an IPNS Path (V1+V2) with broken ValueV1 from the gateway fails with 5xx",
+			Name: "GET for /ipns/name with valid V1+V2 signatures with V1-vs-V2 value mismatch MUST fail with 5XX",
+			Hint: `
+			Legacy V1 signatures in IPNS records are considered insecure and
+			got replaced with V2 that sings entire CBOR in the data field.
+			Producing records with both V1 and V2 signatures is valid for
+			backward-compatibility, but validation logic requires V1 (legacy
+			protobuf fields) and V2 (CBOR in data field) to match. This means
+			that even when both signatures are valid, if V1 and V2 values do
+			not match, the IPNS record should not be considered valid, as it
+			could allow signature reuse attacks against V1 users.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2BrokenValueV1),
 			Response: Expect().
 				StatusBetween(500, 599),
 		},
 		{
-			Name: "GET an IPNS Path (V1+V2) with broken SignatureV1, but valid SignatureV2 succeeds",
+			Name: "GET for /ipns/name with valid V2 and broken V1 signature succeeds",
+			Hint: `
+			Legacy V1 signatures in IPNS records are considered insecure and
+			got replaced with V2 that sings entire CBOR in the data field.
+			Integrity of the record is protected by SignatureV2, V1 can be
+			ignored as long V1 values match V2 ones in CBOR.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2BrokenSigV1.Key()),
 			Response: Expect().
@@ -60,21 +84,38 @@ func TestGatewayIPNSPath(t *testing.T) {
 				Body(bodyIPNSV1V2BrokenSigV1),
 		},
 		{
-			Name: "GET an IPNS Path (V1+V2) from the gateway",
+			Name: "GET for /ipns/name with valid V1+V2 signatures succeeds",
+			Hint: `
+			Records with legacy V1 signatures should not impact V2 verification.
+			The payload should match the content path from IPNS Record's Value field.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2.Key()),
 			Response: Expect().
 				Body(bodyIPNSV1V2),
 		},
 		{
-			Name: "GET an IPNS Path (V2) from the gateway",
+			Name: "GET for /ipns/name with valid V2-only signature succeeds",
+			Hint: `
+			Legacy V1 signatures in IPNS records are considered insecure and
+			got replaced with V2 that sings entire CBOR in the data field.
+			Gateway MUST correctly resolve IPNS records without V1 fields.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV2.Key()),
 			Response: Expect().
 				Body(bodyIPNSV2),
 		},
 		{
-			Name: "GET an IPNS Path (V1+V2) with broken SignatureV2 from the gateway fails with 5xx",
+			Name: "GET for /ipns/name with valid V1 and broken V2 signature MUST fail with 5XX",
+			Hint: `
+			Legacy V1 IPNS records are considered insecure. A gateway should
+			never return data when IPNS Record is missing a valid V2 signature,
+			EVEN when V1 signature is valid.
+			More details in IPIP-428.
+			`,
 			Request: Request().
 				Path("/ipns/{{name}}", ipnsV1V2BrokenSigV2),
 			Response: Expect().
@@ -89,6 +130,12 @@ func TestRedirectCanonicalIPNS(t *testing.T) {
 	tests := SugarTests{
 		{
 			Name: "GET for /ipns/{b58-multihash-of-ed25519-key} redirects to /ipns/{cidv1-libp2p-key-base36}",
+			Hint: `
+			CIDv1 in case-insensitive encoding ensures it works in contexts
+			such as authority component of URL. Base36 ensures ED25519
+			libp2p-key fits in a single DNS label, making the IPNS name
+			compatible with subdomain gateways.
+			`,
 			Request: Request().
 				Path("/ipns/12D3KooWRBy97UB99e3J6hiPesre1MZeuNQvfan4gBziswrRJsNK/root2/"),
 			Response: Expect().
@@ -99,6 +146,10 @@ func TestRedirectCanonicalIPNS(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipns/{cidv0-like-b58-multihash-of-rsa-key} redirects to /ipns/{cidv1-libp2p-key-base36}",
+			Hint: `
+			CIDv1 in case-insensitive encoding ensures it works in contexts
+			such as authority component of URL.
+			`,
 			Request: Request().
 				Path("/ipns/QmcJM7PRfkSbcM5cf1QugM5R37TLRKyJGgBEhXjLTB8uA2/root2/"),
 			Response: Expect().
