@@ -68,11 +68,35 @@ jobs:
           xml: output.xml
           html: output.html
           markdown: output.md
+          accept-test-failure: true
       - name: Set summary
-        if: (failure() || success())
         run: cat ./output.md >> $GITHUB_STEP_SUMMARY
+      - name: Prepare Comment
+        if: github.event.pull_request
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          echo "Results against Kubo ${{ matrix.target }}:" > comment.md
+          echo "(check the action's summary for the full results)" >> comment.md
+
+          # Strip everything after the results table
+          cat output.md | sed '/Failures\/Errors/,$d' >> comment.md
+      - name: Find latest comment
+        id: find-comment
+        if: github.event.pull_request
+        uses: peter-evans/find-comment@a54c31d7fa095754bfef525c0c8e5e5674c4b4b1 # v2.4.0
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "Results against Kubo ${{ matrix.target }}"
+      - name: Create comment
+        if: github.event.pull_request
+        uses: peter-evans/create-or-update-comment@c6c9a1a66007646a28c153e2a8580a5bad27bcfa # v3.0.2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
+          body-path: comment.md
       - name: Upload one-page HTML report
-        if: (failure() || success())
         uses: actions/upload-artifact@v3
         with:
           name: conformance-${{ matrix.target }}.html
