@@ -6,12 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 )
 
 type SugarTest struct {
 	Name      string
 	Hint      string
+	Spec      string
+	Specs     []string
 	Request   RequestBuilder
 	Requests  []RequestBuilder
 	Response  ExpectBuilder
@@ -19,6 +22,22 @@ type SugarTest struct {
 }
 
 type SugarTests []SugarTest
+
+func (s *SugarTest) AllSpecs() []string {
+	if len(s.Specs) > 0 && s.Spec != "" {
+		panic("cannot have both Spec and Specs")
+	}
+
+	if len(s.Specs) > 0 {
+		return s.Specs
+	}
+
+	if s.Spec != "" {
+		return []string{s.Spec}
+	}
+
+	return []string{}
+}
 
 func RunWithSpecs(
 	t *testing.T,
@@ -51,6 +70,7 @@ func run(t *testing.T, tests SugarTests) {
 
 		if len(test.Requests) > 0 {
 			t.Run(test.Name, func(t *testing.T) {
+				tooling.LogSpecs(t, test.AllSpecs()...)
 				responses := make([]*http.Response, 0, len(test.Requests))
 
 				for _, req := range test.Requests {
@@ -63,6 +83,7 @@ func run(t *testing.T, tests SugarTests) {
 			})
 		} else {
 			t.Run(test.Name, func(t *testing.T) {
+				tooling.LogSpecs(t, test.AllSpecs()...)
 				_, res, localReport := runRequest(timeout, t, test, test.Request)
 				validateResponse(t, test.Response, res, localReport)
 			})

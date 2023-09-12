@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Metadata logging used to associate tests with custom data like versions, specs identifiers, etc.
 - Output Github's workflow URL with metadata. [PR](https://github.com/ipfs/gateway-conformance/pull/145)
 - Basic Dashboard Output with content generation. [PR](https://github.com/ipfs/gateway-conformance/pull/152)
+- Test Group Metadata on Tests. [PR](https://github.com/ipfs/gateway-conformance/pull/156)
+- Specs Metadata on Tests. [PR](https://github.com/ipfs/gateway-conformance/pull/159)
 
 ## [0.3.0] - 2023-07-31
 ### Added

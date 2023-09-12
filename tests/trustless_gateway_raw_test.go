@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -12,6 +13,9 @@ import (
 )
 
 func TestTrustlessRaw(t *testing.T) {
+	tooling.LogTestGroup(t, GroupBlockCar)
+	tooling.LogSpecs(t, "specs.ipfs.tech/http-gateways/trustless-gateway/#block-responses-application-vnd-ipld-raw")
+
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
 	tests := SugarTests{
@@ -128,6 +132,9 @@ func TestTrustlessRaw(t *testing.T) {
 }
 
 func TestTrustlessRawRanges(t *testing.T) {
+	tooling.LogTestGroup(t, GroupBlockCar)
+	// @lidel: "The optional entity-bytes=from:to parameter is available only for CAR requests."
+
 	// Multi-range requests MUST conform to the HTTP semantics. The server does not
 	// need to be able to support returning multiple ranges. However, it must respond
 	// correctly.
@@ -140,7 +147,7 @@ func TestTrustlessRawRanges(t *testing.T) {
 
 	RunWithSpecs(t, SugarTests{
 		{
-			Name: "GETaa with application/vnd.ipld.raw with single range request includes correct bytes",
+			Name: "GET with application/vnd.ipld.raw with single range request includes correct bytes",
 			Request: Request().
 				Path("/ipfs/{{cid}}", fixture.MustGetCid("dir", "ascii.txt")).
 				Headers(

@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestGatewayJsonCbor(t *testing.T) {
+	tooling.LogTestGroup(t, GroupJSONCbor)
+
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	fileJSON := fixture.MustGetNode("ą", "ę", "t.json")
@@ -39,6 +42,7 @@ func TestGatewayJsonCbor(t *testing.T) {
 		},
 		{
 			Name: "GET UnixFS file with JSON bytes is returned with application/json Content-Type - with headers",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#accept-request-header",
 			Hint: `
 			## Quick regression check for JSON stored on UnixFS:
 			## it has nothing to do with DAG-JSON and JSON codecs,
@@ -66,6 +70,8 @@ func TestGatewayJsonCbor(t *testing.T) {
 // ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
 // ## (returns representation defined in https://ipld.io/specs/codecs/dag-pb/spec/#logical-format)
 func TestDagPbConversion(t *testing.T) {
+	tooling.LogTestGroup(t, GroupJSONCbor)
+
 	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
 
 	dir := fixture.MustGetRoot()
@@ -205,6 +211,8 @@ func TestDagPbConversion(t *testing.T) {
 // # Requesting CID with plain json (0x0200) and cbor (0x51) codecs
 // # (note these are not UnixFS, not DAG-* variants, just raw block identified by a CID with a special codec)
 func TestPlainCodec(t *testing.T) {
+	tooling.LogTestGroup(t, GroupJSONCbor)
+
 	table := []struct {
 		Name        string
 		Format      string
@@ -308,6 +316,8 @@ func TestPlainCodec(t *testing.T) {
 
 // ## Pathing, traversal over DAG-JSON and DAG-CBOR
 func TestPathing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupJSONCbor)
+
 	dagJSONTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-json-traversal.car").MustGetRoot()
 	dagCBORTraversal := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
 
@@ -381,6 +391,8 @@ func TestPathing(t *testing.T) {
 // ## NATIVE TESTS for DAG-JSON (0x0129) and DAG-CBOR (0x71):
 // ## DAG- regression tests for core behaviors when native DAG-(CBOR|JSON) is requested
 func TestNativeDag(t *testing.T) {
+	tooling.LogTestGroup(t, GroupJSONCbor)
+
 	missingCID := car.RandomCID()
 
 	table := []struct {
@@ -467,7 +479,7 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-						Header("Content-Length").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
+						Header("Content-Length").Spec("specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
 						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dagTraversalCID, row.Format),
 						Header("X-Content-Type-Options").Hint("includes nosniff hint").Contains("nosniff"),
 					),
@@ -541,6 +553,7 @@ func TestNativeDag(t *testing.T) {
 			},
 			{
 				Name: Fmt("HEAD {{name}} with only-if-cached for missing block returns HTTP 412 Precondition Failed", row.Name),
+				Spec: "specs.ipfs.tech/http-gateways/path-gateway/#only-if-cached",
 				Request: Request().
 					Path("/ipfs/{{cid}}", missingCID).
 					Header("Cache-Control", "only-if-cached").
@@ -570,6 +583,8 @@ func TestNativeDag(t *testing.T) {
 }
 
 func TestGatewayJSONCborAndIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupIPNS)
+
 	ipnsIdDagJSON := "k51qzi5uqu5dhjghbwdvbo6mi40htrq6e2z4pwgp15pgv3ho1azvidttzh8yy2"
 	ipnsIdDagCBOR := "k51qzi5uqu5dghjous0agrwavl8vzl64xckoqzwqeqwudfr74kfd11zcyk3b7l"
 

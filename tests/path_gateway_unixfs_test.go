@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
@@ -13,6 +14,8 @@ import (
 )
 
 func TestUnixFSDirectoryListing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupUnixFS)
+
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	root := fixture.MustGetNode()
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
@@ -199,6 +202,7 @@ func TestGatewayCache(t *testing.T) {
 		// ==========
 		{
 			Name: "GET for /ipfs/ file with matching Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -209,6 +213,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ dir with index.html file with matching Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/", fixture.MustGetCid()).
 				Headers(
@@ -219,6 +224,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with matching third Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -229,6 +235,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with matching weak Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -239,6 +246,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ file with wildcard Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/root4/index.html", fixture.MustGetCid()).
 				Headers(
@@ -249,6 +257,7 @@ func TestGatewayCache(t *testing.T) {
 		},
 		{
 			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
 				Headers(
@@ -308,6 +317,8 @@ func TestGatewayCache(t *testing.T) {
 }
 
 func TestGatewayCacheWithIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupIPNS)
+
 	fixture := car.MustOpenUnixfsCar("gateway-cache/fixtures.car")
 	ipns := ipns.MustOpenIPNSRecordWithKey("gateway-cache/k51qzi5uqu5dlxdsdu5fpuu7h69wu4ohp32iwm9pdt9nq3y5rpn3ln9j12zfhe.ipns-record")
 	ipnsKey := ipns.Key()
@@ -443,6 +454,8 @@ func TestGatewaySymlink(t *testing.T) {
 }
 
 func TestGatewayUnixFSFileRanges(t *testing.T) {
+	tooling.LogTestGroup(t, GroupUnixFS)
+
 	// Multi-range requests MUST conform to the HTTP semantics. The server does not
 	// need to be able to support returning multiple ranges. However, it must respond
 	// correctly.

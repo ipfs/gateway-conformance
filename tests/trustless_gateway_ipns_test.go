@@ -3,12 +3,15 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	. "github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestGatewayIPNSRecord(t *testing.T) {
+	tooling.LogTestGroup(t, GroupIPNS)
+
 	tests := SugarTests{
 		{
 			Name: "GET IPNS Record (V1+V2) with format=ipns-record has expected HTTP headers and valid key",

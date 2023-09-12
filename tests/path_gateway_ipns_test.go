@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	. "github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
@@ -127,6 +128,8 @@ func TestGatewayIPNSPath(t *testing.T) {
 }
 
 func TestRedirectCanonicalIPNS(t *testing.T) {
+	tooling.LogTestGroup(t, GroupIPNS)
+
 	tests := SugarTests{
 		{
 			Name: "GET for /ipns/{b58-multihash-of-ed25519-key} redirects to /ipns/{cidv1-libp2p-key-base36}",
