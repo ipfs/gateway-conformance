@@ -3,11 +3,14 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
 func TestCors(t *testing.T) {
+	tooling.LogTestGroup(t, GroupCORS)
+
 	cidHello := "bafkqabtimvwgy3yk" // hello
 
 	tests := SugarTests{

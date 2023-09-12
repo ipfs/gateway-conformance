@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
@@ -14,6 +15,8 @@ import (
 )
 
 func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
+	tooling.LogTestGroup(t, GroupDNSLink)
+
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 

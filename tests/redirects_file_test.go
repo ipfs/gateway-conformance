@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestRedirectsFileSupport(t *testing.T) {
+	tooling.LogSpecs(t, "specs.ipfs.tech/http-gateways/web-redirects-file/")
 	fixture := car.MustOpenUnixfsCar("redirects_file/redirects.car")
 	redirectDir := fixture.MustGetNode("examples")
 	redirectDirCID := redirectDir.Base32Cid()
@@ -164,7 +166,8 @@ func TestRedirectsFileSupport(t *testing.T) {
 							Contains("could not parse _redirects:"),
 							Contains(`forced redirects (or "shadowing") are not supported`),
 						),
-					),
+					).Spec("specs.ipfs.tech/http-gateways/web-redirects-file/#no-forced-redirects"),
+				Spec: "specs.ipfs.tech/http-gateways/web-redirects-file/#error-handling",
 			},
 			{
 				Name: "invalid file: request for $TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found returns error about too large redirects file",
@@ -179,6 +182,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 							Contains("redirects file size cannot exceed"),
 						),
 					),
+				Spec: "specs.ipfs.tech/http-gateways/web-redirects-file/#max-file-size",
 			},
 		}...)
 
@@ -235,6 +239,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 }
 
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
+	tooling.LogTestGroup(t, GroupDNSLink)
 	dnsLinks := dnslink.MustOpenDNSLink("redirects_file/dnslink.yml")
 	dnsLink := dnsLinks.MustGet("custom-dnslink")
 

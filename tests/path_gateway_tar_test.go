@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
@@ -11,6 +12,8 @@ import (
 )
 
 func TestTar(t *testing.T) {
+	tooling.LogTestGroup(t, GroupTar)
+
 	fixtureOutside := car.MustOpenUnixfsCar("path_gateway_tar/outside-root.car")
 	fixtureInside := car.MustOpenUnixfsCar("path_gateway_tar/inside-root.car")
 
@@ -73,6 +76,7 @@ func TestTar(t *testing.T) {
 		},
 		{
 			Name: "GET TAR with explicit ?filename= succeeds with modified Content-Disposition header",
+			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}", dirCID).
 				Query("filename", "testтест.tar").
