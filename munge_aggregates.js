@@ -103,6 +103,8 @@ const main = async () => {
     `;
     const testsRows = await all(testsQuery);
     const groups = {};
+    const flatTestGroups = {}; // used for specs generation.
+
     for (const row of testsRows) {
         const { versions, full_name, name, parent_test_full_name } = row;
         const slug = slugify(full_name);
@@ -111,7 +113,10 @@ const main = async () => {
             groups[parent_test_full_name] = {};
         }
 
-        groups[parent_test_full_name][full_name] = { versions: versions?.split(',') || [], name, full_name, slug };
+        const g = { versions: versions?.split(',') || [], name, full_name, slug };
+
+        groups[parent_test_full_name][full_name] = g;
+        flatTestGroups[full_name] = g;
     }
     outputJSON("data/testgroups.json", groups);
 
@@ -126,10 +131,11 @@ const main = async () => {
     `;
     const specsRows = await all(specsQuery);
     const specs = {};
+    const flatSpecs = {};
 
     for (const row of specsRows) {
         const { versions, full_name } = row;
-        let current = `https://${full_name}`;
+        let current = full_name;
 
         while (current !== "null") {
             const slug = slugify(current);
@@ -140,9 +146,11 @@ const main = async () => {
                 specs[parent] = {};
             }
 
+            flatSpecs[current] = true
+
             specs[parent][current] = {
                 versions: versions?.split(',') || [],
-                full_name: current,
+                spec_full_name: current,
                 slug,
                 name,
                 isHashed,
@@ -156,14 +164,20 @@ const main = async () => {
     const descendTheSpecsTree = (current, path) => {
         Object.entries(specs[current] || {})
             .forEach(([key, spec]) => {
-                // To reproduce the structure of URLs and hashes,
-                // we update existing pages
+                const addSpecs = (current) => {
+                    let hashes = [...(current.specs || []), spec.name];
+                    hashes = [...new Set(hashes)]; // deduplicate
+                    return { ...current, hashes }
+                };
+
+                // To reproduce the structure of URLs and hashes, we update existing specs pages
                 if (spec.isHashed) {
                     const p = path.join("/");
                     outputFrontmatter(
                         `content/specs/${p}/_index.md`,
-                        (current) => ({ ...current, hashes: [...(current.hashes || []), spec.name] }));
-                    // assume there are no children for hashes
+                        addSpecs
+                    );
+                    // We assume there are no recursion / children for hashes
                     return
                 }
 
@@ -180,6 +194,33 @@ const main = async () => {
     }
 
     descendTheSpecsTree("null", [])
+
+    // Aggregate test results per specs
+    const specsTestGroups = {};
+
+    for (const fullName of Object.keys(flatSpecs)) {
+        // list all the test names for a given spec.
+        // we prefix search the database for spec_urls starting with the spec name
+        const specsQuery = `
+            SELECT
+                test_full_name
+            FROM TestSpecs
+            WHERE spec_url LIKE ?
+            ORDER BY test_full_name
+        `;
+        const tests = await all(specsQuery, [fullName + '%']);
+
+        const s = tests.map(x => x.test_full_name)
+            .reduce((acc, name) => {
+                return {
+                    ...acc,
+                    [name]: flatTestGroups[name]
+                }
+            }, {});
+        specsTestGroups[fullName] = s;
+    }
+
+    outputJSON("data/specsgroups.json", specsTestGroups);
 
     // Query to fetch all stdouts
     const logsQuery = `

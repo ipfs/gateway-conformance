@@ -170,10 +170,13 @@ const main = async () => {
 
             const specsArray = test.meta?.specs || [];
             for (const specUrl of specsArray) {
+                // add `https://` if the specs don't have it
+                const cleanSpecUrl = specUrl.startsWith("http") ? specUrl : `https://${specUrl}`;
+
                 await run(`
                     INSERT INTO TestSpecs (test_run_implementation_id, test_run_version, test_full_name, spec_url)
                     VALUES (?, ?, ?, ?)
-                `, [implemId, version, fullName, specUrl]);
+                `, [implemId, version, fullName, cleanSpecUrl]);
             }
         }
     }
