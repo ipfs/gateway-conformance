@@ -54,7 +54,7 @@
   <!-- Main Dashboard with a different visual appeal -->
   <h3 class="text-3xl font-bold mb-4">
     Main Dashboard
-    {{ template "specpill" .Params.spec_full_name }}
+    {{ template "specpill" (default "https://specs.ipfs.tech/" .Params.spec_full_name) }}
   </h3>
   <div class="mt-2 p-6 shadow-xl rounded-lg">
     {{ partial "result-table.html" .Params }}
