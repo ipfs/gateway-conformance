@@ -1,7 +1,7 @@
 {{define "main"}}
 
 <article>
-	<h2>{{.Title}}</h2>
+  <h2 class="text-5xl font-bold mb-4 text-center">{{.Title}}</h2>
 
 	{{.TableOfContents}}
 
@@ -27,7 +27,7 @@
 
   <!-- If child pages exist -->
   {{ if (gt (len .Data.Pages) 0) }}
-    <h2 class="text-2xl font-bold mt-8 mb-4">Sub-Specs</h2>
+    <h3 class="text-2xl font-bold mt-8 mb-4">Sub-Specs</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Display each child page side by side -->
       {{ range .Data.Pages }}
@@ -39,7 +39,7 @@
   {{ end }}
 
   <!-- Main Dashboard with a different visual appeal -->
-  <h2 class="text-3xl font-bold mb-4">Main Dashboard</h2>
+  <h3 class="text-3xl font-bold mb-4">Main Dashboard</h3>
   <div class="mt-2 p-6 shadow-xl rounded-lg">
     {{ partial "result-table.html" .Params }}
   </div>

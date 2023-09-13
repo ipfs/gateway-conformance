@@ -11,31 +11,26 @@ menu:
     <img src="{{< url "logo.png" >}}" class="w-32 h-32" />
     <div class="flex-grow">
       <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt sagittis arcu, in tempus nisi molestie at. Suspendisse imperdiet viverra fringilla. Sed eleifend elementum sem. Phasellus orci lectus, laoreet in sapien vulputate, bibendum cursus neque. Quisque luctus dictum ligula, sit amet sagittis lacus consectetur eget. Phasellus non diam sem. Duis pellentesque tellus quis dolor sodales, vitae faucibus nulla ornare. Proin eget odio eu orci tristique volutpat. Nunc non vehicula neque. Maecenas volutpat mollis sem eget vestibulum.
-      </p>
+
+IPFS Gateway Conformance - a vendor-agnostic gateway conformance test suite for users and implementers of IPFS Gateways. We ensure compliance with [specs.ipfs.tech](https://specs.ipfs.tech/http-gateways/). Find us on [Github](https://github.com/ipfs/gateway-conformance).
+
+</p>
     </div>
   </div>
 </div>
 
-<div class="flex items-center justify-center my-3">
+<div class="flex items-center justify-center my-3 space-x-4">
     <a  href="{{< ref "/current" >}}"
-        class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200  text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
-        Current Dashboard
+        class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200 text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
+        Testing Dashboard
+    </a>
+    <a  href="{{< ref "/specs" >}}"
+        class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200 text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
+        IPFS Specs Dashboard
     </a>
 </div>
 
-## List of Gateway Implementation Tested
-
-{{< gateways-links >}}
-
-## List of Specs Tested
-
-<a  href="{{< ref "/specs" >}}"
-    class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200  text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
-    Specs
-</a>
-
-## Related Projects:
+## Related
 
 - [Conformance Test Suite](https://github.com/ipfs/gateway-conformance)
 - [IPFS Specs](https://specs.ipfs.tech)
