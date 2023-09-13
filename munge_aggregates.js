@@ -18,6 +18,51 @@ if (!dbFile || !hugoOutput) {
     process.exit(1);
 }
 
+/**
+ * @param {string} u a spec URL like "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header"
+ * @returns the spec's parent, or "null" if it's a top-level spec
+ */
+const computeParent = (u) => {
+    const url = new URL(u);
+    const segments = url.pathname.split('/').filter(Boolean);
+
+    // if there's a hash, consider it as a segment
+    if (url.hash) segments.push(url.hash.substring(1));
+
+    if (segments.length <= 1) {
+        return "null";
+    }
+
+    const parent = segments.slice(0, -1).join('/');
+    return `${url.protocol}//${url.host}/${parent}`
+};
+
+/**
+ * @param {string} u a spec URL like "specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header"
+ * @returns the spec's name, or the hash if it's a top-level spec and whether it was found in a hash
+ */
+const computeName = (u) => {
+    const url = new URL(u);
+
+    if (url.hash) {
+        return {
+            isHashed: true,
+            name: url.hash.substring(1),
+        };
+    }
+
+    const segments = url.pathname.split('/').filter(Boolean);
+
+    if (segments.length === 0) {
+        throw new Error(`Invalid spec URL: ${u}`);
+    }
+
+    return {
+        isHashed: false,
+        name: segments[segments.length - 1],
+    };
+};
+
 const main = async () => {
     let db = new sqlite3.Database(dbFile, (err) => {
         if (err) {
@@ -69,6 +114,72 @@ const main = async () => {
         groups[parent_test_full_name][full_name] = { versions: versions?.split(',') || [], name, full_name, slug };
     }
     outputJSON("data/testgroups.json", groups);
+
+    // Query to fetch all test specs
+    const specsQuery = `
+        SELECT
+            spec_url as full_name,
+            GROUP_CONCAT(DISTINCT test_run_version) AS versions
+        FROM TestSpecs
+        GROUP BY full_name
+        ORDER BY full_name
+    `;
+    const specsRows = await all(specsQuery);
+    const specs = {};
+
+    for (const row of specsRows) {
+        const { versions, full_name } = row;
+        let current = `https://${full_name}`;
+
+        while (current !== "null") {
+            const slug = slugify(current);
+            const parent = computeParent(current);
+            const { name, isHashed } = computeName(current)
+
+            if (!specs[parent]) {
+                specs[parent] = {};
+            }
+
+            specs[parent][current] = {
+                versions: versions?.split(',') || [],
+                full_name: current,
+                slug,
+                name,
+                isHashed,
+            };
+
+            current = parent;
+        }
+    }
+    outputJSON("data/specs.json", specs);
+
+    const descendTheSpecsTree = (current, path) => {
+        Object.entries(specs[current] || {})
+            .forEach(([key, spec]) => {
+                // To reproduce the structure of URLs and hashes,
+                // we update existing pages
+                if (spec.isHashed) {
+                    const p = path.join("/");
+                    outputFrontmatter(
+                        `content/specs/${p}/_index.md`,
+                        (current) => ({ ...current, hashes: [...(current.hashes || []), spec.name] }));
+                    // assume there are no children for hashes
+                    return
+                }
+
+                const newPath = [...path, spec.name];
+                const p = newPath.join("/");
+
+                outputFrontmatter(`content/specs/${p}/_index.md`, {
+                    ...spec,
+                    title: spec.name,
+                });
+
+                descendTheSpecsTree(key, newPath);
+            })
+    }
+
+    descendTheSpecsTree("null", [])
 
     // Query to fetch all stdouts
     const logsQuery = `
@@ -269,6 +380,7 @@ const slugify = (str) => {
         .replace(/_+/g, '_') // remove consecutive underscores
         .replace(/[\/]/g, "__")
         .replace(/[^a-z0-9 -]/g, '-') // remove non-alphanumeric characters
+        .replace(/-+/g, '-') // remove consecutive dashes
 }
 
 const outputJSON = (p, data) => {
@@ -283,7 +395,7 @@ const outputJSON = (p, data) => {
     fs.writeFileSync(fullPath, json);
 }
 
-const outputFrontmatter = (p, data) => {
+const outputFrontmatter = (p, dataOrUpdate) => {
     const fullPath = `${hugoOutput}/${p}`;
 
     // TODO: implement update frontmatter
@@ -303,7 +415,12 @@ const outputFrontmatter = (p, data) => {
         content.content = existing.content;
         content.data = existing.data;
     }
-    content.data = { ...content.data, ...data };
+
+    if (typeof dataOrUpdate === "function") {
+        content.data = dataOrUpdate(content.data);
+    } else {
+        content.data = { ...content.data, ...dataOrUpdate };
+    }
 
     const md = matter.stringify(content.content, content.data);
     fs.writeFileSync(fullPath, md);

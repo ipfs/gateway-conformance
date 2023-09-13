@@ -30,7 +30,10 @@ menu:
 
 ## List of Specs Tested
 
-{{< specs-links >}}
+<a  href="{{< ref "/specs" >}}"
+    class="no-underline bg-blue-200 hover:bg-blue-600 text-blue-800 hover:text-blue-200  text-xl px-8 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2">
+    Specs
+</a>
 
 ## Related Projects:
 

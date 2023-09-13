@@ -1,0 +1,52 @@
+{{define "main"}}
+
+<article>
+	<h2>{{.Title}}</h2>
+
+	{{.TableOfContents}}
+
+	{{.Content}}
+
+  {{ with .Params.hashes }}
+    <h2>Hashes</h2>
+    <ul>
+      {{ range . }}
+      <li>
+        <a href="#{{ . }}">{{ . }}</a>
+      </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+
+  {{ if (gt (len .Data.Pages) 0) }}
+    <h2>Children</h2>
+    <ul>
+      {{ range .Data.Pages }}
+          <li>
+              <a href="{{ .Permalink }}">{{ .Title }}</a>
+          </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+</article>
+
+<!--Tag-->
+<ul>
+  {{range (.GetTerms "tags")}}
+<li><a href="{{.RelPermalink}}">{{.LinkTitle}}</a></li>
+  {{end}}
+</ul>
+
+<!--Prev/Next-->
+{{with .PrevInSection}}Prev <a href="{{.RelPermalink}}">{{.Title}}</a>{{end}}
+{{with .NextInSection}}Next <a href="{{.RelPermalink}}">{{.Title}}</a>{{end}}
+
+<!--Related-->
+{{$related := .Site.RegularPages.Related . | first 5}} {{with $related}}
+<h3>See Also</h3>
+<ul>
+  {{range .}}
+  <li><a href="{{.RelPermalink}}">{{.Title}}</a></li>
+  {{end}}
+</ul>
+{{end}} {{end}}
