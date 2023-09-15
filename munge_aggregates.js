@@ -439,11 +439,6 @@ const slugifyTestName = (str) => {
     return x.join('/');
 }
 
-const extractTestName = (str) => {
-    let x = String(str).split('/');
-    return decodeURIComponent(x[x.length - 1]);
-}
-
 const outputJSON = (p, data) => {
     const json = JSON.stringify(data, null, 2);
     const fullPath = `${hugoOutput}/${p}`;
