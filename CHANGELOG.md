@@ -6,14 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [0.3.1] - 2023-08-22
+## [0.3.1] - 2023-09-15
 ### Added
+- Specs Dashboard Output. [PR](https://github.com/ipfs/gateway-conformance/pull/163)
 - `--version` flag shows the current version
 - Metadata logging used to associate tests with custom data like versions, specs identifiers, etc.
 - Output Github's workflow URL with metadata. [PR](https://github.com/ipfs/gateway-conformance/pull/145)
 - Basic Dashboard Output with content generation. [PR](https://github.com/ipfs/gateway-conformance/pull/152)
 - Test Group Metadata on Tests. [PR](https://github.com/ipfs/gateway-conformance/pull/156)
 - Specs Metadata on Tests. [PR](https://github.com/ipfs/gateway-conformance/pull/159)
+
+### Changed
+- Escape test names to avoid confusion when processing test hierarchies. [PR](https://github.com/ipfs/gateway-conformance/pull/166)
 
 ## [0.3.0] - 2023-07-31
 ### Added
