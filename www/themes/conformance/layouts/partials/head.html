@@ -1,2 +1,8 @@
 {{ $styles := resources.Get "style.css" }}
 <link rel="stylesheet" href="{{ $styles.RelPermalink }}">    
+
+{{ with .Params.RedirectsTo }}
+    <meta http-equiv="refresh" content="0; url={{ . | absURL }}"/>
+{{ end }}
+
+{{ .Params.RedirectsTo }}

@@ -1,0 +1,4 @@
+---
+title: Tests
+redirectsTo: /current
+---
