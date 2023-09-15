@@ -76,7 +76,7 @@ func TestTar(t *testing.T) {
 		},
 		{
 			Name: "GET TAR with explicit ?filename= succeeds with modified Content-Disposition header",
-			Spec: "specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header",
+			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header",
 			Request: Request().
 				Path("/ipfs/{{cid}}", dirCID).
 				Query("filename", "testтест.tar").

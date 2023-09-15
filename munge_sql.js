@@ -100,6 +100,28 @@ const main = async () => {
         );
     `)
 
+    // Create the SPECS
+    await run(`
+    CREATE TABLE IF NOT EXISTS TestSpecs (
+        test_run_implementation_id TEXT,
+        test_run_version TEXT,
+        test_full_name TEXT,
+
+        spec_url TEXT,
+
+        PRIMARY KEY (test_run_implementation_id, test_run_version, test_full_name, spec_url),
+
+        -- test run
+        FOREIGN KEY (test_run_implementation_id, test_run_version)
+            REFERENCES TestRun (implementation_id, version),
+
+        -- test result
+        FOREIGN KEY (test_run_implementation_id, test_run_version, test_full_name)
+            REFERENCES TestResult (test_run_implementation_id, test_run_version, full_name)
+    );
+    `);
+
+
     for (const file of files) {
         const fileName = file.split("/").slice(-1)[0].split(".")[0];
         const implemId = fileName;
@@ -146,6 +168,16 @@ const main = async () => {
                 VALUES (?, ?, ?, ?)
             `, [implemId, version, fullName, test.output]);
 
+            const specsArray = test.meta?.specs || [];
+            for (const specUrl of specsArray) {
+                // add `https://` if the specs don't have it
+                const cleanSpecUrl = specUrl.startsWith("http") ? specUrl : `https://${specUrl}`;
+
+                await run(`
+                    INSERT INTO TestSpecs (test_run_implementation_id, test_run_version, test_full_name, spec_url)
+                    VALUES (?, ?, ?, ?)
+                `, [implemId, version, fullName, cleanSpecUrl]);
+            }
         }
     }
 

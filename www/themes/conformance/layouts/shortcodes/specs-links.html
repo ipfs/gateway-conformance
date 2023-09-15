@@ -1,1 +1,12 @@
-TBD
+<ul>
+  {{ range $name, $details := site.Data.specs.null }}
+  <li>
+    <a
+      href="{{ absURL (path.Join "specs" $details.slug) }}"
+      class="px-2 py-1 text-md font-semibold"
+    >
+      {{ $name }}
+    </a>
+  </li>
+  {{ end }}
+</ul>

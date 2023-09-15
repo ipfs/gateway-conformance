@@ -14,7 +14,7 @@ import (
 
 func TestTrustlessRaw(t *testing.T) {
 	tooling.LogTestGroup(t, GroupBlockCar)
-	tooling.LogSpecs(t, "specs.ipfs.tech/http-gateways/trustless-gateway/#block-responses-application-vnd-ipld-raw")
+	tooling.LogSpecs(t, "https://specs.ipfs.tech/http-gateways/trustless-gateway/#block-responses-application-vnd-ipld-raw")
 
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 

@@ -19,6 +19,18 @@
 {{ $requestedTestGroup := (default "null" .full_name) }}
 {{ $requestedVersion := (default "" .version) }}
 {{ $requestedImplem := (default "" .implementation_id) }}
+{{ $requestedSpecs := (default "" .spec_full_name) }}
+
+{{ $testGroups := (index site.Data.testgroups $requestedTestGroup) }}
+
+{{/*  When you have a request specs, list all the test groups it defines  */}}
+{{ if (isset . "spec_full_name") }}
+  {{ if (isset . "full_name") }}
+    {{ errorf "Cannot specify both 'full_name' and 'spec_full_name' in the same shortcode" }}
+  {{ end }}
+
+  {{ $testGroups = (index site.Data.specsgroups $requestedSpecs) }}
+{{ end }}
 
 <table class="min-w-full divide-y divide-gray-300 test-result table-fixed">
   <thead class="text-center">
@@ -95,7 +107,7 @@
           {{ end }}
         </tr>
       {{ end }}
-    {{ range $name, $content := (index site.Data.testgroups $requestedTestGroup) }}
+    {{ range $name, $content := $testGroups }}
       <tr class="text-center">
         <th scope="row" class="py-0.5 overflow-clip">
             <a class="text-right inline-block min-w-full px-2 py-1 text-sm font-semibold shadow-sm rounded bg-slate-50 hover:bg-slate-200"
