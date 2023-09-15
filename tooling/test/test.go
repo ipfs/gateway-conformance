@@ -3,6 +3,8 @@ package test
 import (
 	"context"
 	"net/http"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,8 +70,10 @@ func run(t *testing.T, tests SugarTests) {
 		timeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
 
+		name := safeName(test.Name)
+
 		if len(test.Requests) > 0 {
-			t.Run(test.Name, func(t *testing.T) {
+			t.Run(name, func(t *testing.T) {
 				tooling.LogSpecs(t, test.AllSpecs()...)
 				responses := make([]*http.Response, 0, len(test.Requests))
 
@@ -82,11 +86,24 @@ func run(t *testing.T, tests SugarTests) {
 				validateResponses(t, test.Responses, responses)
 			})
 		} else {
-			t.Run(test.Name, func(t *testing.T) {
+			t.Run(name, func(t *testing.T) {
 				tooling.LogSpecs(t, test.AllSpecs()...)
 				_, res, localReport := runRequest(timeout, t, test, test.Request)
 				validateResponse(t, test.Response, res, localReport)
 			})
 		}
 	}
+}
+
+func safeName(s string) string {
+	// Split the string by spaces
+	parts := strings.Split(s, " ")
+
+	// Escape each part
+	for i, part := range parts {
+		parts[i] = url.PathEscape(part)
+	}
+
+	// Join the parts back together with spaces
+	return strings.Join(parts, " ")
 }
