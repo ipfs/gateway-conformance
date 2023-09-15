@@ -107,7 +107,7 @@ const main = async () => {
 
     for (const row of testsRows) {
         const { versions, full_name, name, parent_test_full_name } = row;
-        const slug = slugify(full_name);
+        const slug = slugifyTestName(full_name);
 
         if (!groups[parent_test_full_name]) {
             groups[parent_test_full_name] = {};
@@ -285,7 +285,7 @@ const main = async () => {
 
         const testResults = {};
         for (const row of rows) {
-            testResults[row.full_name] = { ...row, slug: slugify(row.full_name) };
+            testResults[row.full_name] = { ...row, slug: slugifyTestName(row.full_name) };
         }
         outputJSON(`data/testresults/${id}/${version}.json`, testResults);
     }
@@ -310,8 +310,9 @@ const main = async () => {
 
     const testsTaxonomy = {};
     for (const row of testsTaxonomyRows) {
-        const { full_name, name, test_run_implementation_id, test_run_version } = row;
-        const slug = slugify(full_name);
+        const { full_name, test_run_implementation_id, test_run_version } = row;
+        const slug = slugifyTestName(full_name);
+        const name = decodeURIComponent(row.name);
 
         if (!testsTaxonomy[full_name]) {
             testsTaxonomy[full_name] = {
@@ -349,6 +350,7 @@ const main = async () => {
             test_run_implementation_id AS implementation_id,
             test_run_version AS version,
             full_name,
+            name,
             outcome
         FROM TestResult
         ORDER BY test_run_implementation_id, test_run_version, full_name
@@ -358,7 +360,8 @@ const main = async () => {
     const resultsTaxonomy = {};
     for (const row of resultsTaxonomyRows) {
         const { implementation_id, version, full_name, outcome } = row;
-        const slug = slugify(full_name);
+        const slug = slugifyTestName(full_name);
+        const name = decodeURIComponent(row.name);
 
         if (!resultsTaxonomy[implementation_id]) {
             resultsTaxonomy[implementation_id] = {};
@@ -371,6 +374,7 @@ const main = async () => {
         if (!resultsTaxonomy[implementation_id][version][full_name]) {
             resultsTaxonomy[implementation_id][version][full_name] = {
                 slug,
+                name,
                 full_name,
                 outcome,
             };
@@ -395,7 +399,7 @@ const main = async () => {
                     ...test,
                     implementation_id,
                     version,
-                    title: test.full_name
+                    title: test.name
                 });
             }
         }
@@ -418,10 +422,26 @@ const slugify = (str) => {
         .trim() // trim leading or trailing whitespace
         .toLowerCase() // convert to lowercase
         .replace(/\s+/g, '_') // replace spaces with underscore
+        .replace(/[.,()"/]/g, '-') // remove the characters (, ) and ~
+        .replace(/[^a-z0-9 -\/]/g, '-') // remove non-alphanumeric characters
         .replace(/_+/g, '_') // remove consecutive underscores
-        .replace(/[\/]/g, "__")
-        .replace(/[^a-z0-9 -]/g, '-') // remove non-alphanumeric characters
         .replace(/-+/g, '-') // remove consecutive dashes
+}
+
+const slugifyTestName = (str) => {
+    let x = String(str).split('/');
+    x = x.map(part => {
+        // url decode to handle %20, etc
+        part = decodeURIComponent(part);
+        return slugify(part.replace(/([a-z])([A-Z])/g, '$1-$2') // Convert CamelCase to kebab-case
+        )
+    })
+    return x.join('/');
+}
+
+const extractTestName = (str) => {
+    let x = String(str).split('/');
+    return decodeURIComponent(x[x.length - 1]);
 }
 
 const outputJSON = (p, data) => {
