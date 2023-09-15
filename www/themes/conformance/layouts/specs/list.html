@@ -11,7 +11,10 @@
 {{define "main"}}
 
 <article>
-  <h2 class="text-5xl font-bold mb-4 text-center">{{.Title}}</h2>
+  <h2 class="text-5xl font-bold mb-4 text-center">
+    {{.Title}}
+    {{ template "specpill" (default "https://specs.ipfs.tech/" .Params.spec_full_name) }}
+  </h2>
 
 	{{.TableOfContents}}
 
@@ -54,7 +57,6 @@
   <!-- Main Dashboard with a different visual appeal -->
   <h3 class="text-3xl font-bold mb-4">
     Main Dashboard
-    {{ template "specpill" (default "https://specs.ipfs.tech/" .Params.spec_full_name) }}
   </h3>
   <div class="mt-2 p-6 shadow-xl rounded-lg">
     {{ partial "result-table.html" .Params }}
