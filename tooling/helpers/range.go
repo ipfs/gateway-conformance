@@ -99,6 +99,7 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 	if baseTest.Requests != nil {
 		t.Fatal("does not support multiple requests or responses")
 	}
+	modifiedResponse := baseTest.Response.Clone()
 
 	fullSize := int64(len(fullData))
 	start, end := brange.getRange(t, fullSize)
@@ -109,7 +110,7 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 		Request:  modifiedRequest,
 		Requests: nil,
 		Response: test.AllOf(
-			baseTest.Response,
+			modifiedResponse,
 			test.AnyOf(
 				test.Expect().Status(http.StatusPartialContent).Body(brange.RangeBytes).Headers(
 					test.Header("Content-Range").Equals("bytes {{start}}-{{end}}/{{length}}", start, end, fullSize),
@@ -117,7 +118,6 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 				test.Expect().Status(http.StatusOK).Body(fullData),
 			),
 		),
-		Responses: baseTest.Responses,
 	}
 
 	return rangeTest
@@ -133,6 +133,7 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 	if testWithoutRangeRequestHeader.Requests != nil {
 		t.Fatal("does not support multiple requests or responses")
 	}
+	modifiedResponse := testWithoutRangeRequestHeader.Response.Clone()
 
 	fullSize := int64(len(fullData))
 	type rng struct {
@@ -156,7 +157,7 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 		Request:  modifiedRequest,
 		Requests: nil,
 		Response: test.AllOf(
-			testWithoutRangeRequestHeader.Response,
+			modifiedResponse,
 			test.AnyOf(
 				test.Expect().Status(http.StatusOK).Body(fullData),
 				test.Expect().Status(http.StatusPartialContent).Body(branges[0].RangeBytes).Headers(
@@ -169,8 +170,38 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 				).Headers(test.Header("Content-Type").Contains("multipart/byteranges")),
 			),
 		),
-		Responses: testWithoutRangeRequestHeader.Responses,
 	}
 
 	return rangeTest
+}
+
+// RangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
+// StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
+// Will test both a single range request for the first passed range as well as a multi-range request for all the
+// requested ranges.
+//
+// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
+// Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
+// range, or the partial data from all the requested ranges
+func RangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte) test.SugarTests {
+	singleBase := test.SugarTest{
+		Name:      fmt.Sprintf("%s - single range", baseTest.Name),
+		Hint:      baseTest.Hint,
+		Request:   baseTest.Request,
+		Requests:  baseTest.Requests,
+		Response:  baseTest.Response,
+		Responses: baseTest.Responses,
+	}
+	singleRange := SingleRangeTestTransform(t, singleBase, branges[0], fullData)
+
+	multiBase := test.SugarTest{
+		Name:      fmt.Sprintf("%s - multi range", baseTest.Name),
+		Hint:      baseTest.Hint,
+		Request:   baseTest.Request,
+		Requests:  baseTest.Requests,
+		Response:  baseTest.Response,
+		Responses: baseTest.Responses,
+	}
+	multiRange := MultiRangeTestTransform(t, multiBase, branges, fullData)
+	return test.SugarTests{singleRange, multiRange}
 }
