@@ -138,6 +138,7 @@ func (r RequestBuilder) Clone() RequestBuilder {
 
 type ExpectValidator interface {
 	Validate(t *testing.T, res *http.Response, localReport Reporter)
+	Clone() ExpectValidator
 }
 
 type ExpectBuilder struct {
@@ -249,6 +250,36 @@ func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Re
 	}
 }
 
+// Clone performs a deep clone of the ExpectBuilder
+// Note: if there are [check.Check]s used in the inner header or body components those are only shallowly cloned
+func (e ExpectBuilder) Clone() ExpectValidator {
+	clone := ExpectBuilder{}
+	var clonedHeaders []HeaderBuilder
+	for _, h := range e.Headers_ {
+		clonedHeaders = append(clonedHeaders, h.Clone())
+	}
+	clone.StatusCode_ = e.StatusCode_
+	clone.Headers_ = clonedHeaders
+
+	switch body := e.Body_.(type) {
+	case string:
+		clone.Body_ = body
+	case []byte:
+		clone.Body_ = body[:]
+	case check.CheckWithHint[string]:
+		clone.Body_ = body
+	case check.CheckWithHint[[]byte]:
+		clone.Body_ = body
+	case check.Check[string]:
+		clone.Body_ = body
+	case check.Check[[]byte]:
+		clone.Body_ = body
+	default:
+		panic("body must be string, []byte, or a regular check")
+	}
+	return clone
+}
+
 type AllOfExpectBuilder struct {
 	Expect_ []ExpectValidator `json:"expect,omitempty"`
 }
@@ -268,6 +299,18 @@ func (e AllOfExpectBuilder) Validate(t *testing.T, res *http.Response, localRepo
 				expect.Validate(t, res, localReport)
 			})
 	}
+}
+
+// Clone performs a deep clone of the AllOfExpectBuilder
+// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
+// shallowly cloned
+func (e AllOfExpectBuilder) Clone() ExpectValidator {
+	var clonedInnerValidators []ExpectValidator
+	for _, eb := range e.Expect_ {
+		clonedInnerValidators = append(clonedInnerValidators, eb.Clone())
+	}
+	clone := AllOfExpectBuilder{Expect_: clonedInnerValidators}
+	return clone
 }
 
 type AnyOfExpectBuilder struct {
@@ -318,6 +361,18 @@ func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localRepo
 	if !hadASuccessfulResponse {
 		localReport(t, "none of the response options were valid")
 	}
+}
+
+// Clone performs a deep clone of the AnyOfExpectBuilder
+// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
+// shallowly cloned
+func (e AnyOfExpectBuilder) Clone() ExpectValidator {
+	var clonedInnerBuilders []ExpectBuilder
+	for _, eb := range e.Expect_ {
+		clonedInnerBuilders = append(clonedInnerBuilders, eb.Clone().(ExpectBuilder))
+	}
+	clone := AnyOfExpectBuilder{Expect_: clonedInnerBuilders}
+	return clone
 }
 
 type HeaderBuilder struct {
@@ -404,6 +459,19 @@ func (h HeaderBuilder) Not() HeaderBuilder {
 
 func (h HeaderBuilder) Exists() HeaderBuilder {
 	return h.Not().IsEmpty()
+}
+
+// Clone performs a shallow clone of the HeaderBuilder
+// Note: The Check field is an interface and as a result is just copied
+func (h HeaderBuilder) Clone() HeaderBuilder {
+	clone := HeaderBuilder{
+		Key_:   h.Key_,
+		Value_: h.Key_,
+		Check_: h.Check_,
+		Hint_:  h.Hint_,
+		Not_:   h.Not_,
+	}
+	return clone
 }
 
 type ExpectsBuilder struct {
