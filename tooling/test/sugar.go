@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -261,8 +262,11 @@ func AllOf(expect ...ExpectValidator) AllOfExpectBuilder {
 func (e AllOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
 	t.Helper()
 
-	for _, expect := range e.Expect_ {
-		expect.Validate(t, res, localReport)
+	for i, expect := range e.Expect_ {
+		t.Run(
+			fmt.Sprintf("Check %d", i), func(t *testing.T) {
+				expect.Validate(t, res, localReport)
+			})
 	}
 }
 
