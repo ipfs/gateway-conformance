@@ -283,7 +283,12 @@ func AnyOf(expect ...ExpectBuilder) AnyOfExpectBuilder {
 func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
 	t.Helper()
 
-	for _, expect := range e.Expect_ {
+	if len(e.Expect_) == 0 {
+		return
+	}
+
+	hadASuccessfulResponse := false
+	for i, expect := range e.Expect_ {
 		checks := validateResponse(t, expect, res)
 		responseSucceeded := true
 		for _, c := range checks {
@@ -293,11 +298,26 @@ func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localRepo
 			}
 		}
 		if responseSucceeded {
-			return
+			hadASuccessfulResponse = true
 		}
+
+		t.Run(fmt.Sprintf("Check %d", i),
+			func(t *testing.T) {
+				if !responseSucceeded {
+					for _, c := range checks {
+						if c.checkOutput.Success {
+							t.Logf("Test %s passed", c.testName)
+						} else {
+							t.Logf("Test %s failed with: %s", c.testName, c.checkOutput.Reason)
+						}
+					}
+				}
+			})
 	}
 
-	localReport(t, "none of the response options were valid")
+	if !hadASuccessfulResponse {
+		localReport(t, "none of the response options were valid")
+	}
 }
 
 type HeaderBuilder struct {
