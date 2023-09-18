@@ -761,33 +761,22 @@ func TestNativeDag(t *testing.T) {
 	}, specs.PathGatewayDAG)
 
 	if dagJsonConvertedData != nil {
-		rangeTests := SugarTests{
-			helpers.SingleRangeTestTransform(t, SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with single range request includes correct bytes",
+		rangeTests := helpers.RangeTestTransform(
+			t,
+			SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with range request includes correct bytes",
 				Hint: "",
 				Request: Request().
 					Path("/ipfs/{{cid}}/", dagCborCID).
 					Headers(
 						Header("Accept", "application/vnd.ipld.dag-json"),
-						Header("Range", "bytes=1-5"),
 					),
 				Response: Expect(),
-			}, helpers.SimpleByteRange(1, 5, dagJsonConvertedData[1:6]), dagJsonConvertedData),
-			helpers.MultiRangeTestTransform(t, SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with multiple range request includes correct bytes",
-				Hint: "",
-				Request: Request().
-					Path("/ipfs/{{cid}}/", dagCborCID).
-					Headers(
-						Header("Accept", "application/vnd.ipld.dag-json"),
-						Header("Range", "bytes=1-5,93-104"),
-					),
-				Response: Expect(),
-			}, helpers.ByteRanges{
+			},
+			helpers.ByteRanges{
 				helpers.SimpleByteRange(1, 5, dagJsonConvertedData[1:6]),
 				helpers.SimpleByteRange(93, 104, dagJsonConvertedData[93:105])},
-				dagJsonConvertedData),
-		}
+			dagJsonConvertedData)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 	}
@@ -814,33 +803,20 @@ func TestNativeDag(t *testing.T) {
 	}, specs.PathGatewayDAG)
 
 	if dagCborHTMLRendering != nil {
-		rangeTests := SugarTests{
-			helpers.SingleRangeTestTransform(t, SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to text/html with single range request includes correct bytes",
+		rangeTests := helpers.RangeTestTransform(t,
+			SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to text/html with range request includes correct bytes",
 				Hint: "",
 				Request: Request().
 					Path("/ipfs/{{cid}}/", dagCborCID).
 					Headers(
 						Header("Accept", "text/html"),
-						Header("Range", "bytes=1-5"),
-					),
-				Response: Expect(),
-			}, helpers.SimpleByteRange(1, 5, dagCborHTMLRendering[1:6]), dagCborHTMLRendering),
-			helpers.MultiRangeTestTransform(t, SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to text/html with multiple range request includes correct bytes",
-				Hint: "",
-				Request: Request().
-					Path("/ipfs/{{cid}}/", dagCborCID).
-					Headers(
-						Header("Accept", "text/html"),
-						Header("Range", "bytes=1-5,93-104"),
 					),
 				Response: Expect(),
 			}, helpers.ByteRanges{
 				helpers.SimpleByteRange(1, 5, dagCborHTMLRendering[1:6]),
 				helpers.SimpleByteRange(93, 104, dagCborHTMLRendering[93:105])},
-				dagCborHTMLRendering),
-		}
+			dagCborHTMLRendering)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 	}

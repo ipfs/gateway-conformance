@@ -140,32 +140,13 @@ func TestTrustlessRawRanges(t *testing.T) {
 	// correctly.
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
-	singleRangeTest := helpers.SingleRangeTestTransform(t,
+	tests := helpers.RangeTestTransform(t,
 		SugarTest{
-			Name: "GET with application/vnd.ipld.raw with single range request includes correct bytes",
+			Name: "GET with application/vnd.ipld.raw with range request includes correct bytes",
 			Request: Request().
 				Path("/ipfs/{{cid}}", fixture.MustGetCid("dir", "ascii.txt")).
 				Headers(
 					Header("Accept", "application/vnd.ipld.raw"),
-					Header("Range", "bytes=6-16"),
-				),
-			Response: Expect().
-				Headers(
-					Header("Content-Type").Contains("application/vnd.ipld.raw"),
-				),
-		},
-		helpers.SimpleByteRange(6, 16, fixture.MustGetRawData("dir", "ascii.txt")[6:17]),
-		fixture.MustGetRawData("dir", "ascii.txt"),
-	)
-
-	multiRangeTest := helpers.MultiRangeTestTransform(t,
-		SugarTest{
-			Name: "GET with application/vnd.ipld.raw with multiple range request includes correct bytes",
-			Request: Request().
-				Path("/ipfs/{{cid}}", fixture.MustGetCid("dir", "ascii.txt")).
-				Headers(
-					Header("Accept", "application/vnd.ipld.raw"),
-					Header("Range", "bytes=6-16,0-4"),
 				),
 			Response: Expect(),
 		},
@@ -173,13 +154,7 @@ func TestTrustlessRawRanges(t *testing.T) {
 			helpers.SimpleByteRange(6, 16, fixture.MustGetRawData("dir", "ascii.txt")[6:17]),
 			helpers.SimpleByteRange(0, 4, fixture.MustGetRawData("dir", "ascii.txt")[0:5]),
 		},
-		fixture.MustGetRawData("dir", "ascii.txt"),
-	)
-
-	tests := SugarTests{
-		singleRangeTest,
-		multiRangeTest,
-	}
-
+		fixture.MustGetRawData("dir", "ascii.txt"))
+	
 	RunWithSpecs(t, tests, specs.TrustlessGatewayRaw)
 }
