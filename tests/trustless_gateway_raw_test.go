@@ -151,10 +151,10 @@ func TestTrustlessRawRanges(t *testing.T) {
 			Response: Expect(),
 		},
 		helpers.ByteRanges{
-			helpers.SimpleByteRange(6, 16, fixture.MustGetRawData("dir", "ascii.txt")[6:17]),
-			helpers.SimpleByteRange(0, 4, fixture.MustGetRawData("dir", "ascii.txt")[0:5]),
+			helpers.SimpleByteRange(6, 16),
+			helpers.SimpleByteRange(0, 4),
 		},
 		fixture.MustGetRawData("dir", "ascii.txt"))
-	
+
 	RunWithSpecs(t, tests, specs.TrustlessGatewayRaw)
 }

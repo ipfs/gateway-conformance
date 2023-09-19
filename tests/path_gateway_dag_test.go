@@ -253,8 +253,8 @@ func TestPlainCodec(t *testing.T) {
 						),
 				},
 				helpers.ByteRanges{
-					helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
-					helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
+					helpers.SimpleByteRange(0, 5),
+					helpers.SimpleByteRange(10, 15),
 				},
 				plain.RawData(),
 			)...).
@@ -277,8 +277,8 @@ func TestPlainCodec(t *testing.T) {
 							),
 					},
 					helpers.ByteRanges{
-						helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
-						helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
+						helpers.SimpleByteRange(0, 5),
+						helpers.SimpleByteRange(10, 15),
 					},
 					plain.RawData(),
 				)...).
@@ -303,8 +303,8 @@ func TestPlainCodec(t *testing.T) {
 							),
 					},
 					helpers.ByteRanges{
-						helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
-						helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
+						helpers.SimpleByteRange(0, 5),
+						helpers.SimpleByteRange(10, 15),
 					},
 					plain.RawData(),
 				)...).
@@ -360,8 +360,8 @@ func TestPlainCodec(t *testing.T) {
 						),
 				},
 				helpers.ByteRanges{
-					helpers.SimpleByteRange(0, 5, dagFormattedResponse[0:6]),
-					helpers.SimpleByteRange(10, 15, dagFormattedResponse[10:16]),
+					helpers.SimpleByteRange(0, 5),
+					helpers.SimpleByteRange(10, 15),
 				},
 				dagFormattedResponse,
 			)
@@ -644,8 +644,8 @@ func TestNativeDag(t *testing.T) {
 					),
 			},
 			helpers.ByteRanges{
-				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
-				helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+				helpers.SimpleByteRange(6, 16),
+				helpers.SimpleByteRange(20, 25),
 			},
 			dagTraversal.RawData(),
 		)...).Append(
@@ -663,8 +663,8 @@ func TestNativeDag(t *testing.T) {
 						),
 				},
 				helpers.ByteRanges{
-					helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
-					helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+					helpers.SimpleByteRange(6, 16),
+					helpers.SimpleByteRange(20, 25),
 				}, dagTraversal.RawData(),
 			)...).Append(
 			helpers.RangeTestTransform(t,
@@ -681,8 +681,8 @@ func TestNativeDag(t *testing.T) {
 						),
 				},
 				helpers.ByteRanges{
-					helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
-					helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+					helpers.SimpleByteRange(6, 16),
+					helpers.SimpleByteRange(20, 25),
 				},
 				dagTraversal.RawData(),
 			)...)
@@ -727,8 +727,8 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect(),
 			},
 			helpers.ByteRanges{
-				helpers.SimpleByteRange(1, 5, dagJsonConvertedData[1:6]),
-				helpers.SimpleByteRange(93, 104, dagJsonConvertedData[93:105])},
+				helpers.SimpleByteRange(1, 5),
+				helpers.SimpleByteRange(93, 104)},
 			dagJsonConvertedData)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
@@ -767,8 +767,8 @@ func TestNativeDag(t *testing.T) {
 					),
 				Response: Expect(),
 			}, helpers.ByteRanges{
-				helpers.SimpleByteRange(1, 5, dagCborHTMLRendering[1:6]),
-				helpers.SimpleByteRange(93, 104, dagCborHTMLRendering[93:105])},
+				helpers.SimpleByteRange(1, 5),
+				helpers.SimpleByteRange(93, 104)},
 			dagCborHTMLRendering)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)

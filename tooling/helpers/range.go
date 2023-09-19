@@ -19,17 +19,15 @@ import (
 //
 // [HTTP Byte Range]: https://httpwg.org/specs/rfc9110.html#rfc.section.14.1.2
 type ByteRange struct {
-	From       uint64
-	To         *int64
-	RangeBytes []byte
+	From uint64
+	To   *int64
 }
 
-func SimpleByteRange(from, to uint64, data []byte) ByteRange {
+func SimpleByteRange(from, to uint64) ByteRange {
 	toInt := int64(to)
 	return ByteRange{
-		From:       from,
-		To:         &toInt,
-		RangeBytes: data,
+		From: from,
+		To:   &toInt,
 	}
 }
 
@@ -112,7 +110,7 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 		Response: test.AllOf(
 			modifiedResponse,
 			test.AnyOf(
-				test.Expect().Status(http.StatusPartialContent).Body(brange.RangeBytes).Headers(
+				test.Expect().Status(http.StatusPartialContent).Body(fullData[start:end+1]).Headers(
 					test.Header("Content-Range").Equals("bytes {{start}}-{{end}}/{{length}}", start, end, fullSize),
 				),
 				test.Expect().Status(http.StatusOK).Body(fullData),
@@ -147,7 +145,7 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 		ranges = append(ranges, rng{start: start, end: end})
 		multirangeBodyChecks = append(multirangeBodyChecks,
 			check.Contains("Content-Range: bytes {{start}}-{{end}}/{{length}}", ranges[0].start, ranges[0].end, fullSize),
-			check.Contains(string(r.RangeBytes)),
+			check.Contains(string(fullData[start:end+1])),
 		)
 	}
 
@@ -160,7 +158,7 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 			modifiedResponse,
 			test.AnyOf(
 				test.Expect().Status(http.StatusOK).Body(fullData),
-				test.Expect().Status(http.StatusPartialContent).Body(branges[0].RangeBytes).Headers(
+				test.Expect().Status(http.StatusPartialContent).Body(fullData[ranges[0].start:ranges[0].end+1]).Headers(
 					test.Header("Content-Range").Equals("bytes {{start}}-{{end}}/{{length}}", ranges[0].start, ranges[0].end, fullSize),
 				),
 				test.Expect().Status(http.StatusPartialContent).Body(
