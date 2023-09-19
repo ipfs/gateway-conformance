@@ -126,12 +126,12 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 //
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
-func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.SugarTest, branges ByteRanges, fullData []byte) test.SugarTest {
-	modifiedRequest := testWithoutRangeRequestHeader.Request.Clone().Header("Range", branges.GetRangeString(t))
-	if testWithoutRangeRequestHeader.Requests != nil {
+func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte) test.SugarTest {
+	modifiedRequest := baseTest.Request.Clone().Header("Range", branges.GetRangeString(t))
+	if baseTest.Requests != nil {
 		t.Fatal("does not support multiple requests or responses")
 	}
-	modifiedResponse := testWithoutRangeRequestHeader.Response.Clone()
+	modifiedResponse := baseTest.Response.Clone()
 
 	fullSize := int64(len(fullData))
 	type rng struct {
@@ -150,8 +150,8 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 	}
 
 	rangeTest := test.SugarTest{
-		Name:     testWithoutRangeRequestHeader.Name,
-		Hint:     testWithoutRangeRequestHeader.Hint,
+		Name:     baseTest.Name,
+		Hint:     baseTest.Hint,
 		Request:  modifiedRequest,
 		Requests: nil,
 		Response: test.AllOf(
