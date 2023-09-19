@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
@@ -239,10 +240,12 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 
 func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
 	t.Helper()
+	tooling.LogSpecs(t, e.Specs_...)
 
 	checks := validateResponse(t, e, res)
 	for _, c := range checks {
 		t.Run(c.testName, func(t *testing.T) {
+			tooling.LogSpecs(t, c.specs...)
 			if !c.checkOutput.Success {
 				localReport(t, c.checkOutput.Reason)
 			}

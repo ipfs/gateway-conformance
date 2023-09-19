@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
 
 type testCheckOutput struct {
 	testName    string
+	specs       []string
 	checkOutput check.CheckOutput
 }
 
@@ -32,7 +32,7 @@ func validateResponse(
 			output.checkOutput.Reason = fmt.Sprintf("Status code is not %d. It is %d", expected.StatusCode_, res.StatusCode)
 		}
 		outputs = append(outputs, output)
-	}  else if expected.StatusCodeFrom_ != 0 && expected.StatusCodeTo_ != 0 {
+	} else if expected.StatusCodeFrom_ != 0 && expected.StatusCodeTo_ != 0 {
 		output := testCheckOutput{testName: "Status code", checkOutput: check.CheckOutput{Success: true}}
 		if res.StatusCode < expected.StatusCodeFrom_ || res.StatusCode > expected.StatusCodeTo_ {
 			output.checkOutput.Success = false
@@ -58,7 +58,7 @@ func validateResponse(
 			}
 		}
 
-		outputs = append(outputs, testCheckOutput{testName: testName, checkOutput: output})
+		outputs = append(outputs, testCheckOutput{testName: testName, checkOutput: output, specs: header.Specs_})
 	}
 
 	if expected.Body_ != nil {
