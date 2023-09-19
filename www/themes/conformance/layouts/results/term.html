@@ -10,6 +10,41 @@
 	{{.TableOfContents}}
 
 	{{.Content}}
+    <div class="w-full mx-auto">
+      {{ $implem := .Params.implementation_id }}
+      {{ $requestedVersion := .Params.version }}
+
+      {{ with (index site.Data "testruns" .Params.implementation_id ) }}
+        {{ range $version, $details := . }}
+          {{ if (or (eq $requestedVersion nil) (eq $requestedVersion $version)) }}
+            <div class="mb-6 pb-4">
+                <h2 class="text-xl font-semibold mb-4">Metadata</h2>
+                <table class="w-full text-left">
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Conformance Version:</td>
+                        <td class="py-2">{{ $version }}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Implementation Version:</td>
+                        <td class="py-2">{{ $details.head_branch }} ({{ $details.head_sha }})</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Results Generated At:</td>
+                        <td class="py-2">{{ $details.created_at }}</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium pr-4 py-2">Job URL:</td>
+                        <td class="py-2"><a href="{{ $details.job_url }}" class="text-blue-600 hover:underline">{{ $details.job_url }}</a></td>
+                    </tr>
+                </table>
+            </div>
+          {{ end }}
+        {{ end }}
+      {{ end }}
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4">Results</h2>
+    
     <div class="p-4 bg-white shadow-md rounded-lg">
       {{ partial "result-table.html" .Params }}
     </div>
