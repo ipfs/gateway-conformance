@@ -2,6 +2,9 @@
 dnslinks:
   custom-dnslink:
     subdomain: dnslink-enabled-on-fqdn
-    # this is the cid of the folder
-    # ./redirects.car:/examples/
+    # cid of ./redirects.car:/examples/
     path: /ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj
+  dnslink-spa:
+    subdomain: dnslink-enabled-with-spa
+    # cid of ./redirects-spa.car
+    path: /ipfs/bafybeib5lboymwd6p2eo4qb2lkueaine577flvsjjeuevmp2nlio72xv5q
