@@ -254,7 +254,7 @@ func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Re
 }
 
 // Clone performs a deep clone of the ExpectBuilder
-// Note: if there are [check.Check]s used in the inner header or body components those are only shallowly cloned
+// Note: if there are unclonable components like [check.Check]s used in the inner header or body this will panic
 func (e ExpectBuilder) Clone() ExpectValidator {
 	clone := ExpectBuilder{}
 	var clonedHeaders []HeaderBuilder
@@ -273,16 +273,8 @@ func (e ExpectBuilder) Clone() ExpectValidator {
 		clone.Body_ = body
 	case []byte:
 		clone.Body_ = body[:]
-	case check.CheckWithHint[string]:
-		clone.Body_ = body
-	case check.CheckWithHint[[]byte]:
-		clone.Body_ = body
-	case check.Check[string]:
-		clone.Body_ = body
-	case check.Check[[]byte]:
-		clone.Body_ = body
 	default:
-		panic("body must be string, []byte, or a regular check")
+		panic("body must be string or []byte")
 	}
 	return clone
 }
@@ -309,8 +301,8 @@ func (e AllOfExpectBuilder) Validate(t *testing.T, res *http.Response, localRepo
 }
 
 // Clone performs a deep clone of the AllOfExpectBuilder
-// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
-// shallowly cloned
+// Note: if there are unclonable components like [check.Check]s used in the header or body of the nested builders
+// this will panic
 func (e AllOfExpectBuilder) Clone() ExpectValidator {
 	var clonedInnerValidators []ExpectValidator
 	for _, eb := range e.Expect_ {
@@ -371,8 +363,8 @@ func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localRepo
 }
 
 // Clone performs a deep clone of the AnyOfExpectBuilder
-// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
-// shallowly cloned
+// Note: if there are unclonable components like [check.Check]s used in the header or body of the nested builders
+// this will panic
 func (e AnyOfExpectBuilder) Clone() ExpectValidator {
 	var clonedInnerBuilders []ExpectBuilder
 	for _, eb := range e.Expect_ {
@@ -468,9 +460,13 @@ func (h HeaderBuilder) Exists() HeaderBuilder {
 	return h.Not().IsEmpty()
 }
 
-// Clone performs a shallow clone of the HeaderBuilder
-// Note: The Check field is an interface and as a result is just copied
+// Clone performs a deep clone of the HeaderBuilder
+// Note: if the Check_ field is not nil this will panic since that field cannot be deep cloned
 func (h HeaderBuilder) Clone() HeaderBuilder {
+	if h.Check_ != nil {
+		panic("cannot clone a HeaderBuilder with a non-nil Check")
+	}
+
 	clone := HeaderBuilder{
 		Key_:   h.Key_,
 		Value_: h.Key_,
