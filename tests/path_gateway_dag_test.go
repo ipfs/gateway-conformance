@@ -234,36 +234,16 @@ func TestPlainCodec(t *testing.T) {
 
 		var dagFormattedResponse []byte
 
-		tests := SugarTests{
-			{
-				Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
-				Hint: `
-				No explicit format, just codec in CID
-				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
-						Header("Content-Type").
-							Contains(Fmt("application/{{format}}", row.Format)),
-					).Body(
-					plain.RawData(),
-				),
-			},
-			helpers.SingleRangeTestTransform(t,
+		tests := &SugarTests{}
+		tests.Append(
+			helpers.BaseWithRangeTestTransform(t,
 				SugarTest{
-					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is, with single range request`, row.Name, row.Format),
+					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
 					Hint: `
 				No explicit format, just codec in CID
 				`,
 					Request: Request().
-						Path("/ipfs/{{cid}}", plainCID).
-						Headers(
-							Header("Range", "bytes=6-10"),
-						),
+						Path("/ipfs/{{cid}}", plainCID),
 					Response: Expect().
 						Headers(
 							Header("Content-Disposition").
@@ -272,126 +252,96 @@ func TestPlainCodec(t *testing.T) {
 								Contains(Fmt("application/{{format}}", row.Format)),
 						),
 				},
-				helpers.SimpleByteRange(6, 10, plain.RawData()[6:11]),
-				plain.RawData(),
-			),
-			{
-				Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
-				Hint: `
-				Explicit format still gives correct output, just codec in CID
-				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID).
-					Query("format", row.Format),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-						Header("Content-Type").
-							Contains("application/{{format}}", row.Format),
-					).Body(
-					plain.RawData(),
-				),
-			},
-			helpers.SingleRangeTestTransform(t,
-				SugarTest{
-					Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
-					Hint: `
-				Explicit format still gives correct output, just codec in CID
-				`,
-					Request: Request().
-						Path("/ipfs/{{cid}}", plainCID).
-						Query("format", row.Format).
-						Headers(
-							Header("Range", "bytes=6-16"),
-						),
-					Response: Expect().
-						Headers(
-							Header("Content-Disposition").
-								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-							Header("Content-Type").
-								Contains("application/{{format}}", row.Format),
-						),
+				helpers.ByteRanges{
+					helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
+					helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
 				},
-				helpers.SimpleByteRange(6, 16, plain.RawData()[6:17]),
 				plain.RawData(),
-			),
-			{
-				Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
-				Hint: `
+			)...).
+			Append(
+				helpers.BaseWithRangeTestTransform(t,
+					SugarTest{
+						Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
+						Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID).
-					Header("Accept", Fmt("application/{{format}}", row.Format)),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-						Header("Content-Type").
-							Contains("application/{{format}}", row.Format),
-					).Body(
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID).
+							Query("format", row.Format),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+								Header("Content-Type").
+									Contains("application/{{format}}", row.Format),
+							),
+					},
+					helpers.ByteRanges{
+						helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
+						helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
+					},
 					plain.RawData(),
-				),
-			},
-			helpers.SingleRangeTestTransform(t,
-				SugarTest{
-					Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
-					Hint: `
+				)...).
+			Append(
+				helpers.BaseWithRangeTestTransform(t,
+					SugarTest{
+						Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
+						Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
-					Request: Request().
-						Path("/ipfs/{{cid}}", plainCID).
-						Headers(
-							Header("Accept", Fmt("application/{{format}}", row.Format)),
-							Header("Range", "bytes=6-16"),
-						),
-					Response: Expect().
-						Headers(
-							Header("Content-Disposition").
-								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-							Header("Content-Type").
-								Contains("application/{{format}}", row.Format),
-						),
-				},
-				helpers.SimpleByteRange(6, 16, plain.RawData()[6:17]),
-				plain.RawData(),
-			),
-			{
-				Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
-				Hint: `
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID).
+							Headers(
+								Header("Accept", Fmt("application/{{format}}", row.Format)),
+							),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+								Header("Content-Type").
+									Contains("application/{{format}}", row.Format),
+							),
+					},
+					helpers.ByteRanges{
+						helpers.SimpleByteRange(0, 5, plain.RawData()[0:6]),
+						helpers.SimpleByteRange(10, 15, plain.RawData()[10:16]),
+					},
+					plain.RawData(),
+				)...).
+			Append(
+				SugarTest{
+					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
+					Hint: `
 				Explicit dag-* format passed, attempt to parse as dag* variant
 				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainOrDagCID).
-					Query("format", Fmt("dag-{{format}}", row.Format)),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
-						Header("Content-Type").
-							Contains("application/vnd.ipld.dag-{{format}}", row.Format),
-					).Body(
-					Checks("", func(t []byte) bool {
-						innerCheck := row.Checker(formatted).Check(t)
-						if innerCheck.Success {
-							dagFormattedResponse = t
-							return true
-						}
-						return false
-					}),
-				),
-			},
-		}
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainOrDagCID).
+						Query("format", Fmt("dag-{{format}}", row.Format)),
+					Response: Expect().
+						Status(200).
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
+							Header("Content-Type").
+								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
+						).Body(
+						Checks("", func(t []byte) bool {
+							innerCheck := row.Checker(formatted).Check(t)
+							if innerCheck.Success {
+								dagFormattedResponse = t
+								return true
+							}
+							return false
+						}),
+					),
+				},
+			)
 
-		RunWithSpecs(t, tests, specs.PathGatewayDAG)
+		RunWithSpecs(t, *tests, specs.PathGatewayDAG)
 
 		if dagFormattedResponse != nil {
-			rangeTest := helpers.SingleRangeTestTransform(t,
+			rangeTests := helpers.RangeTestTransform(t,
 				SugarTest{
 					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body, with single range request", row.Name, row.Format),
 					Hint: `
@@ -400,10 +350,7 @@ func TestPlainCodec(t *testing.T) {
 				`,
 					Request: Request().
 						Path("/ipfs/{{cid}}", plainOrDagCID).
-						Query("format", Fmt("dag-{{format}}", row.Format)).
-						Headers(
-							Header("Range", "bytes=6-16"),
-						),
+						Query("format", Fmt("dag-{{format}}", row.Format)),
 					Response: Expect().
 						Headers(
 							Header("Content-Disposition").
@@ -412,10 +359,13 @@ func TestPlainCodec(t *testing.T) {
 								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 						),
 				},
-				helpers.SimpleByteRange(6, 16, dagFormattedResponse[6:17]),
+				helpers.ByteRanges{
+					helpers.SimpleByteRange(0, 5, dagFormattedResponse[0:6]),
+					helpers.SimpleByteRange(10, 15, dagFormattedResponse[10:16]),
+				},
 				dagFormattedResponse,
 			)
-			RunWithSpecs(t, SugarTests{rangeTest}, specs.PathGatewayDAG)
+			RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 		}
 	}
 }
@@ -682,57 +632,60 @@ func TestNativeDag(t *testing.T) {
 					Contains("</html>"),
 				),
 			},
-			helpers.SingleRangeTestTransform(t,
-				SugarTest{
-					Name: Fmt("GET {{name}} on /ipfs with no explicit header and single range", row.Name),
-					Request: Request().
-						Path("/ipfs/{{cid}}/", dagTraversalCID).
-						Headers(
-							Header("Range", "bytes=6-16"),
-						),
-					Response: Expect().
-						Headers(
-							Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
-						),
-				},
+		}
+		tests.Append(helpers.RangeTestTransform(t,
+			SugarTest{
+				Name: Fmt("GET {{name}} on /ipfs with no explicit header", row.Name),
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagTraversalCID),
+				Response: Expect().
+					Headers(
+						Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
+					),
+			},
+			helpers.ByteRanges{
 				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
-				dagTraversal.RawData(),
-			),
-			helpers.SingleRangeTestTransform(t,
+				helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+			},
+			dagTraversal.RawData(),
+		)...).Append(
+			helpers.RangeTestTransform(t,
 				SugarTest{
-					Name: Fmt("GET {{name}} on /ipfs with dag content headers and single range", row.Name),
+					Name: Fmt("GET {{name}} on /ipfs with dag content headers", row.Name),
 					Request: Request().
 						Path("/ipfs/{{cid}}/", dagTraversalCID).
 						Headers(
 							Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
-							Header("Range", "bytes=6-16"),
 						),
 					Response: Expect().
 						Headers(
 							Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
 						),
 				},
-				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
-				dagTraversal.RawData(),
-			),
-			helpers.SingleRangeTestTransform(t,
+				helpers.ByteRanges{
+					helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+					helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+				}, dagTraversal.RawData(),
+			)...).Append(
+			helpers.RangeTestTransform(t,
 				SugarTest{
-					Name: Fmt("GET {{name}} on /ipfs with non-dag content headers and single range", row.Name),
+					Name: Fmt("GET {{name}} on /ipfs with non-dag content headers", row.Name),
 					Request: Request().
 						Path("/ipfs/{{cid}}/", dagTraversalCID).
 						Headers(
 							Header("Accept", "application/{{format}}", row.Format),
-							Header("Range", "bytes=6-16"),
 						),
 					Response: Expect().
 						Headers(
 							Header("Content-Type", "application/{{format}}", row.Format),
 						),
 				},
-				helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+				helpers.ByteRanges{
+					helpers.SimpleByteRange(6, 16, dagTraversal.RawData()[6:17]),
+					helpers.SimpleByteRange(20, 25, dagTraversal.RawData()[20:26]),
+				},
 				dagTraversal.RawData(),
-			),
-		}
+			)...)
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 	}

@@ -25,6 +25,11 @@ type SugarTest struct {
 
 type SugarTests []SugarTest
 
+func (s *SugarTests) Append(tests ...SugarTest) *SugarTests {
+	*s = append(*s, tests...)
+	return s
+}
+
 func (s *SugarTest) AllSpecs() []string {
 	if len(s.Specs) > 0 && s.Spec != "" {
 		panic("cannot have both Spec and Specs")

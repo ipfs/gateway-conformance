@@ -264,6 +264,10 @@ func (e ExpectBuilder) Clone() ExpectValidator {
 	clone.StatusCode_ = e.StatusCode_
 	clone.Headers_ = clonedHeaders
 
+	if e.Body_ == nil {
+		return clone
+	}
+
 	switch body := e.Body_.(type) {
 	case string:
 		clone.Body_ = body

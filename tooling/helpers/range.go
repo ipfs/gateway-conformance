@@ -175,6 +175,30 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 	return rangeTest
 }
 
+// BaseWithRangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
+// StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
+// Will test the full request, a single range request for the first passed range as well as a multi-range request for
+// all the requested ranges.
+//
+// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
+// Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
+// range, or the partial data from all the requested ranges
+func BaseWithRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte) test.SugarTests {
+	standardBase := test.SugarTest{
+		Name:     fmt.Sprintf("%s - full request", baseTest.Name),
+		Hint:     baseTest.Hint,
+		Request:  baseTest.Request,
+		Requests: baseTest.Requests,
+		Response: test.AllOf(
+			baseTest.Response,
+			test.Expect().Status(http.StatusOK).Body(fullData),
+		),
+		Responses: baseTest.Responses,
+	}
+	rangeTests := RangeTestTransform(t, baseTest, branges, fullData)
+	return append(test.SugarTests{standardBase}, rangeTests...)
+}
+
 // RangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
 // StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
 // Will test both a single range request for the first passed range as well as a multi-range request for all the
