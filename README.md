@@ -3,6 +3,9 @@
 > A tool designed to test if an IPFS Gateway implementation complies with the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/) correctly.  
 > Distributed as a Docker image, as well as a GitHub Action(s).
 
+- [Implementation Dashboard](#implementation-dashboard)
+  - [How it Works](#how-it-works)
+  - [Adding Your Implementation](#adding-your-implementation)
 - [Commands](#commands)
   - [`test`](#test)
     - [Inputs](#inputs)
@@ -22,6 +25,23 @@
   - [Building the Dashboard](#building-the-dashboard)
 - [FAQ](#faq)
 - [In Development](#in-development)
+
+## Implementation Dashboard
+
+The [Implementation Dashboard](https://ipfs.github.io/gateway-conformance/) is a view that showcases different implementations of IPFS Gateways. It ensures the transparency and clarity of each implementation by utilizing the results from their latest gateway-conformance runs from their Continuous Integration (CI).
+
+### How it Works
+
+For every implementations that have been added to the workflow, our dashboard generation workflow loads their most recent `gateway-conformance` test results from their CI.
+
+### Adding Your Implementation
+
+To include your implementation in the dashboard:
+
+1. Create a Pull Request modifying the file `/.github/workflows/deploy-pages.yml` and append your repository to the list of implementations.
+2. Ensure you have a workflow titled "gateway-conformance.yml" in your repository which is responsible for generating the `gateway-conformance.json` artifact.
+
+For reference, you may review other implementations, like Boxo's [here](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml).
 
 ## Commands
 
