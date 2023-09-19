@@ -151,7 +151,9 @@ func TestTrustlessRawRanges(t *testing.T) {
 			Response: Expect(),
 		},
 		nil,
-		fixture.MustGetRawData("dir", "ascii.txt"))
+		fixture.MustGetRawData("dir", "ascii.txt"),
+		"application/vnd.ipld.raw",
+	)
 
 	RunWithSpecs(t, tests, specs.TrustlessGatewayRaw)
 }
