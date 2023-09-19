@@ -252,10 +252,7 @@ func TestPlainCodec(t *testing.T) {
 								Contains(Fmt("application/{{format}}", row.Format)),
 						),
 				},
-				helpers.ByteRanges{
-					helpers.SimpleByteRange(0, 5),
-					helpers.SimpleByteRange(10, 15),
-				},
+				nil,
 				plain.RawData(),
 			)...).
 			Append(
@@ -276,10 +273,7 @@ func TestPlainCodec(t *testing.T) {
 									Contains("application/{{format}}", row.Format),
 							),
 					},
-					helpers.ByteRanges{
-						helpers.SimpleByteRange(0, 5),
-						helpers.SimpleByteRange(10, 15),
-					},
+					nil,
 					plain.RawData(),
 				)...).
 			Append(
@@ -302,10 +296,7 @@ func TestPlainCodec(t *testing.T) {
 									Contains("application/{{format}}", row.Format),
 							),
 					},
-					helpers.ByteRanges{
-						helpers.SimpleByteRange(0, 5),
-						helpers.SimpleByteRange(10, 15),
-					},
+					nil,
 					plain.RawData(),
 				)...).
 			Append(
@@ -359,10 +350,7 @@ func TestPlainCodec(t *testing.T) {
 								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 						),
 				},
-				helpers.ByteRanges{
-					helpers.SimpleByteRange(0, 5),
-					helpers.SimpleByteRange(10, 15),
-				},
+				nil,
 				dagFormattedResponse,
 			)
 			RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
@@ -642,11 +630,7 @@ func TestNativeDag(t *testing.T) {
 					Headers(
 						Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
 					),
-			},
-			helpers.ByteRanges{
-				helpers.SimpleByteRange(6, 16),
-				helpers.SimpleByteRange(20, 25),
-			},
+			}, nil,
 			dagTraversal.RawData(),
 		)...).Append(
 			helpers.RangeTestTransform(t,
@@ -662,10 +646,7 @@ func TestNativeDag(t *testing.T) {
 							Header("Content-Type", "application/vnd.ipld.dag-{{format}}", row.Format),
 						),
 				},
-				helpers.ByteRanges{
-					helpers.SimpleByteRange(6, 16),
-					helpers.SimpleByteRange(20, 25),
-				}, dagTraversal.RawData(),
+				nil, dagTraversal.RawData(),
 			)...).Append(
 			helpers.RangeTestTransform(t,
 				SugarTest{
@@ -680,10 +661,7 @@ func TestNativeDag(t *testing.T) {
 							Header("Content-Type", "application/{{format}}", row.Format),
 						),
 				},
-				helpers.ByteRanges{
-					helpers.SimpleByteRange(6, 16),
-					helpers.SimpleByteRange(20, 25),
-				},
+				nil,
 				dagTraversal.RawData(),
 			)...)
 
@@ -726,9 +704,7 @@ func TestNativeDag(t *testing.T) {
 					),
 				Response: Expect(),
 			},
-			helpers.ByteRanges{
-				helpers.SimpleByteRange(1, 5),
-				helpers.SimpleByteRange(93, 104)},
+			nil,
 			dagJsonConvertedData)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
@@ -766,9 +742,7 @@ func TestNativeDag(t *testing.T) {
 						Header("Accept", "text/html"),
 					),
 				Response: Expect(),
-			}, helpers.ByteRanges{
-				helpers.SimpleByteRange(1, 5),
-				helpers.SimpleByteRange(93, 104)},
+			}, nil,
 			dagCborHTMLRendering)
 
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)

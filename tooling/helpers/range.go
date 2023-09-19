@@ -178,6 +178,9 @@ func MultiRangeTestTransform(t *testing.T, testWithoutRangeRequestHeader test.Su
 // Will test the full request, a single range request for the first passed range as well as a multi-range request for
 // all the requested ranges.
 //
+// If no ranges are passed then some non-overlapping ranges are automatically generated for data >= 10 bytes. Smaller
+// data will result in undefined behavior.
+//
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
@@ -202,10 +205,25 @@ func BaseWithRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges B
 // Will test both a single range request for the first passed range as well as a multi-range request for all the
 // requested ranges.
 //
+// If no ranges are passed then some non-overlapping ranges are automatically generated for data >= 10 bytes. Smaller
+// data will result in undefined behavior.
+//
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
 func RangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte) test.SugarTests {
+	if len(branges) == 0 {
+		dataLen := len(fullData)
+		if dataLen < 10 {
+			panic("transformation not defined for data smaller than 10 bytes")
+		}
+
+		branges = ByteRanges{
+			SimpleByteRange(7, 9),
+			SimpleByteRange(1, 3),
+		}
+	}
+
 	singleBase := test.SugarTest{
 		Name:      fmt.Sprintf("%s - single range", baseTest.Name),
 		Hint:      baseTest.Hint,
