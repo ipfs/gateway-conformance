@@ -236,7 +236,7 @@ func TestPlainCodec(t *testing.T) {
 
 		tests := &SugarTests{}
 		tests.Append(
-			helpers.BaseWithRangeTestTransform(t,
+			helpers.IncludeRangeTests(t,
 				SugarTest{
 					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
 					Hint: `
@@ -255,7 +255,7 @@ func TestPlainCodec(t *testing.T) {
 				Fmt("application/{{format}}", row.Format),
 			)...).
 			Append(
-				helpers.BaseWithRangeTestTransform(t,
+				helpers.IncludeRangeTests(t,
 					SugarTest{
 						Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 						Hint: `
@@ -275,7 +275,7 @@ func TestPlainCodec(t *testing.T) {
 					Fmt("application/{{format}}", row.Format),
 				)...).
 			Append(
-				helpers.BaseWithRangeTestTransform(t,
+				helpers.IncludeRangeTests(t,
 					SugarTest{
 						Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
 						Hint: `

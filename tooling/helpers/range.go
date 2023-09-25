@@ -177,7 +177,7 @@ func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges Byte
 	return rangeTest
 }
 
-// BaseWithRangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
+// IncludeRangeTests takes a test where there is no "Range" header set in the request, or checks on the
 // StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
 // Will test the full request, a single range request for the first passed range as well as a multi-range request for
 // all the requested ranges.
@@ -185,12 +185,12 @@ func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges Byte
 // If contentType is empty it is ignored.
 //
 // If no ranges are passed then some non-overlapping ranges are automatically generated for data >= 10 bytes. Smaller
-// data will result in undefined behavior.
+// data will produce a panic to avoid undefined behavior.
 //
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
-func BaseWithRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte, contentType string) test.SugarTests {
+func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte, contentType string) test.SugarTests {
 	standardBaseRequest := baseTest.Request.Clone()
 	if contentType != "" {
 		standardBaseRequest = standardBaseRequest.Header("Content-Type", contentType)
@@ -218,7 +218,7 @@ func BaseWithRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges B
 // If contentType is empty it is ignored.
 //
 // If no ranges are passed then some non-overlapping ranges are automatically generated for data >= 10 bytes. Smaller
-// data will result in undefined behavior.
+// data will produce a panic to avoid undefined behavior.
 //
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
