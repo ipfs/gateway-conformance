@@ -1,10 +1,11 @@
 package tests
 
 import (
-	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/ipfs/gateway-conformance/tooling/helpers"
 
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
@@ -140,7 +141,7 @@ func TestTrustlessRawRanges(t *testing.T) {
 	// correctly.
 	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
 
-	tests := helpers.RangeTestTransform(t,
+	tests := helpers.OnlyRandomRangeTests(t,
 		SugarTest{
 			Name: "GET with application/vnd.ipld.raw with range request includes correct bytes",
 			Request: Request().
@@ -150,7 +151,6 @@ func TestTrustlessRawRanges(t *testing.T) {
 				),
 			Response: Expect(),
 		},
-		nil,
 		fixture.MustGetRawData("dir", "ascii.txt"),
 		"application/vnd.ipld.raw",
 	)

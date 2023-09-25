@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -10,97 +11,66 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/test"
 )
 
-// ByteRange describes an HTTP range request and the data it corresponds to. "From" and "To" mostly
-// follow [HTTP Byte Range] Request semantics:
-//
-//   - From >= 0 and To = nil: Get the file (From, Length)
-//   - From >= 0 and To >= 0: Get the range (From, To)
-//   - From >= 0 and To <0: Get the range (From, Length - To)
-//
-// [HTTP Byte Range]: https://httpwg.org/specs/rfc9110.html#rfc.section.14.1.2
-type ByteRange struct {
-	From uint64
-	To   *int64
+// parseRange parses a ranges header in the format "bytes=from-to" and returns
+// x and y as uint64.
+func parseRange(t *testing.T, str string) (from, to uint64) {
+	if !strings.HasPrefix(str, "bytes=") {
+		t.Fatalf("byte range %s does not start with 'bytes='", str)
+	}
+
+	str = strings.TrimPrefix(str, "bytes=")
+	ranges := strings.Split(str, ",")
+	if len(ranges) != 1 {
+		t.Fatalf("byte range %s must have one range", str)
+	}
+
+	rng := strings.Split(ranges[0], "-")
+	if len(rng) != 2 {
+		t.Fatalf("byte range %s is invalid", str)
+	}
+
+	var err error
+	from, err = strconv.ParseUint(rng[0], 10, 0)
+	if err != nil {
+		t.Fatalf("cannot parse range %s: %s", str, err.Error())
+	}
+
+	to, err = strconv.ParseUint(rng[1], 10, 0)
+	if err != nil {
+		t.Fatalf("cannot parse range %s: %s", str, err.Error())
+	}
+
+	return from, to
 }
 
-func SimpleByteRange(from, to uint64) ByteRange {
-	toInt := int64(to)
-	return ByteRange{
-		From: from,
-		To:   &toInt,
-	}
-}
+// combineRanges combines the multiple request ranges into a single Range header.
+func combineRanges(t *testing.T, ranges []string) string {
+	str := "bytes="
 
-func (b ByteRange) GetRangeString(t *testing.T) string {
-	strWithoutPrefix := b.getRangeStringWithoutPrefix(t)
-	return fmt.Sprintf("bytes=%s", strWithoutPrefix)
-}
-
-func (b ByteRange) getRangeStringWithoutPrefix(t *testing.T) string {
-	if b.To == nil {
-		return fmt.Sprintf("%d-", b.From)
+	for i, rng := range ranges {
+		from, to := parseRange(t, rng)
+		str += fmt.Sprintf("%d-%d", from, to)
+		if i != len(ranges)-1 {
+			str += ","
+		}
 	}
 
-	to := *b.To
-	if to >= 0 {
-		return fmt.Sprintf("%d-%d", b.From, to)
-	}
-
-	if to < 0 && b.From != 0 {
-		t.Fatalf("for a suffix request the From field must be 0")
-	}
-	return fmt.Sprintf("%d", to)
-}
-
-func (b ByteRange) getRange(t *testing.T, totalSize int64) (uint64, uint64) {
-	if totalSize < 0 {
-		t.Fatalf("total size must be greater than 0")
-	}
-
-	if b.To == nil {
-		return b.From, uint64(totalSize)
-	}
-
-	to := *b.To
-	if to >= 0 {
-		return b.From, uint64(to)
-	}
-
-	if to < 0 && b.From != 0 {
-		t.Fatalf("for a suffix request the From field must be 0")
-	}
-
-	start := int64(totalSize) + to
-	if start < 0 {
-		t.Fatalf("suffix request must not start before the start of the file")
-	}
-
-	return uint64(start), uint64(totalSize)
-}
-
-type ByteRanges []ByteRange
-
-func (b ByteRanges) GetRangeString(t *testing.T) string {
-	var rangeStrs []string
-	for _, r := range b {
-		rangeStrs = append(rangeStrs, r.getRangeStringWithoutPrefix(t))
-	}
-	return fmt.Sprintf("bytes=%s", strings.Join(rangeStrs, ","))
+	return str
 }
 
 // SingleRangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
 // StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested range.
 //
-// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
-func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange ByteRange, fullData []byte) test.SugarTest {
-	modifiedRequest := baseTest.Request.Clone().Header("Range", brange.GetRangeString(t))
+// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data.
+func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, byteRange string, fullData []byte) test.SugarTest {
+	modifiedRequest := baseTest.Request.Clone().Header("Range", byteRange)
 	if baseTest.Requests != nil {
 		t.Fatal("does not support multiple requests or responses")
 	}
 	modifiedResponse := baseTest.Response.Clone()
 
 	fullSize := int64(len(fullData))
-	start, end := brange.getRange(t, fullSize)
+	start, end := parseRange(t, byteRange)
 
 	rangeTest := test.SugarTest{
 		Name:     baseTest.Name,
@@ -128,9 +98,9 @@ func SingleRangeTestTransform(t *testing.T, baseTest test.SugarTest, brange Byte
 // If contentType is empty it is ignored.
 //
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
-// range, or the partial data from all the requested ranges
-func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte, contentType string) test.SugarTest {
-	modifiedRequest := baseTest.Request.Clone().Header("Range", branges.GetRangeString(t))
+// range, or the partial data from all the requested ranges.
+func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTest {
+	modifiedRequest := baseTest.Request.Clone().Header("Range", combineRanges(t, byteRanges))
 	if baseTest.Requests != nil {
 		t.Fatal("does not support multiple requests or responses")
 	}
@@ -143,8 +113,8 @@ func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges Byte
 
 	var multirangeBodyChecks []check.Check[string]
 	var ranges []rng
-	for _, r := range branges {
-		start, end := r.getRange(t, fullSize)
+	for _, r := range byteRanges {
+		start, end := parseRange(t, r)
 		ranges = append(ranges, rng{start: start, end: end})
 		multirangeBodyChecks = append(multirangeBodyChecks,
 			check.Contains("Content-Range: bytes {{start}}-{{end}}/{{length}}", ranges[0].start, ranges[0].end, fullSize),
@@ -184,13 +154,37 @@ func MultiRangeTestTransform(t *testing.T, baseTest test.SugarTest, branges Byte
 //
 // If contentType is empty it is ignored.
 //
+// If no ranges are passed, then a panic is produced.
+//
+// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
+// Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
+// range, or the partial data from all the requested ranges
+func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
+	if len(byteRanges) == 0 {
+		panic("byte ranges must be defined")
+	}
+
+	return includeRangeTests(t, baseTest, byteRanges, fullData, contentType)
+}
+
+// IncludeRandomRangeTests takes a test where there is no "Range" header set in the request, or checks on the
+// StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
+// Will test the full request, a single range request for the first passed range as well as a multi-range request for
+// all the requested ranges.
+//
+// If contentType is empty it is ignored.
+//
 // If no ranges are passed then some non-overlapping ranges are automatically generated for data >= 10 bytes. Smaller
 // data will produce a panic to avoid undefined behavior.
 //
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
-func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte, contentType string) test.SugarTests {
+func IncludeRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []byte, contentType string) test.SugarTests {
+	return includeRangeTests(t, baseTest, nil, fullData, contentType)
+}
+
+func includeRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
 	standardBaseRequest := baseTest.Request.Clone()
 	if contentType != "" {
 		standardBaseRequest = standardBaseRequest.Header("Content-Type", contentType)
@@ -206,11 +200,31 @@ func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, branges ByteRanges
 		),
 		Responses: baseTest.Responses,
 	}
-	rangeTests := RangeTestTransform(t, baseTest, branges, fullData, contentType)
+	rangeTests := OnlyRangeTests(t, baseTest, byteRanges, fullData, contentType)
 	return append(test.SugarTests{standardBase}, rangeTests...)
 }
 
-// RangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the
+// OnlyRangeTests takes a test where there is no "Range" header set in the request, or checks on the
+// StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
+// Will test both a single range request for the first passed range as well as a multi-range request for all the
+// requested ranges.
+//
+// If contentType is empty it is ignored.
+//
+// If no ranges are passed, then a panic is produced.
+//
+// Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
+// Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
+// range, or the partial data from all the requested ranges
+func OnlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
+	if len(byteRanges) == 0 {
+		panic("byte ranges must be defined")
+	}
+
+	return onlyRangeTests(t, baseTest, byteRanges, fullData, contentType)
+}
+
+// OnlyRandomRangeTests takes a test where there is no "Range" header set in the request, or checks on the
 // StatusCode, Body, or Content-Range headers and verifies whether a valid response is given for the requested ranges.
 // Will test both a single range request for the first passed range as well as a multi-range request for all the
 // requested ranges.
@@ -223,16 +237,20 @@ func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, branges ByteRanges
 // Note: HTTP Range requests can be validly responded with either the full data, or the requested partial data
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
-func RangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRanges, fullData []byte, contentType string) test.SugarTests {
-	if len(branges) == 0 {
+func OnlyRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []byte, contentType string) test.SugarTests {
+	return onlyRangeTests(t, baseTest, nil, fullData, contentType)
+}
+
+func onlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
+	if len(byteRanges) == 0 {
 		dataLen := len(fullData)
 		if dataLen < 10 {
 			panic("transformation not defined for data smaller than 10 bytes")
 		}
 
-		branges = ByteRanges{
-			SimpleByteRange(7, 9),
-			SimpleByteRange(1, 3),
+		byteRanges = []string{
+			"bytes=7-9",
+			"bytes=1-3",
 		}
 	}
 
@@ -249,7 +267,7 @@ func RangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRange
 		Response:  baseTest.Response,
 		Responses: baseTest.Responses,
 	}
-	singleRange := SingleRangeTestTransform(t, singleBase, branges[0], fullData)
+	singleRange := SingleRangeTestTransform(t, singleBase, byteRanges[0], fullData)
 
 	multiBase := test.SugarTest{
 		Name:      fmt.Sprintf("%s - multi range", baseTest.Name),
@@ -259,6 +277,6 @@ func RangeTestTransform(t *testing.T, baseTest test.SugarTest, branges ByteRange
 		Response:  baseTest.Response,
 		Responses: baseTest.Responses,
 	}
-	multiRange := MultiRangeTestTransform(t, multiBase, branges, fullData, contentType)
+	multiRange := MultiRangeTestTransform(t, multiBase, byteRanges, fullData, contentType)
 	return test.SugarTests{singleRange, multiRange}
 }

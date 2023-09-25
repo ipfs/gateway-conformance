@@ -236,7 +236,7 @@ func TestPlainCodec(t *testing.T) {
 
 		tests := &SugarTests{}
 		tests.Append(
-			helpers.IncludeRangeTests(t,
+			helpers.IncludeRandomRangeTests(t,
 				SugarTest{
 					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
 					Hint: `
@@ -250,12 +250,11 @@ func TestPlainCodec(t *testing.T) {
 								Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
 						),
 				},
-				nil,
 				plain.RawData(),
 				Fmt("application/{{format}}", row.Format),
 			)...).
 			Append(
-				helpers.IncludeRangeTests(t,
+				helpers.IncludeRandomRangeTests(t,
 					SugarTest{
 						Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
 						Hint: `
@@ -270,12 +269,11 @@ func TestPlainCodec(t *testing.T) {
 									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
 							),
 					},
-					nil,
 					plain.RawData(),
 					Fmt("application/{{format}}", row.Format),
 				)...).
 			Append(
-				helpers.IncludeRangeTests(t,
+				helpers.IncludeRandomRangeTests(t,
 					SugarTest{
 						Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
 						Hint: `
@@ -292,7 +290,6 @@ func TestPlainCodec(t *testing.T) {
 									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
 							),
 					},
-					nil,
 					plain.RawData(),
 					Fmt("application/{{format}}", row.Format),
 				)...).
@@ -329,7 +326,7 @@ func TestPlainCodec(t *testing.T) {
 		RunWithSpecs(t, *tests, specs.PathGatewayDAG)
 
 		if dagFormattedResponse != nil {
-			rangeTests := helpers.RangeTestTransform(t,
+			rangeTests := helpers.OnlyRandomRangeTests(t,
 				SugarTest{
 					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body, with single range request", row.Name, row.Format),
 					Hint: `
@@ -345,7 +342,6 @@ func TestPlainCodec(t *testing.T) {
 								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
 						),
 				},
-				nil,
 				dagFormattedResponse,
 				Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
 			)
@@ -617,16 +613,16 @@ func TestNativeDag(t *testing.T) {
 				),
 			},
 		}
-		tests.Append(helpers.RangeTestTransform(t,
+		tests.Append(helpers.OnlyRandomRangeTests(t,
 			SugarTest{
 				Name: Fmt("GET {{name}} on /ipfs with no explicit header", row.Name),
 				Request: Request().
 					Path("/ipfs/{{cid}}/", dagTraversalCID),
 				Response: Expect(),
-			}, nil,
+			},
 			dagTraversal.RawData(), Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
 		)...).Append(
-			helpers.RangeTestTransform(t,
+			helpers.OnlyRandomRangeTests(t,
 				SugarTest{
 					Name: Fmt("GET {{name}} on /ipfs with dag content headers", row.Name),
 					Request: Request().
@@ -636,10 +632,10 @@ func TestNativeDag(t *testing.T) {
 						),
 					Response: Expect(),
 				},
-				nil, dagTraversal.RawData(),
+				dagTraversal.RawData(),
 				Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
 			)...).Append(
-			helpers.RangeTestTransform(t,
+			helpers.OnlyRandomRangeTests(t,
 				SugarTest{
 					Name: Fmt("GET {{name}} on /ipfs with non-dag content headers", row.Name),
 					Request: Request().
@@ -649,7 +645,6 @@ func TestNativeDag(t *testing.T) {
 						),
 					Response: Expect(),
 				},
-				nil,
 				dagTraversal.RawData(),
 				Fmt("application/{{format}}", row.Format),
 			)...)
@@ -681,7 +676,7 @@ func TestNativeDag(t *testing.T) {
 	}, specs.PathGatewayDAG)
 
 	if dagJsonConvertedData != nil {
-		rangeTests := helpers.RangeTestTransform(
+		rangeTests := helpers.OnlyRandomRangeTests(
 			t,
 			SugarTest{
 				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with range request includes correct bytes",
@@ -693,7 +688,6 @@ func TestNativeDag(t *testing.T) {
 					),
 				Response: Expect(),
 			},
-			nil,
 			dagJsonConvertedData,
 			"application/vnd.ipld.dag-json")
 
@@ -722,7 +716,7 @@ func TestNativeDag(t *testing.T) {
 	}, specs.PathGatewayDAG)
 
 	if dagCborHTMLRendering != nil {
-		rangeTests := helpers.RangeTestTransform(t,
+		rangeTests := helpers.OnlyRandomRangeTests(t,
 			SugarTest{
 				Name: "Convert application/vnd.ipld.dag-cbor to text/html with range request includes correct bytes",
 				Hint: "",
@@ -732,7 +726,7 @@ func TestNativeDag(t *testing.T) {
 						Header("Accept", "text/html"),
 					),
 				Response: Expect(),
-			}, nil,
+			},
 			dagCborHTMLRendering,
 			"text/html")
 
