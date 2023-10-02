@@ -328,76 +328,92 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 			Name: "GET for /ipns/ unixfs dir listing succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/", ipnsKey),
-			Response: Expect().
-				Status(200).
-				Headers(
-					// Header("Cache-Control").
-					// 	IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/{{KEY}}/root2/root3/", ipnsKey),
-					Header("X-Ipfs-Roots").
-						Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
-					Header("Etag").
-						Matches("DirIndex-.*_CID-{{CID}}", fixture.MustGetCid("root2", "root3")),
+			Response: AllOf(
+				Expect().
+					Status(200).
+					Headers(
+						Header("X-Ipfs-Path").
+							Equals("/ipns/{{KEY}}/root2/root3/", ipnsKey),
+						Header("X-Ipfs-Roots").
+							Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
+						Header("Etag").
+							Matches("DirIndex-.*_CID-{{CID}}", fixture.MustGetCid("root2", "root3")),
+					),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipns/ unixfs dir with index.html succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey),
-			Response: Expect().
-				Status(200).
-				Headers(
-					// Header("Cache-Control").
-					// 	IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey),
-					Header("X-Ipfs-Roots").
-						Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
-					Header("Etag").
-						Matches(`"{{CID}}"`, fixture.MustGetCid("root2", "root3", "root4")),
+			Response: AllOf(
+				Expect().
+					Status(200).
+					Headers(
+						Header("X-Ipfs-Path").
+							Equals("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey),
+						Header("X-Ipfs-Roots").
+							Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
+						Header("Etag").
+							Matches(`"{{CID}}"`, fixture.MustGetCid("root2", "root3", "root4")),
+					),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipns/ unixfs file succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/root4/index.html", ipnsKey),
-			Response: Expect().
-				Status(200).
-				Headers(
-					// Header("Cache-Control").
-					// 	IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipns/{{KEY}}/root2/root3/root4/index.html", ipnsKey),
-					Header("X-Ipfs-Roots").
-						Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}},{{CID5}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
-					Header("Etag").
-						Equals(`"{{CID}}"`, fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+			Response: AllOf(
+				Expect().
+					Status(200).
+					Headers(
+						Header("X-Ipfs-Path").
+							Equals("/ipns/{{KEY}}/root2/root3/root4/index.html", ipnsKey),
+						Header("X-Ipfs-Roots").
+							Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}},{{CID5}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+						Header("Etag").
+							Equals(`"{{CID}}"`, fixture.MustGetCid("root2", "root3", "root4", "index.html")),
+					),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey).
 				Query("format", "dag-json"),
-			Response: Expect().
-				Status(200).
-				Headers(
-				// Header("Cache-Control").
-				// 	IsEmpty(),
+			Response: AllOf(
+				Expect().
+					Status(200),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipns/ unixfs dir as JSON succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey).
 				Query("format", "json"),
-			Response: Expect().
-				Status(200).
-				Headers(
-				// Header("Cache-Control").
-				// 	IsEmpty(),
+			Response: AllOf(
+				Expect().
+					Status(200),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipns/ file with matching Etag in If-None-Match returns 304 Not Modified",
