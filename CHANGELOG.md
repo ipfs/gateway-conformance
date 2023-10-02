@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added tests for HTTP Range requests, as well as some basic helpers for `AnyOf` and `AllOf`. [PR](https://github.com/ipfs/gateway-conformance/pull/162)
 ## [0.3.1] - 2023-09-15
 ### Added
 - Specs Dashboard Output. [PR](https://github.com/ipfs/gateway-conformance/pull/163)
