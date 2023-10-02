@@ -234,25 +234,25 @@ func TestPlainCodec(t *testing.T) {
 
 		var dagFormattedResponse []byte
 
-		tests := &SugarTests{}
-		tests.Append(
-			helpers.IncludeRandomRangeTests(t,
-				SugarTest{
-					Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
-					Hint: `
+		tests := SugarTests{}.
+			Append(
+				helpers.IncludeRandomRangeTests(t,
+					SugarTest{
+						Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
+						Hint: `
 				No explicit format, just codec in CID
 				`,
-					Request: Request().
-						Path("/ipfs/{{cid}}", plainCID),
-					Response: Expect().
-						Headers(
-							Header("Content-Disposition").
-								Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
-						),
-				},
-				plain.RawData(),
-				Fmt("application/{{format}}", row.Format),
-			)...).
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
+							),
+					},
+					plain.RawData(),
+					Fmt("application/{{format}}", row.Format),
+				)...).
 			Append(
 				helpers.IncludeRandomRangeTests(t,
 					SugarTest{
@@ -323,7 +323,7 @@ func TestPlainCodec(t *testing.T) {
 				},
 			)
 
-		RunWithSpecs(t, *tests, specs.PathGatewayDAG)
+		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 
 		if dagFormattedResponse != nil {
 			rangeTests := helpers.OnlyRandomRangeTests(t,

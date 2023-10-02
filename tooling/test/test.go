@@ -25,8 +25,8 @@ type SugarTest struct {
 
 type SugarTests []SugarTest
 
-func (s *SugarTests) Append(tests ...SugarTest) *SugarTests {
-	*s = append(*s, tests...)
+func (s SugarTests) Append(tests ...SugarTest) SugarTests {
+	s = append(s, tests...)
 	return s
 }
 
