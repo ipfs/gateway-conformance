@@ -6,6 +6,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
+	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
@@ -231,86 +232,121 @@ func TestPlainCodec(t *testing.T) {
 		plainCID := plain.Cid()
 		plainOrDagCID := plainOrDag.Cid()
 
-		tests := SugarTests{
-			{
-				Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
-				Hint: `
+		var dagFormattedResponse []byte
+
+		tests := SugarTests{}.
+			Append(
+				helpers.IncludeRandomRangeTests(t,
+					SugarTest{
+						Name: Fmt(`GET {{name}} without Accept or format= has expected "{{format}}" Content-Type and body as-is`, row.Name, row.Format),
+						Hint: `
 				No explicit format, just codec in CID
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
-						Header("Content-Type").
-							Contains(Fmt("application/{{format}}", row.Format)),
-					).Body(
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(Fmt(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format)),
+							),
+					},
 					plain.RawData(),
-				),
-			},
-			{
-				Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
-				Hint: `
+					Fmt("application/{{format}}", row.Format),
+				)...).
+			Append(
+				helpers.IncludeRandomRangeTests(t,
+					SugarTest{
+						Name: Fmt("GET {{name}} with ?format= has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
+						Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID).
-					Query("format", row.Format),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-						Header("Content-Type").
-							Contains("application/{{format}}", row.Format),
-					).Body(
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID).
+							Query("format", row.Format),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+							),
+					},
 					plain.RawData(),
-				),
-			},
-			{
-				Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is", row.Name, row.Format),
-				Hint: `
+					Fmt("application/{{format}}", row.Format),
+				)...).
+			Append(
+				helpers.IncludeRandomRangeTests(t,
+					SugarTest{
+						Name: Fmt("GET {{name}} with Accept has expected {{format}} Content-Type and body as-is, with single range request", row.Name, row.Format),
+						Hint: `
 				Explicit format still gives correct output, just codec in CID
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainCID).
-					Header("Accept", Fmt("application/{{format}}", row.Format)),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
-						Header("Content-Type").
-							Contains("application/{{format}}", row.Format),
-					).Body(
+						Request: Request().
+							Path("/ipfs/{{cid}}", plainCID).
+							Headers(
+								Header("Accept", Fmt("application/{{format}}", row.Format)),
+							),
+						Response: Expect().
+							Headers(
+								Header("Content-Disposition").
+									Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainCID, row.Format),
+							),
+					},
 					plain.RawData(),
-				),
-			},
-			{
-				Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
-				Hint: `
+					Fmt("application/{{format}}", row.Format),
+				)...).
+			Append(
+				SugarTest{
+					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
+					Hint: `
 				Explicit dag-* format passed, attempt to parse as dag* variant
 				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
 				`,
-				Request: Request().
-					Path("/ipfs/{{cid}}", plainOrDagCID).
-					Query("format", Fmt("dag-{{format}}", row.Format)),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
-						Header("Content-Type").
-							Contains("application/vnd.ipld.dag-{{format}}", row.Format),
-					).Body(
-					row.Checker(formatted),
-				),
-			},
-		}
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainOrDagCID).
+						Query("format", Fmt("dag-{{format}}", row.Format)),
+					Response: Expect().
+						Status(200).
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
+							Header("Content-Type").
+								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
+						).Body(
+						Checks("", func(t []byte) bool {
+							innerCheck := row.Checker(formatted).Check(t)
+							if innerCheck.Success {
+								dagFormattedResponse = t
+								return true
+							}
+							return false
+						}),
+					),
+				},
+			)
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
+
+		if dagFormattedResponse != nil {
+			rangeTests := helpers.OnlyRandomRangeTests(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body, with single range request", row.Name, row.Format),
+					Hint: `
+				Explicit dag-* format passed, attempt to parse as dag* variant
+				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
+				`,
+					Request: Request().
+						Path("/ipfs/{{cid}}", plainOrDagCID).
+						Query("format", Fmt("dag-{{format}}", row.Format)),
+					Response: Expect().
+						Headers(
+							Header("Content-Disposition").
+								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
+						),
+				},
+				dagFormattedResponse,
+				Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
+			)
+			RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
+		}
 	}
 }
 
@@ -577,8 +613,124 @@ func TestNativeDag(t *testing.T) {
 				),
 			},
 		}
+		tests.Append(helpers.OnlyRandomRangeTests(t,
+			SugarTest{
+				Name: Fmt("GET {{name}} on /ipfs with no explicit header", row.Name),
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagTraversalCID),
+				Response: Expect(),
+			},
+			dagTraversal.RawData(), Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
+		)...).Append(
+			helpers.OnlyRandomRangeTests(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} on /ipfs with dag content headers", row.Name),
+					Request: Request().
+						Path("/ipfs/{{cid}}/", dagTraversalCID).
+						Headers(
+							Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
+						),
+					Response: Expect(),
+				},
+				dagTraversal.RawData(),
+				Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
+			)...).Append(
+			helpers.OnlyRandomRangeTests(t,
+				SugarTest{
+					Name: Fmt("GET {{name}} on /ipfs with non-dag content headers", row.Name),
+					Request: Request().
+						Path("/ipfs/{{cid}}/", dagTraversalCID).
+						Headers(
+							Header("Accept", "application/{{format}}", row.Format),
+						),
+					Response: Expect(),
+				},
+				dagTraversal.RawData(),
+				Fmt("application/{{format}}", row.Format),
+			)...)
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
+	}
+
+	dagCborFixture := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
+	dagCborCID := dagCborFixture.Cid()
+	var dagJsonConvertedData []byte
+	RunWithSpecs(t, SugarTests{
+		SugarTest{
+			Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json",
+			Hint: "",
+			Request: Request().
+				Path("/ipfs/{{cid}}/", dagCborCID).
+				Headers(
+					Header("Accept", "application/vnd.ipld.dag-json"),
+				),
+			Response: Expect().Body(Checks("", func(t []byte) bool {
+				innerCheck := IsJSONEqual(dagCborFixture.Formatted("dag-json")).Check(t)
+				if innerCheck.Success {
+					dagJsonConvertedData = t
+					return true
+				}
+				return false
+			})),
+		},
+	}, specs.PathGatewayDAG)
+
+	if dagJsonConvertedData != nil {
+		rangeTests := helpers.OnlyRandomRangeTests(
+			t,
+			SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "application/vnd.ipld.dag-json"),
+					),
+				Response: Expect(),
+			},
+			dagJsonConvertedData,
+			"application/vnd.ipld.dag-json")
+
+		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
+	}
+
+	var dagCborHTMLRendering []byte
+	RunWithSpecs(t, SugarTests{
+		SugarTest{
+			Name: "Convert application/vnd.ipld.dag-cbor to text/html",
+			Hint: "",
+			Request: Request().
+				Path("/ipfs/{{cid}}/", dagCborCID).
+				Headers(
+					Header("Accept", "text/html"),
+				),
+			Response: Expect().Body(Checks("", func(t []byte) bool {
+				innerCheck := Contains("</html>").Check(string(t))
+				if innerCheck.Success {
+					dagCborHTMLRendering = t
+					return true
+				}
+				return false
+			})),
+		},
+	}, specs.PathGatewayDAG)
+
+	if dagCborHTMLRendering != nil {
+		rangeTests := helpers.OnlyRandomRangeTests(t,
+			SugarTest{
+				Name: "Convert application/vnd.ipld.dag-cbor to text/html with range request includes correct bytes",
+				Hint: "",
+				Request: Request().
+					Path("/ipfs/{{cid}}/", dagCborCID).
+					Headers(
+						Header("Accept", "text/html"),
+					),
+				Response: Expect(),
+			},
+			dagCborHTMLRendering,
+			"text/html")
+
+		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 	}
 }
 

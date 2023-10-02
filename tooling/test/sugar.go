@@ -1,8 +1,12 @@
 package test
 
 import (
+	"fmt"
+	"net/http"
 	"net/url"
+	"testing"
 
+	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
@@ -133,6 +137,11 @@ func (r RequestBuilder) Clone() RequestBuilder {
 	}
 }
 
+type ExpectValidator interface {
+	Validate(t *testing.T, res *http.Response, localReport Reporter)
+	Clone() ExpectValidator
+}
+
 type ExpectBuilder struct {
 	StatusCode_     int             `json:"statusCode,omitempty"`
 	StatusCodeFrom_ int             `json:"statusCodeFrom,omitempty"`
@@ -141,6 +150,8 @@ type ExpectBuilder struct {
 	Body_           interface{}     `json:"body,omitempty"`
 	Specs_          []string        `json:"specs,omitempty"`
 }
+
+var _ ExpectValidator = (*ExpectBuilder)(nil)
 
 func Expect() ExpectBuilder {
 	return ExpectBuilder{Body_: nil}
@@ -227,6 +238,150 @@ func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder
 	return e
 }
 
+func (e ExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+	tooling.LogSpecs(t, e.Specs_...)
+
+	checks := validateResponse(t, e, res)
+	for _, c := range checks {
+		t.Run(c.testName, func(t *testing.T) {
+			tooling.LogSpecs(t, c.specs...)
+			if !c.checkOutput.Success {
+				localReport(t, c.checkOutput.Reason)
+			}
+		})
+	}
+}
+
+// Clone performs a deep clone of the ExpectBuilder
+// Note: if there are [check.Check]s used in the inner header or body components those are only shallowly cloned
+func (e ExpectBuilder) Clone() ExpectValidator {
+	clone := ExpectBuilder{}
+	var clonedHeaders []HeaderBuilder
+	for _, h := range e.Headers_ {
+		clonedHeaders = append(clonedHeaders, h.Clone())
+	}
+	clone.StatusCode_ = e.StatusCode_
+	clone.Headers_ = clonedHeaders
+
+	if e.Body_ == nil {
+		return clone
+	}
+
+	switch body := e.Body_.(type) {
+	case string:
+		clone.Body_ = body
+	case []byte:
+		clone.Body_ = body[:]
+	case check.CheckWithHint[string]:
+		clone.Body_ = body
+	case check.CheckWithHint[[]byte]:
+		clone.Body_ = body
+	case check.Check[string]:
+		clone.Body_ = body
+	case check.Check[[]byte]:
+		clone.Body_ = body
+	default:
+		panic("body must be string, []byte, or a regular check")
+	}
+	return clone
+}
+
+type AllOfExpectBuilder struct {
+	Expect_ []ExpectValidator `json:"expect,omitempty"`
+}
+
+var _ ExpectValidator = (*AllOfExpectBuilder)(nil)
+
+func AllOf(expect ...ExpectValidator) AllOfExpectBuilder {
+	return AllOfExpectBuilder{Expect_: expect}
+}
+
+func (e AllOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+
+	for i, expect := range e.Expect_ {
+		t.Run(
+			fmt.Sprintf("Check %d", i), func(t *testing.T) {
+				expect.Validate(t, res, localReport)
+			})
+	}
+}
+
+// Clone performs a deep clone of the AllOfExpectBuilder
+// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
+// shallowly cloned
+func (e AllOfExpectBuilder) Clone() ExpectValidator {
+	var clonedInnerValidators []ExpectValidator
+	for _, eb := range e.Expect_ {
+		clonedInnerValidators = append(clonedInnerValidators, eb.Clone())
+	}
+	clone := AllOfExpectBuilder{Expect_: clonedInnerValidators}
+	return clone
+}
+
+type AnyOfExpectBuilder struct {
+	Expect_ []ExpectBuilder `json:"expect,omitempty"`
+}
+
+var _ ExpectValidator = (*AnyOfExpectBuilder)(nil)
+
+func AnyOf(expect ...ExpectBuilder) AnyOfExpectBuilder {
+	return AnyOfExpectBuilder{Expect_: expect}
+}
+
+func (e AnyOfExpectBuilder) Validate(t *testing.T, res *http.Response, localReport Reporter) {
+	t.Helper()
+
+	if len(e.Expect_) == 0 {
+		return
+	}
+
+	hadASuccessfulResponse := false
+	for i, expect := range e.Expect_ {
+		checks := validateResponse(t, expect, res)
+		responseSucceeded := true
+		for _, c := range checks {
+			if !c.checkOutput.Success {
+				responseSucceeded = false
+				break
+			}
+		}
+		if responseSucceeded {
+			hadASuccessfulResponse = true
+		}
+
+		t.Run(fmt.Sprintf("Check %d", i),
+			func(t *testing.T) {
+				if !responseSucceeded {
+					for _, c := range checks {
+						if c.checkOutput.Success {
+							t.Logf("Test %s passed", c.testName)
+						} else {
+							t.Logf("Test %s failed with: %s", c.testName, c.checkOutput.Reason)
+						}
+					}
+				}
+			})
+	}
+
+	if !hadASuccessfulResponse {
+		localReport(t, "none of the response options were valid")
+	}
+}
+
+// Clone performs a deep clone of the AnyOfExpectBuilder
+// Note: if there are [check.Check]s used in the header or body components of the nested builders those are only
+// shallowly cloned
+func (e AnyOfExpectBuilder) Clone() ExpectValidator {
+	var clonedInnerBuilders []ExpectBuilder
+	for _, eb := range e.Expect_ {
+		clonedInnerBuilders = append(clonedInnerBuilders, eb.Clone().(ExpectBuilder))
+	}
+	clone := AnyOfExpectBuilder{Expect_: clonedInnerBuilders}
+	return clone
+}
+
 type HeaderBuilder struct {
 	Key_   string                `json:"key,omitempty"`
 	Value_ string                `json:"value,omitempty"`
@@ -311,6 +466,19 @@ func (h HeaderBuilder) Not() HeaderBuilder {
 
 func (h HeaderBuilder) Exists() HeaderBuilder {
 	return h.Not().IsEmpty()
+}
+
+// Clone performs a shallow clone of the HeaderBuilder
+// Note: The Check field is an interface and as a result is just copied
+func (h HeaderBuilder) Clone() HeaderBuilder {
+	clone := HeaderBuilder{
+		Key_:   h.Key_,
+		Value_: h.Key_,
+		Check_: h.Check_,
+		Hint_:  h.Hint_,
+		Not_:   h.Not_,
+	}
+	return clone
 }
 
 type ExpectsBuilder struct {

@@ -1,94 +1,104 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
 
-	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/check"
 )
+
+type testCheckOutput struct {
+	testName    string
+	specs       []string
+	checkOutput check.CheckOutput
+}
 
 func validateResponse(
 	t *testing.T,
 	expected ExpectBuilder,
 	res *http.Response,
-	localReport Reporter,
-) {
+) []testCheckOutput {
 	t.Helper()
-	tooling.LogSpecs(t, expected.Specs_...)
+
+	var outputs []testCheckOutput
 
 	if expected.StatusCode_ != 0 {
-		t.Run("Status code", func(t *testing.T) {
-			if res.StatusCode != expected.StatusCode_ {
-				localReport(t, "Status code is not %d. It is %d", expected.StatusCode_, res.StatusCode)
-			}
-		})
+		output := testCheckOutput{testName: "Status code", checkOutput: check.CheckOutput{Success: true}}
+		if res.StatusCode != expected.StatusCode_ {
+			output.checkOutput.Success = false
+			output.checkOutput.Reason = fmt.Sprintf("Status code is not %d. It is %d", expected.StatusCode_, res.StatusCode)
+		}
+		outputs = append(outputs, output)
 	} else if expected.StatusCodeFrom_ != 0 && expected.StatusCodeTo_ != 0 {
-		t.Run("Status code", func(t *testing.T) {
-			if res.StatusCode < expected.StatusCodeFrom_ || res.StatusCode > expected.StatusCodeTo_ {
-				localReport(t, "Status code is not between %d and %d. It is %d", expected.StatusCodeFrom_, expected.StatusCodeTo_, res.StatusCode)
-			}
-		})
+		output := testCheckOutput{testName: "Status code", checkOutput: check.CheckOutput{Success: true}}
+		if res.StatusCode < expected.StatusCodeFrom_ || res.StatusCode > expected.StatusCodeTo_ {
+			output.checkOutput.Success = false
+			output.checkOutput.Reason = fmt.Sprintf("Status code is not between %d and %d. It is %d", expected.StatusCodeFrom_, expected.StatusCodeTo_, res.StatusCode)
+		}
 	}
 
 	for _, header := range expected.Headers_ {
-		t.Run(fmt.Sprintf("Header %s", header.Key_), func(t *testing.T) {
-			tooling.LogSpecs(t, header.Specs_...)
-			actual := res.Header.Values(header.Key_)
+		testName := fmt.Sprintf("Header %s", header.Key_)
+		actual := res.Header.Values(header.Key_)
 
-			c := header.Check_
-			if header.Not_ {
-				c = check.Not(c)
-			}
-			output := c.Check(actual)
+		c := header.Check_
+		if header.Not_ {
+			c = check.Not(c)
+		}
+		output := c.Check(actual)
 
-			if !output.Success {
-				if header.Hint_ == "" {
-					localReport(t, "Header '%s' %s", header.Key_, output.Reason)
-				} else {
-					localReport(t, "Header '%s' %s (%s)", header.Key_, output.Reason, header.Hint_)
-				}
+		if !output.Success {
+			if header.Hint_ == "" {
+				output.Reason = fmt.Sprintf("Header '%s' %s", header.Key_, output.Reason)
+			} else {
+				output.Reason = fmt.Sprintf("Header '%s' %s (%s)", header.Key_, output.Reason, header.Hint_)
 			}
-		})
+		}
+
+		outputs = append(outputs, testCheckOutput{testName: testName, checkOutput: output, specs: header.Specs_})
 	}
 
 	if expected.Body_ != nil {
-		t.Run("Body", func(t *testing.T) {
-			defer res.Body.Close()
-			resBody, err := io.ReadAll(res.Body)
-			if err != nil {
-				localReport(t, err)
-			}
+		defer res.Body.Close()
+		resBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			outputs = append(outputs, testCheckOutput{testName: "Body", checkOutput: check.CheckOutput{Success: false, Reason: err.Error()}})
+			return outputs
+		}
+		res.Body = io.NopCloser(bytes.NewBuffer(resBody))
 
-			var output check.CheckOutput
+		var output check.CheckOutput
 
-			switch v := expected.Body_.(type) {
-			case check.Check[string]:
-				output = v.Check(string(resBody))
-			case check.Check[[]byte]:
-				output = v.Check(resBody)
-			case string:
-				output = check.IsEqual(v).Check(string(resBody))
-			case []byte:
-				output = check.IsEqualBytes(v).Check(resBody)
-			default:
-				output = check.CheckOutput{
-					Success: false,
-					Reason:  fmt.Sprintf("Body check has an invalid type: %T", expected.Body_),
-				}
+		switch v := expected.Body_.(type) {
+		case check.Check[string]:
+			output = v.Check(string(resBody))
+		case check.Check[[]byte]:
+			output = v.Check(resBody)
+		case string:
+			output = check.IsEqual(v).Check(string(resBody))
+		case []byte:
+			output = check.IsEqualBytes(v).Check(resBody)
+		default:
+			output = check.CheckOutput{
+				Success: false,
+				Reason:  fmt.Sprintf("Body check has an invalid type: %T", expected.Body_),
 			}
+		}
 
-			if !output.Success {
-				if output.Hint == "" {
-					localReport(t, "Body %s", output.Reason)
-				} else {
-					localReport(t, "Body %s (%s)", output.Reason, output.Hint)
-				}
+		if !output.Success {
+			if output.Hint == "" {
+				output.Reason = fmt.Sprintf("Body %s", output.Reason)
+			} else {
+				output.Reason = fmt.Sprintf("Body %s (%s)", output.Reason, output.Hint)
 			}
-		})
+		}
+
+		outputs = append(outputs, testCheckOutput{testName: "Body", checkOutput: output})
 	}
+	return outputs
 }
 
 func readPayload(res *http.Response) ([]byte, error) {
