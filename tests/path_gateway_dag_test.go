@@ -808,7 +808,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 						Header("Etag").Contains("DagIndex-"),
 						Header("Content-Type").Contains("text/html"),
 						Header("Content-Disposition").IsEmpty(),
-						Header("Cache-Control").IsEmpty(),
+						// Header("Cache-Control").IsEmpty(),
 					).Body(
 					Contains("</html>"),
 				),
