@@ -181,7 +181,7 @@ func IncludeRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []strin
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
 func IncludeRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []byte, contentType string) test.SugarTests {
-	return includeRangeTests(t, baseTest, nil, fullData, contentType)
+	return includeRangeTests(t, baseTest, makeRandomByteRanges(fullData), fullData, contentType)
 }
 
 func includeRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
@@ -238,22 +238,10 @@ func OnlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, 
 // Note: HTTP Multi Range requests can be validly responded with one of the full data, the partial data from the first
 // range, or the partial data from all the requested ranges
 func OnlyRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []byte, contentType string) test.SugarTests {
-	return onlyRangeTests(t, baseTest, nil, fullData, contentType)
+	return onlyRangeTests(t, baseTest, makeRandomByteRanges(fullData), fullData, contentType)
 }
 
 func onlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
-	if len(byteRanges) == 0 {
-		dataLen := len(fullData)
-		if dataLen < 10 {
-			panic("transformation not defined for data smaller than 10 bytes")
-		}
-
-		byteRanges = []string{
-			"bytes=7-9",
-			"bytes=1-3",
-		}
-	}
-
 	singleBaseRequest := baseTest.Request.Clone()
 	if contentType != "" {
 		singleBaseRequest = singleBaseRequest.Header("Content-Type", contentType)
@@ -279,4 +267,16 @@ func onlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, 
 	}
 	multiRange := MultiRangeTestTransform(t, multiBase, byteRanges, fullData, contentType)
 	return test.SugarTests{singleRange, multiRange}
+}
+
+func makeRandomByteRanges(fullData []byte) []string {
+	dataLen := len(fullData)
+	if dataLen < 10 {
+		panic("transformation not defined for data smaller than 10 bytes")
+	}
+
+	return []string{
+		"bytes=7-9",
+		"bytes=1-3",
+	}
 }
