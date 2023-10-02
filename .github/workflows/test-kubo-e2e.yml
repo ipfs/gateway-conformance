@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['latest', 'master']
+        target: ['latest', 'master', 'ns-cleanup']
     defaults:
       run:
         shell: bash
