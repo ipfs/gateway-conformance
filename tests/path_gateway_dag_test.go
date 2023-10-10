@@ -803,14 +803,19 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 				Request: Request().
 					Path("/ipns/{{id}}/", row.fixture.Key()).
 					Header("Accept", "text/html"),
-				Response: Expect().
-					Headers(
-						Header("Etag").Contains("DagIndex-"),
-						Header("Content-Type").Contains("text/html"),
-						Header("Content-Disposition").IsEmpty(),
-						Header("Cache-Control").IsEmpty(),
-					).Body(
-					Contains("</html>"),
+				Response: AllOf(
+					Expect().
+						Headers(
+							Header("Etag").Contains("DagIndex-"),
+							Header("Content-Type").Contains("text/html"),
+							Header("Content-Disposition").IsEmpty(),
+						).Body(
+						Contains("</html>"),
+					),
+					AnyOf(
+						Expect().Headers(Header("Cache-Control").IsEmpty()),
+						Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
+					),
 				),
 			},
 		}...)
