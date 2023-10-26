@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - feat/fleek
   schedule:
     - cron: "* */1 * * *" # every one hour
 
