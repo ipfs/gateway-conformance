@@ -1,6 +1,22 @@
+@import "./ipseity.css";
+
+@import "./ipfs-specs.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.bg-specs-gradient {
+  background: var(--ipfs-brand-gradient);
+}
+
+.bg-specs-nav {
+  background: var(--ipfs-gradient-0-background-image);
+}
+
+.text-white-specs {
+  color: var(--ipfs-off-white);
+}
 
 article {
   @apply text-gray-700 leading-relaxed;

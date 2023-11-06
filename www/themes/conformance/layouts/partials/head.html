@@ -1,5 +1,7 @@
+<link rel="stylesheet" href="https://raw.githubusercontent.com/ipfs/spec-generator/main/static/css/ipseity.min.css"/>
+
 {{ $styles := resources.Get "style.css" }}
-<link rel="stylesheet" href="{{ $styles.RelPermalink }}">    
+<link rel="stylesheet" href="{{ $styles.RelPermalink }}"/>
 
 {{ with .Params.RedirectsTo }}
     <meta http-equiv="refresh" content="0; url={{ . | absURL }}"/>

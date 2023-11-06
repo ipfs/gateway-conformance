@@ -1,0 +1,91 @@
+/* chunks of this stolen and repurposed from ipfs-css then ipfs/spec-generator
+
+See: https://github.com/ipfs-shipyard/ipfs-css
+See: https://github.com/ipfs/spec-generator
+
+General guidelines from the IPFS Brand Sheet:
+https://www.figma.com/proto/mH0OlgikgKzLmbMNO3noBs/IPFS-Brand-sheet-public?node-id=22%3A2
+*/
+
+:root {
+  --ipfs-sans-serif: 'Plex', system-ui, sans-serif;
+  --ipfs-monospace: Consolas, monaco, monospace;
+
+  --ipfs-dark-blue: #0d1644;
+  --ipfs-steel-grey: #2d3662;
+  --ipfs-ash-grey: #616785;
+  --ipfs-stone-grey: #c4c7d6;
+  --ipfs-pearl-grey: #f5f7fd;
+  --ipfs-off-white: #f0f6f9;
+  --ipfs-navy: #073a53;
+  --ipfs-teal: #6bc4ce;
+  --ipfs-turquoise: #47afb4;
+  --ipfs-jade: #3b8c90;
+  --ipfs-yellow: #f39106;
+  --ipfs-carmine: #e9502f;
+  --ipfs-bright: #06f391;
+
+  --ipfs-brand-gradient: linear-gradient(to top right, var(--ipfs-navy), #43979b);
+  --ipfs-brand-gradient-back: linear-gradient(to bottom left, var(--ipfs-navy), #43979b);
+  --ipfs-gradient-0-background-image: linear-gradient(to top, #041727 0%,#043b55 100%);
+
+  --ipfs-text: #0b2c41;
+  --thin: 100;
+  --weight-extra-light: 200;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semi-bold: 600;
+  --weight-bold: 700;
+  --size-h1: 3.125rem;
+  --size-h2: 2.25rem;
+  --size-h3: 1.875rem;
+  --size-h4: 1.75rem;
+  --size-h5: 1.25rem;
+  --size-p: 1rem;
+  --size-mono: 0.9rem;
+
+  --bg: var(--ipfs-off-white);
+  --fg: var(--ipfs-text);
+  --stark-bg: #fff;
+  --stark-fg: #000;
+  --max-readable-width: 50rem;
+  --max-page-width: 82rem;
+  --heading-family: var(--ipfs-sans-serif);
+  --body-family: var(--ipfs-sans-serif);
+  --highlight-colour: var(--ipfs-jade);
+  --highlight-colour-faded: var(--ipfs-turquoise);
+  --secondary-highlight: var(--ipfs-bright);
+  --link-colour: var(--highlight-colour);
+  --issue-colour: var(--ipfs-carmine);
+  --warning-colour: var(--ipfs-yellow);
+  --example-colour: var(--ipfs-ash-grey);
+  --note-colour: var(--secondary-highlight);
+  --standard-gradient: linear-gradient(to right, var(--ipfs-navy), var(--highlight-colour));
+  --contrast-bg: transparent;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--body-family);
+}
+h1 {
+  font-family: var(--heading-family);
+  font-size: var(--size-h1);
+}
+h2 { font-size: var(--size-h2); }
+h3 { font-size: var(--size-h3); }
+h4 { font-size: var(--size-h4); }
+h5 { font-size: var(--size-h5); }
+h6 { font-size: var(--size-p); }
+
+a {
+  color: var(--link-colour);
+}

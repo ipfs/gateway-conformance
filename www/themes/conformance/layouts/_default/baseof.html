@@ -4,10 +4,23 @@
 
   <body>
     {{- partial "header.html" . -}}
-    {{- block "breadcrumbs" . }}
-      {{ partial "breadcrumbs.html" . }}
-    {{- end -}}
-    <div id="content" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+    {{ if .Page.Params.showHero }}
+    <header class="specs-hero bg-specs-gradient">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 text-white">
+        <img src="{{ "logo.png" | absURL }}" alt="Conformance Testing Logo" class="w-32 h-32" />
+        <h1 class="my-6">
+        IPFS Gateway Conformance
+        </h1>
+        <p>
+          The purpose of <em>IPFS Gateway Conformance</em> is to provide a vendor-agnostic gateway conformance test suite for users and implementers of IPFS Gateways. We ensure compliance with <a href="https://specs.ipfs.tech/http-gateways/">specs.ipfs.tech</a>.
+          Find us on <a href="https://github.com/ipfs/gateway-conformance">Github</a>.
+        </p>
+      </div>
+    </header>
+    {{ end }}
+
+    <div id="content" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div class="mx-auto max-w-5xl">{{- block "main" . }}{{- end }}</div>
     </div>
     {{- partial "footer.html" . -}}
