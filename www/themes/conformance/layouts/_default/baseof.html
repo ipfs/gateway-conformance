@@ -12,11 +12,20 @@
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 text-white">
         <img src="{{ "logo.png" | absURL }}" alt="Conformance Testing Logo" class="w-32 h-32" />
         <h1 class="my-6">
-        IPFS Gateway Conformance
+        IPFS Gateway Conformance Test Suite
         </h1>
         <p>
-          The purpose of <em>IPFS Gateway Conformance</em> is to provide a vendor-agnostic gateway conformance test suite for users and implementers of IPFS Gateways. We ensure compliance with <a href="https://specs.ipfs.tech/http-gateways/">specs.ipfs.tech</a>.
-          Find us on <a href="https://github.com/ipfs/gateway-conformance">Github</a>.
+          The purpose of <em>IPFS Gateway Conformance</em> is to provide a HTTP-based, vendor-agnostic conformance test suite for users and implementers of IPFS.
+        </p>
+        <p>
+          It ensures implementations comply with a subset of <a
+            href="https://specs.ipfs.tech/">IPFS Specifications</a> beyond HTTP
+          Gateway functionality. Tests included in this suite can be used to verify the
+          implementations of data formats beyond raw blocks and
+          CARs, such as HAMT-sharded UnixFS, DAG-CBOR, or even DNSLink and IPNS Records.
+        </p>
+        <p>
+          Learn how to use this in your own project on <a href="https://github.com/ipfs/gateway-conformance#readme">Github</a>.
         </p>
       </div>
     </header>
