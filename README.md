@@ -17,6 +17,7 @@
 - [Local Development](#local-development)
 - [Examples](#examples)
 - [APIs](#apis)
+- [Building the Dashboard](#building-the-dashboard)
 - [FAQ](#faq)
 - [In Development](#in-development)
 
@@ -300,6 +301,17 @@ This templating is used almost everywhere in the test sugar, for example in requ
 ```golang
 Request().Path("ipfs/{{cid}}", myCid) // will use "ipfs/Qm...."
 ```
+
+## Building the Dashboard
+
+The gateway conformance test suite includes a web dashboard. This dashboard aggregates results from many test runs and renders them on a static website. This'll give you more detailed insights and navigation options.
+
+To build the dashboard:
+
+- Set up a GitHub Token: Ensure you have a GitHub Token with `repo:read` scope. This is required to download artifacts.
+- Run the Build Command: `GH_TOKEN=your_github_token make website`
+
+This command downloads the latest test artifacts from the repositories listed in the `./REPOSITORIES` file. Then it generates a static website with Hugo in the `www/public` directory.
 
 ## FAQ
 
