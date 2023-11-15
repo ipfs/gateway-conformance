@@ -72,10 +72,10 @@ aggregates.db: artifacts
 	rm -f ./aggregates.db
 	node ./munge_sql.js ./aggregates.db ./artifacts/*.json
 
-www_content: aggregates.db
+website_content: aggregates.db
 	node ./munge_aggregates.js ./aggregates.db ./www
 
-www: www_content
+website: website_content
 	cd www && hugo --minify $(if ${OUTPUT_BASE_URL},--baseURL ${OUTPUT_BASE_URL})
 
 .PHONY: gateway-conformance

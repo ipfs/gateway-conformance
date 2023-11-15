@@ -42,7 +42,7 @@ jobs:
       - name: Build
         run: |
           npm ci
-          make www
+          make website
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUTPUT_BASE_URL: ${{ steps.pages.outputs.base_url }}
