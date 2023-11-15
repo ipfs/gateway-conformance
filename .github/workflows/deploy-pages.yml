@@ -51,7 +51,7 @@ jobs:
         if: (failure() || success())
         uses: actions/upload-artifact@v3
         with:
-          name: repositories_artifacts
+          name: artifacts
           path: |
             ./artifacts
       - name: Upload artifact
