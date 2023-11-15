@@ -131,7 +131,8 @@ const main = async () => {
         const { TestMetadata, ...tests } = content;
 
         const time = TestMetadata?.time;
-        const { version, job_url } = TestMetadata?.meta || {};
+        const version = TestMetadata?.meta?.version || 'unknown';
+        const job_url = TestMetadata?.meta?.job_url || null;
 
         await run(`
             INSERT INTO TestRun (implementation_id, version, time, job_url)

@@ -10,7 +10,9 @@
 	{{.TableOfContents}}
 
 	{{.Content}}
-    {{ partial "result-table.html" .Params }}
+    <div class="p-4 bg-white shadow-md rounded-lg">
+      {{ partial "result-table.html" .Params }}
+    </div>
 
     <h3>Logs
     {{ if (and (isset .Params "implementation_id") (isset .Params "version")) }}
