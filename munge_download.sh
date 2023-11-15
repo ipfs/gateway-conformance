@@ -11,14 +11,7 @@ fi
 # if GH_TOKEN is empty, show a message to the user
 if [ -z "$GH_TOKEN" ]; then
     echo "::warning::GH_TOKEN is required to download the build artifact."
-    echo "You can also download the artifacts file from the latest CI run:"
-    echo "https://github.com/ipfs/gateway-conformance/actions/workflows/deploy-pages.yml"
-
-    # if the output folder contains some json files, we'll assume that the user has already downloaded them and move on.
-    if [ -z "$(ls -A $1/*.json 2>/dev/null)" ]; then
-        echo "::error::GH_TOKEN is required to download the build artifact."
-        exit 1
-    fi
+    exit 1
 fi
 
 if ! command -v jq &> /dev/null || ! command -v unzip &> /dev/null; then
