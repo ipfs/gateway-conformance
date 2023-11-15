@@ -22,56 +22,12 @@ defaults:
     shell: bash
 
 jobs:
-  # Pulls the output.json from the latest successful run of the gateway-conformance.yml workflow
-  # and stores these as an artifacts for the build job.
-  pull-outputs:
-    runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        target: ["ipfs/kubo", "ipfs/boxo", "ipfs/bifrost-gateway"]
-      fail-fast: false
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: get repo details
-        id: get-details
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OWNER_AND_REPO: ${{ matrix.target }}
-        run: |
-          DETAILS=$(gh api repos/${OWNER_AND_REPO})
-
-          DEFAULT_BRANCH=$(echo $DETAILS | jq -r '.default_branch')
-          echo "default-branch=${DEFAULT_BRANCH}" >> $GITHUB_OUTPUT
-
-          NAME=$(echo $DETAILS | jq -r '.name')
-          echo "name=${NAME}" >> $GITHUB_OUTPUT
-      - name: Download json output
-        id: download-artifact
-        uses: dawidd6/action-download-artifact@v2 # TODO: pin
-        with:
-          workflow: gateway-conformance.yml
-          workflow_conclusion: "completed" # TODO: ideally we could request success|failure (https://github.com/dawidd6/action-download-artifact#usage)
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.get-details.outputs.default-branch }}
-          name: gateway-conformance.json
-          repo: ${{ matrix.target }}
-          if_no_artifact_found: fail
-      - name: Upload JSON output
-        if: (failure() || success())
-        uses: actions/upload-artifact@v3
-        with:
-          name: conformance-${{ steps.get-details.outputs.name }}.json
-          path: ./output.json
-  # https://github.com/actions/starter-workflows/blob/4a8f18e34dd13d2b6ee4d8da2ba72629eafe1609/pages/hugo.yml#L1
   build:
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.117.0
     permissions:
       contents: write
-    needs: [pull-outputs]
     steps:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@16361eb4acea8698b220b76c0d4e84e1fd22c61d # v2.6.0
@@ -83,44 +39,21 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v1
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
-      - name: Generate Data Aggregates
-        working-directory: ./
+      - name: Build
         run: |
           npm ci
-          mkdir ./munged
-
-          # download-artifact downloads artifacts in a directory named after the artifact
-          # details: https://github.com/actions/download-artifact#download-all-artifacts
-          for folder in ./artifacts/conformance-*.json; do
-            file="${folder}/output.json"
-            new_file="./munged/${folder#.\/artifacts\/conformance-}" # drop the ./artifacts/conformance- prefix
-            cat "$file" | node ./munge.js > "${new_file}"
-          done
-
-          # generate the sqlite database from our munged files
-          node ./munge_sql.js ./aggregates.db ./munged/*.json
+          make www
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUTPUT_BASE_URL: ${{ steps.pages.outputs.base_url }}
       - name: Upload Data Aggregates
-        # will be very useful for local debugging
+        # Used for local debugging
         if: (failure() || success())
         uses: actions/upload-artifact@v3
         with:
-          name: dashboard-aggregates
+          name: repositories_artifacts
           path: |
-            ./munged
-            ./aggregates.db
-      - name: Generate Content
-        run: |
-          node ./munge_aggregates.js ./aggregates.db ./www
-      - name: Build with Hugo
-        run: |
-          hugo \
-            --minify \
-            --baseURL ${{ steps.pages.outputs.base_url }}
-        working-directory: www
+            ./artifacts
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
