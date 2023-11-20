@@ -48,6 +48,12 @@ Once you join the dashboard, your test results will be picked up automatically a
 
 This command downloads the latest test artifacts from the repositories listed in the `./REPOSITORIES` file. Then it generates a static website with Hugo in the `www/public` directory.
 
+### How to work on the Dashboard
+
+- Use `make website` to generate all the assets required to build the static dashboard
+- Use `cd ./www && hugo server` to start a local server with live-reload
+- Use `cd ./www/themes/conformance && npm run build` to re-build the theme's styles
+
 ## Commands
 
 ### test
