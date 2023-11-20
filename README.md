@@ -3,9 +3,7 @@
 > A tool designed to test if an IPFS Gateway implementation complies with the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/) correctly.  
 > Distributed as a Docker image, as well as a GitHub Action(s).
 
-- [Implementation Dashboard](#implementation-dashboard)
-  - [How it Works](#how-it-works)
-  - [Adding Your Implementation](#adding-your-implementation)
+- [Dashboard](#dashboard)
 - [Commands](#commands)
   - [`test`](#test)
     - [Inputs](#inputs)
@@ -20,28 +18,35 @@
 - [Local Development](#local-development)
 - [Examples](#examples)
 - [APIs](#apis)
-- [Dashboard](#dashboard)
-  - [Adding your gateway to the dashboard](#adding-your-gateway-to-the-dashboard)
-  - [Building the Dashboard](#building-the-dashboard)
 - [FAQ](#faq)
 - [In Development](#in-development)
 
-## Implementation Dashboard
+## Dashboard
 
-The [Implementation Dashboard](https://ipfs.github.io/gateway-conformance/) is a view that showcases different implementations of IPFS Gateways. It ensures the transparency and clarity of each implementation by utilizing the results from their latest gateway-conformance runs from their Continuous Integration (CI).
+The [Implementation Dashboard](https://ipfs.github.io/gateway-conformance/) is a view that showcases different implementations of IPFS Gateways. This dashboard aggregates results from many test runs and renders them on a static website. This'll give you more detailed insights and navigation options.
 
 ### How it Works
 
-For every implementations that have been added to the workflow, our dashboard generation workflow loads their most recent `gateway-conformance` test results from their CI.
+For every implementations that have been added to the `REPOSITORIES` file, our dashboard generation workflow loads the most recent `gateway-conformance` test results from their CI. You can try this locally with the `make website` command.
 
-### Adding Your Implementation
+### Adding your gateway to the dashboard
 
-To include your implementation in the dashboard:
+The dashboard is hosted at [conformance.ipfs.tech](https://conformance.ipfs.tech/). It aggregates test outputs from various IPFS implementations and renders them on a static website.
 
-1. Create a Pull Request modifying the file `/.github/workflows/deploy-pages.yml` and append your repository to the list of implementations.
-2. Ensure you have a workflow titled "gateway-conformance.yml" in your repository which is responsible for generating the `gateway-conformance.json` artifact.
+To add your gateway to the dashboard, you need to:
 
-For reference, you may review other implementations, like Boxo's [here](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml).
+- Ensure that your gateway's repository is public.
+- Ensure your gateway generates generates the `output.json` file in a `gateway-conformance.yml` file. Check [kubo's workflow](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) for an example.
+- Add your gateway to the list of repositories in the [REPOSITORIES](./REPOSITORIES) file.
+
+Once you join the dashboard, your test results will be picked up automatically and your implementation will show up on the dashboard.
+
+### Building the Dashboard
+
+- Set up a GitHub Token: Ensure you have a GitHub Token with `repo:read` scope. This is required to download artifacts.
+- Run the Build Command: `GH_TOKEN=your_github_token make website`
+
+This command downloads the latest test artifacts from the repositories listed in the `./REPOSITORIES` file. Then it generates a static website with Hugo in the `www/public` directory.
 
 ## Commands
 
@@ -323,29 +328,6 @@ This templating is used almost everywhere in the test sugar, for example in requ
 ```golang
 Request().Path("ipfs/{{cid}}", myCid) // will use "ipfs/Qm...."
 ```
-
-## Dashboard
-
-The gateway conformance test suite includes a web dashboard. This dashboard aggregates results from many test runs and renders them on a static website. This'll give you more detailed insights and navigation options.
-
-### Adding your gateway to the dashboard
-
-The dashboard is hosted at [conformance.ipfs.tech](https://conformance.ipfs.tech/). It aggregates test outputs from various IPFS implementations and renders them on a static website.
-
-To add your gateway to the dashboard, you need to:
-
-- Ensure that your gateway's repository is public.
-- Ensure your gateway generates generates the `output.json` file in a `gateway-conformance.yml` file. Check [kubo's workflow](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) for an example.
-- Add your gateway to the list of repositories in the [REPOSITORIES](./REPOSITORIES) file.
-
-Once you join the dashboard, your test results will be picked up automatically and your implementation will show up on the dashboard.
-
-### Building the Dashboard
-
-- Set up a GitHub Token: Ensure you have a GitHub Token with `repo:read` scope. This is required to download artifacts.
-- Run the Build Command: `GH_TOKEN=your_github_token make website`
-
-This command downloads the latest test artifacts from the repositories listed in the `./REPOSITORIES` file. Then it generates a static website with Hugo in the `www/public` directory.
 
 ## FAQ
 
