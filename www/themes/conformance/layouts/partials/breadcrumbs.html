@@ -1,23 +1,21 @@
 {{ define "breadcrumbitem" }}
-  <li>
-    <div class="flex items-center">
       {{ if (gt (len .Ancestors) 0) }}
         <svg
-        class="h-5 w-5 flex-shrink-0 text-gray-300"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        aria-hidden="true"
+          class="h-8 w-8 flex-shrink-0 text-gray-300 px-1 pt-1 pb-2"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          aria-hidden="true"
         >
           <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
         </svg>
       <a
         href="{{ .RelPermalink }}"
-        class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
+        class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 pb-2 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
         aria-current="page"
         >{{ .Title }}</a
       >
       {{ else }}
-        <a href="{{ .RelPermalink }}" class="text-gray-400 hover:text-gray-500">
+        {{/*  <a href="{{ .RelPermalink }}" class="text-gray-400 hover:text-gray-500">
           <svg
             class="h-5 w-5 flex-shrink-0"
             viewBox="0 0 20 20"
@@ -31,19 +29,11 @@
             />
           </svg>
           <span class="sr-only">{{ .Title }}</span>
-        </a>
+        </a>  */}}
       {{ end }}
-    </div>
-  </li>
 {{ end }}
 
-<div class="flex flex-col my-auto items-center">
-  <nav class="flex" aria-label="Breadcrumb">
-    <ol role="list" class="flex items-center space-x-4">
-      {{- range $i, $p := .Ancestors.Reverse }}
-        {{ template "breadcrumbitem" $p }}
-      {{ end }}
-      {{ template "breadcrumbitem" . }}
-    </ol>
-  </nav>
-</div>
+{{- range $i, $p := .Ancestors.Reverse }}
+  {{ template "breadcrumbitem" $p }}
+{{ end }}
+{{ template "breadcrumbitem" . }}

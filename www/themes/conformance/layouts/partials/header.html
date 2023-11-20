@@ -4,7 +4,7 @@
       <a class="flex items-center gap-x-2" href="{{ "" | relLangURL}}" class="-m-1.5 p-1.5">
         <img class="h-8 w-auto" src="{{ absURL "logo.png" }}" alt="Logo">
       </a>
-      {{ if .Site.Menus.main }}        
+      {{ if .Site.Menus.main }}
         {{ $currentPage := . }}
         {{ range .Site.Menus.main }}
           <a class="inline-flex items-center border-b-2 border-transparent px-1 pt-1 pb-2 text-sm font-medium text-white-specs hover:border-gray-300 hover:text-gray-300 {{ if $currentPage.IsMenuCurrent "main" . }} border-gray-300 text-gray-300{{ end }}" href="{{ .URL }}" title="{{ .Name }} page">
@@ -12,6 +12,10 @@
           </a>
         {{ end }}
       {{ end }}
+
+      {{- block "breadcrumbs" . }}
+        {{ partial "breadcrumbs.html" . }}
+      {{- end -}}
     </div>
   </nav>
 </header>

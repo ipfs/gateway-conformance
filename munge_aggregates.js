@@ -63,6 +63,36 @@ const computeName = (u) => {
     };
 };
 
+const getTestRunDetails = async (jobUrl) => {
+    if (!jobUrl) {
+        return {};
+    }
+
+    const match = jobUrl.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/actions\/runs\/(\d+)/);
+    if (!match) {
+        console.warn('Invalid URL format:', jobUrl);
+        return {};
+    }
+
+    const [, owner, repo, run_id] = match;
+
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/actions/runs/${run_id}`;
+
+    try {
+        // Required node18
+        const result = await fetch(apiUrl, {
+            headers: {
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        })
+        const { created_at, head_sha, head_branch, run_started_at } = await result.json()
+        return { created_at, head_sha, head_branch, run_started_at }
+    } catch (e) {
+        console.error(`Error fetch ${jobUrl} details:`, e);
+        return {}
+    }
+}
+
 const main = async () => {
     let db = new sqlite3.Database(dbFile, (err) => {
         if (err) {
@@ -86,7 +116,9 @@ const main = async () => {
         if (!runs[id]) {
             runs[id] = {};
         }
-        runs[id][version] = rest;
+        const testRunDetails = await getTestRunDetails(rest.job_url);
+
+        runs[id][version] = { ...rest, ...testRunDetails };
     }
     outputJSON("data/testruns.json", runs);
 
