@@ -11,13 +11,17 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Ganerate Fixtures
+      - uses: actions/checkout@v3
+        with:
+          path: gateway-conformance
+      - name: Generate Fixtures
         env:
           W3STORAGE_TOKEN: ${{ secrets.W3STORAGE_TOKEN }}
         run: |
           make fixtures.car
+        working-directory: gateway-conformance
       - name: Upload fixtures
         uses: web3-storage/add-to-web3@v2
         with:
           web3_token: ${{ secrets.W3STORAGE_TOKEN }}
-          path_to_add: 'fixtures.car'
+          path_to_add: 'gateway-conformance/fixtures.car'
