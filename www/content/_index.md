@@ -30,10 +30,10 @@ menu:
     </dl>
   </section>
   <section class="specs-card">
-    <h3>Get featured on this website</h3>
+    <h3>Add your Implementation</h3>
     <dl>
       <dt><a href="https://github.com/ipfs/gateway-conformance#dashboard">Read the Instructions</a></dt>
-      <dd>This dashboard is open to any implementation, we're happy to have you.</dd>
+      <dd>This dashboard is open to any implementation, create a Pull Request to get your implementation featured.</dd>
     </dl>
   </section>
 </div>
