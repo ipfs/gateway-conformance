@@ -126,11 +126,13 @@ const main = async () => {
         const fileName = file.split("/").slice(-1)[0].split(".")[0];
         const implemId = fileName;
 
+        console.log(`Processing ${file}...`);
         const content = JSON.parse(fs.readFileSync(file));
         const { TestMetadata, ...tests } = content;
 
         const time = TestMetadata?.time;
-        const { version, job_url } = TestMetadata?.meta || {};
+        const version = TestMetadata?.meta?.version || 'unknown';
+        const job_url = TestMetadata?.meta?.job_url || null;
 
         await run(`
             INSERT INTO TestRun (implementation_id, version, time, job_url)

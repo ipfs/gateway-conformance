@@ -1,5 +1,9 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 {{ $styles := resources.Get "style.css" }}
-<link rel="stylesheet" href="{{ $styles.RelPermalink }}">    
+<link rel="stylesheet" href="{{ $styles.RelPermalink }}"/>
+<link rel="canonical" href="{{ .Permalink | safeURL }}" />
 
 {{ with .Params.RedirectsTo }}
     <meta http-equiv="refresh" content="0; url={{ . | absURL }}"/>

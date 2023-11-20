@@ -61,4 +61,21 @@ clean-docker:
         docker image rm gateway-conformance; \
     fi
 
+# dashboard
+raw_artifacts:
+	cat REPOSITORIES | xargs ./munge_download.sh ./artifacts
+
+artifacts: raw_artifacts
+	find ./artifacts -name '*.json' -exec sh -c 'cat "{}" | node ./munge.js > out && mv out "{}"' \;
+
+aggregates.db: artifacts
+	rm -f ./aggregates.db
+	node ./munge_sql.js ./aggregates.db ./artifacts/*.json
+
+website_content: aggregates.db
+	node ./munge_aggregates.js ./aggregates.db ./www
+
+website: website_content
+	cd www && hugo --minify $(if ${OUTPUT_BASE_URL},--baseURL ${OUTPUT_BASE_URL})
+
 .PHONY: gateway-conformance

@@ -24,13 +24,17 @@
 
   <!-- If hashes exist -->
   {{ with .Params.hashes }}
+    <h3 class="text-2xl font-bold mt-8 mb-4">
+      Sections Tests Results
+    </h3>
+    
     <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
       <!-- Iterate through hashes and display each in a card format -->
       {{ range . }}
         {{ $newSpec := (printf "%s/#%s" $params.spec_full_name .) }}
   
         <div class="p-4 bg-white shadow-md rounded-lg">
-          <h3 class="text-xl font-semibold mb-3">
+          <h3 class="text-xl font-semibold mb-3 mt-1">
             <a href="#{{ . }}" class="text-blue-500 hover:text-blue-700">#{{ . }}</a>
             {{ template "specpill" $newSpec }}
           </h3>
@@ -43,7 +47,9 @@
 
   <!-- If child pages exist -->
   {{ if (gt (len .Data.Pages) 0) }}
-    <h3 class="text-2xl font-bold mt-8 mb-4">Sub-Specs</h3>
+    <h3 class="text-2xl font-bold mt-8 mb-4">
+      Children Specs Tests Results
+    </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Display each child page side by side -->
       {{ range .Data.Pages }}
@@ -55,10 +61,10 @@
   {{ end }}
 
   <!-- Main Dashboard with a different visual appeal -->
-  <h3 class="text-3xl font-bold mb-4">
-    Main Dashboard
+  <h3 class="text-2xl font-bold mb-4">
+    Aggregated Results
   </h3>
-  <div class="mt-2 p-6 shadow-xl rounded-lg">
+  <div class="bg-white mt-2 p-6 shadow-xl rounded-lg">
     {{ partial "result-table.html" .Params }}
   </div>
 
