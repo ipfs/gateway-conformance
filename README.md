@@ -1,351 +1,148 @@
-# gateway-conformance
+<h1 align="center">
+  <br>
+  <a href="#readme"><img src="https://github.com/ipfs/gateway-conformance/assets/157609/4e7ba998-c7f7-415b-bd72-eef053474865" alt="Boxo logo" title="Boxo logo" width="300"></a>
+  <br>
+  Gateway Conformance
+  <br>
+</h1>
 
-> A tool designed to test if an IPFS Gateway implementation complies with the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/) correctly.  
-> Distributed as a Docker image, as well as a GitHub Action(s).
+<p align="center" style="font-size: 1.2rem;">A set of GO and HTTP tools for testing implementation compliance with https://specs.ipfs.tech</p>
 
-- [Dashboard](#dashboard)
+<p align="center">
+  <a href="https://ipfs.tech"><img src="https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square" alt="Official Part of IPFS Project"></a>
+  <a href="https://specs.ipfs.tech"><img src="https://img.shields.io/badge/specs-IPFS-blue.svg?style=flat-square" alt="IPFS Specifications"></a>
+  <a href="https://github.com/ipfs/boxo/actions"><img src="https://img.shields.io/github/actions/workflow/status/ipfs/boxo/go-test.yml?branch=main" alt="ci"></a>
+  <a href="https://github.com/ipfs/gateway-conformance/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/ipfs/gateway-conformance?filter=!*rc*"></a>
+</p>
+
+<hr />
+
+<!-- TOC -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [CLI](#cli)
+  - [Docker](#docker)
+  - [Github Action](#github-action)
+  - [Web Dashboard](#web-dashboard)
 - [Commands](#commands)
-  - [`test`](#test)
-    - [Inputs](#inputs)
-    - [Subdomain Testing and `subdomain-url`](#subdomain-testing-and-subdomain-url)
-    - [Usage](#usage)
-  - [`extract-fixtures`](#extract-fixtures)
-    - [Inputs](#inputs-1)
-    - [Outputs](#outputs)
-    - [Usage](#usage-1)
-- [Testing Your Gateway](#testing-your-gateway)
-  - [Provisioning the Gateway](#provisioning-the-gateway)
-- [Local Development](#local-development)
-- [Examples](#examples)
-- [APIs](#apis)
-- [FAQ](#faq)
-- [In Development](#in-development)
+  - [Examples](#examples)
+- [Releases](#releases)
+- [Development](#development)
+  - [Test DSL Syntax](#test-dsl-syntax)
+- [License](#license)
 
-## Dashboard
+<!-- /TOC -->
 
-The [Implementation Dashboard](https://ipfs.github.io/gateway-conformance/) is a view that showcases different implementations of IPFS Gateways. This dashboard aggregates results from many test runs and renders them on a static website. This'll give you more detailed insights and navigation options.
+## About
 
-### How it Works
+Gateway Conformance test suite is a set of tools for testing implementation
+compliance with a subset of [IPFS Specifications](https://specs.ipfs.tech). The
+test suite is implementation and language-agnostic. Point `gateway conformance
+test` at HTTP endpoint and specify which tests should run.
 
-For every implementations that have been added to the `REPOSITORIES` file, our dashboard generation workflow loads the most recent `gateway-conformance` test results from their CI. You can try this locally with the `make website` command.
+IPFS Shipyard uses it for ensuring specification compliance of the `boxo/gateway` library included in [Kubo](https://github.com/ipfs/kubo), [the most popular IPFS implementation](https://github.com/protocol/network-measurements/tree/master/reports),
+that powers various [public gateways](https://ipfs.github.io/public-gateway-checker/), [IPFS Desktop](https://docs.ipfs.io/install/ipfs-desktop/), and [Brave](https://brave.com/ipfs-support/).
 
-### Adding your gateway to the dashboard
 
-The dashboard is hosted at [conformance.ipfs.tech](https://conformance.ipfs.tech/). It aggregates test outputs from various IPFS implementations and renders them on a static website.
+Some scenarios in which you may find this project helpful:
 
-To add your gateway to the dashboard, you need to:
+* You are building an product that relies on in-house IPFS Gateway and want to ensure HTTP interface is implemented correctly
+* You are building an IPFS implementation and want to leverage existing HTTP test fixtures to tell if you are handling edge cases correctly
+* You want to test if a trustless retrieval endpoint supports partial CARs from [IPIP-402](https://specs.ipfs.tech/ipips/ipip-0402/)
+* You want to confirm a commercial service provider implemented content-addressing correctly
 
-- Ensure that your gateway's repository is public.
-- Ensure your gateway generates generates the `output.json` file in a `gateway-conformance.yml` file. Check [kubo's workflow](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) for an example.
-- Add your gateway to the list of repositories in the [REPOSITORIES](./REPOSITORIES) file.
+## Usage
 
-Once you join the dashboard, your test results will be picked up automatically and your implementation will show up on the dashboard.
+The `gateway-conformance` can be run as a [standalone binary](#cli), a [Docker image](#docker), or a part of [Github Action](#github-actions).
 
-### Building the Dashboard
+Some of the tests require the tested gateway to be able to resolve specific fixtures CIDs or IPNS records.
 
-- Set up a GitHub Token: Ensure you have a GitHub Token with `repo:read` scope. This is required to download artifacts.
-- Run the Build Command: `GH_TOKEN=your_github_token make website`
+Two high level [commands](/docs/commands.md) exist:
+- [test](/docs/commands.md#test) (test runner with ability to specify a subset of tests to run)
+- [extract-fixtures](/docs/commands.md#extract-fixtures) (allowing for custom provisioning of how test vectors are loaded into tested runtime)
 
-This command downloads the latest test artifacts from the repositories listed in the `./REPOSITORIES` file. Then it generates a static website with Hugo in the `www/public` directory.
+### CLI
 
-### How to work on the Dashboard
+```console
+$ # run subdomain-gateway tests against endpoint at http://localhost:8080 output as JSON
+$ gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
+```
 
-- Use `make website` to generate all the assets required to build the static dashboard
-- Use `cd ./www && hugo server` to start a local server with live-reload
-- Use `cd ./www/themes/conformance && npm run build` to re-build the theme's styles
+If you are looking for TLDR, see [examples](/docs/examples.md).
+
+### Docker
+
+Prebuilt image at `ghcr.io/ipfs/gateway-conformance` can be used for both `test` and `extract-fixtures` commands:
+
+```console
+$ # extract fixtures to ./fixtures directory
+$ docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C extract-fixtures --output fixtures --merged false
+
+$ # run subdomain-gateway tests against endpoint at http://localhost:8080
+$ docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
+```
+
+**NOTE:** replace `vA.B.C` with a [semantic version](https://github.com/ipfs/gateway-conformance/releases) version you want to test against
+
+### Github Action
+
+Common operations are possible via reusable GitHub actions:
+- [`ipfs/gateway-conformance/.github/actions/test`](https://github.com/ipfs/gateway-conformance/blob/main/.github/actions/test/action.yml)
+- [`ipfs/gateway-conformance/.github/actions/extract-fixtures`](https://github.com/ipfs/gateway-conformance/blob/main/.github/actions/extract-fixtures/action.yml)
+
+To learn how to integrate them in the CI of your project, see real world examples in:
+- [`kubo/../gateway-conformance.yml`](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) (fixtures imported into tested node)
+- [`boxo/../gateway-conformance.yml`](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a sidecar kubo node that is peered with tested library)
+- [`bifrost-gateway/../gateway-conformance.yml`](https://github.com/ipfs/bifrost-gateway/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a kubo node that acts as a delegated block backend)
+
+### Web Dashboard
+
+Conformance test suite output can be plain text or JSON, which in turn can be
+represented as a web dashboard which aggregates results from many test runs and
+renders them on a static website.
+
+The Implementation Dashboard instance at
+[conformance.ipfs.tech](https://conformance.ipfs.tech/) is a view that
+showcases some of well known and complete implementations of IPFS Gateways
+in the ecosystem.
+
+Learn more at [`/docs/web-dashboard.md`](/docs/web-dashboard.md)
 
 ## Commands
 
-### test
+See `test` and `extract-fixtures` documentation at [`/docs/commands.md`](/docs/commands.md)
 
-The `test` command is the main command of the tool. It is used to test a given IPFS Gateway implementation against the [IPFS Gateway Specification](https://specs.ipfs.tech/http-gateways/).
+### Examples
 
-#### Inputs
+Want to test mature specs, while disabling specific specs?
+Or only test a specific spec (like trustless gateway), while disabling a sub-part of it (only blocks and CARS, no IPNS)?
+See [`/docs/examples.md`](/docs/examples.md)
 
-| Input | Availability | Description | Default |
-|---|---|---|---|
-| gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
-| subdomain-url | Both | The Subdomain URL of the IPFS Gateway implementation to be tested. | http://example.com |
-| json | Both | The path where the JSON test report should be generated. | `./report.json` |
-| xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
-| html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
-| markdown | GitHub Action | The path where the summary Markdown test report should be generated. | `./report.md` |
-| specs | Both | A comma-separated list of specs to be tested. Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec). | Mature specs only |
-| args | Both | [DANGER] The `args` input allows you to pass custom, free-text arguments directly to the Go test command that the tool employs to execute tests. | N/A |
+## Releases
 
-##### Specs
+The `main` branch may contain tests for features and IPIPs which are not yet
+supported by stable releases of IPFS implementations.
 
-By default, only mature specs (reliable, stable, or permanent) will be tested if this input is not provided. You can specify particular specs without any prefixes (e.g., subdomain-gateway, trustless-gateway, path-gateway) to test exclusively those, irrespective of their maturity status.
+Due to this, implementations SHOULD test themselves against a stable release
+of this test suite instead.
 
-To selectively enable or disable specs based on their maturity, use the "+" and "-" prefixes. Adding a "+" prefix (e.g., +subdomain-gateway) means that the spec should be included in the test, in addition to the mature specs. Conversely, using a "-" prefix (e.g., -subdomain-gateway) means that the spec should be excluded from the test, even if it is mature.
+See [`/releases`](https://github.com/ipfs/gateway-conformance/releases) for the list of available releases.
 
-If you provide a list containing both prefixed and unprefixed specs, the prefixed specs will be ignored. It is advisable to use either prefixed or unprefixed specs, but not both. However, you can include specs with both "+" and "-" prefixes in the same list.
+## Development
 
-##### Args
+Want to improve the conformance test suite itself? 
+See documentation at [`/docs/development.md`](/docs/development.md)
 
-This input should be used sparingly and with caution, as it involves interacting with the underlying internal processes, which may be subject to changes. It is recommended to use the `args` input only when you have a deep understanding of the tool's inner workings and need to fine-tune the testing process. Users should be mindful of the potential risks associated with using this input.
+### Test DSL Syntax
 
-#### Subdomain Testing and `subdomain-url`
+Interested in write a new test case?
+Test cases are written in Domain Specific Language (DLS) based on Golang. 
+More details at [`/docs/test-dsl-syntax.md`](/docs/test-dsl-syntax.md)
 
-The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway permits.
-During testing, the suite keeps connecting to the `gateway-url` while employing HTTP techniques to simulate requests as if they were sent to the subdomain.
-This approach enables testing of local gateways during development or continuous integration (CI) scenarios.
+## License
 
-A few examples:
+This project is dual-licensed under Apache 2.0 and MIT terms:
 
-| Use Case | gateway-url | subdomain-url |
-|----------|-------------|---------------|
-| CI & Dev   | http://127.0.0.1:8080 | http://example.com |
-| Production | https://dweb.link     | https://dweb.link  |
-
-#### Usage
-
-##### GitHub Action
-
-```yaml
-- name: Run gateway-conformance tests
-  uses: ipfs/gateway-conformance/.github/actions/test@v1
-  with:
-    gateway-url: http://localhost:8080
-    specs: +subdomain-gateway,-path-gateway
-    json: report.json
-    xml: report.xml
-    markdown: report.md
-    html: report.html
-    args: -timeout 30m
-```
-
-##### Docker
-
-```bash
-docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
-```
-
-### extract-fixtures
-
-The `extract-fixtures` command is used to extract the test fixtures from the `gateway-conformance` tool.
-
-#### Inputs
-
-| Input | Availability | Description | Default |
-|---|---|---|---|
-| output | Both | The path where the test fixtures should be extracted. | `./fixtures` |
-| merged | Both | Whether the fixtures should be merged into as few files as possible. | `false` |
-
-#### Outputs
-
-When you use `--merged=true` the following files are be generated:
-
-- `fixtures.car`: A car file that contains all the blocks required to run the tests
-- `dnslinks.json`: A configuration file listing all the dnslink names required to run the tests related to DNSLinks
-- `*.ipns-record`: Many raw ipns-record files required to run the tests related to IPNS
-
-Examples of how to import these in Kubo are shown in [`kubo-config.example.sh`](./kubo-config.example.sh) and the [`Makefile`](./Makefile).
-
-Without `--merged=true`, many car files and dnslink configurations file will be generated, we don't recommend using these.
-
-#### Usage
-
-##### GitHub Action
-
-```yaml
-- name: Extract gateway-conformance fixtures
-  uses: ipfs/gateway-conformance/.github/actions/extract-fixtures@v1
-  with:
-    output: fixtures
-    merged: false
-```
-
-##### Docker
-
-```bash
-docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance extract-fixtures --output fixtures --merged false
-```
-
-## Testing Your Gateway
-
-You can find the workflow that runs the gateway conformance test suite against Kubo in the file [.github/workflows/test.yml](.github/workflows/test.yml). This can serve as a good starting point when setting up your own test suite.
-
-We've also aimed to keep the [kubo-config.example.sh](kubo-config.example.sh) script and the [Makefile](Makefile) as straightforward as possible to provide useful examples to get started.
-
-### Provisioning the Gateway
-
-We make minimal assumptions about the capabilities of the gateway being tested. Which means that we don't require nor expect the gateway to be writable. Therefore, you need to provision the gateway with test fixtures before running the test suite.
-
-These fixtures are located in the `./fixtures` folders. We distribute tools for extracting them. Refer to the documentation for the `extract-fixtures` command for more details.
-
-**Fixtures:**
-
-- Blocks & Dags: These are served as [CAR](https://ipld.io/specs/transport/car/) file(s).
-- IPNS Records: These are distributed as files containing [IPNS Record](https://specs.ipfs.tech/ipns/ipns-record/#ipns-record) [serialized as protobuf](https://specs.ipfs.tech/ipns/ipns-record/#record-serialization-format). The file name includes the Multihash of the public key ([IPNS Name](https://specs.ipfs.tech/ipns/ipns-record/#ipns-name)) in this format: `pubkey(_optional_suffix)?.ipns-record`. We may decide to [share CAR files](https://github.com/ipfs/specs/issues/369) in the future.
-- DNS Links: These are distributed as `yml` configurations. You can use the `--merge` option to generate a consolidated `.json` file, which can be more convenient for use in a shell script.
-
-## Local Development
-
-This is how we use the test-suite when we work on the suite itself or a gateway implementation:
-
-```sh
-# Generate the fixtures
-make fixtures.car
-
-# Import the fixtures in Kubo
-# We import car files and ipns-records during this step.
-# We import DNSLink fixtures through the `IPFS_NS_MAP` below. 
-make provision-kubo
-
-# Configure Kubo for the test-suite
-# This also generated the `IPFS_NS_MAP` variable to setup DNSLink fixtures
-source ./kubo-config.example.sh
-
-# Start a Kubo daemon in offline mode
-ipfs daemon --offline
-```
-
-By then the gateway is configured and you may run the test-suite.
-
-```sh
-make test-kubo
-
-# run with subdomain testing which requires more configuration (see kubo-config.example.sh)
-make test-kubo-subdomains
-```
-
-If you are using a different gateway and would like to use a different configuration, the [Makefile](./Makefile) and configuration scripts are great, up-to-date, starting points.
-
-The test-suite is a regular go test-suite, which means that any IDE integration will work as-well.
-You can use env variables to configure the tests from your IDE.
-
-Here is an example for VSCode, `example.com` is the domain configured via [kubo-config.example.sh](./kubo-config.example.sh)
-
-```json
-{
-  "go.testEnvVars": {
-    "GATEWAY_URL": "http://127.0.0.1:8080",
-    "SUBDOMAIN_GATEWAY_URL": "http://example.com",
-    "GOLOG_LOG_LEVEL": "conformance=debug"
-  },
-}
-```
-
-With this configuration, the tests will appear in `Testing` on VSCode's left sidebar.
-
-It's also possible to run test suite locally and use `make ./reports/output.html` to generate a human-readable report from the test results in `reports/output.json`.
-
-## Examples
-
-The examples are going to use `gateway-conformance` as a wrapper over `docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance` for simplicity.
-
-### Testing only mature specs
-
-By default, all mature tests are run. Mature tests generally refer to specifications whose [status is mature](https://specs.ipfs.tech/meta/spec-for-specs/).
-
-```bash
-gateway-conformance test
-```
-
-### Testing specific specs, regardless of their maturity level
-
-```bash
-gateway-conformance test --specs subdomain-gateway,path-gateway
-```
-
-### Testing mature specs and additionally enabling specific specs
-
-```bash
-gateway-conformance test --specs +subdomain-gateway
-```
-
-### Testing mature specs, while disabling specific specs
-
-```bash
-gateway-conformance test --specs -subdomain-gateway,-dnslink-gateway
-```
-
-### Testing specific spec (trustless gateway), while disabling a sub-part of it
-
-```bash
-gateway-conformance test --specs trustless-gateway,-trustless-gateway-ipns
-```
-
-### Skip a specific test
-
-Tests are skipped using Go's standard syntax:
-
-```bash
-gateway-conformance test -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
-```
-
-### Extracting the test fixtures
-
-```bash
-gateway-conformance extract-fixtures
-```
-
-### Extracting the test fixtures into a single CAR file
-
-```bash
-gateway-conformance extract-fixtures --merged true
-```
-
-## APIs
-
-### Templating
-
-golang's default string formating package is similar to C. Format strings might look like `"this is a %s"` where `%s` is a verb that will be replaced at runtime.
-
-These verbs collides with URL-escaping a lot, strings like `/ipfs/Qm.../%c4%85/%c4%99` might trigger weird errors. We implemented a minimal templating library that is used almost everywhere in the test.
-
-It uses `{{name}}` as a replacement for `%s`. Other verbs are not supported.
-
-
-```golang
-Fmt("{{action}} the {{target}}", "pet", "cat") // => "pet the cat"
-```
-
-Backticks enable use of verbatim strings, without having to deal with golang-specific escaping of things like double quotes:
-
-```golang
-Fmt(`Etag: W/"{{etag-value}}"`, "weak-key") // => "ETag: W/\"weak-key\""
-```
-
-It is required to always provide a meaningful `{{name}}`:
-
-```golang
-Fmt(`/ipfs/{{cid}}/%c4%85/%c4%99`, fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
-```
-
-Values are replaced in the order they are defined, and you may reuse named values
-
-```golang
-Fmt(`<a href="{{cid}}">{{label}}}</a><a href="{{cid}}/index.html">index</a>`, fixture.myCID, "Link Title!") // => '<a href="Qm...">Link Title!</a><a href="Qm..../index.html">index</a>'
-```
-
-You may escape `{{}}` by using more than two opening or closing braces,
-
-```golang
-Fmt("{foo}") // => "{foo}"
-Fmt("{{{foo}}}") // => "{{foo}}"
-Fmt("{{{{foo}}}}") // => "{{{foo}}}"
-Fmt("{{{foo}}}") // => {{foo}}
-```
-
-This templating is used almost everywhere in the test sugar, for example in request Path:
-
-```golang
-Request().Path("ipfs/{{cid}}", myCid) // will use "ipfs/Qm...."
-```
-
-## FAQ
-
-### How to generate XML, HTML and Markdown reports when using the tool as a Docker container?
-
-The tool can generate XML, HTML and Markdown reports when used as a GitHub Action. However, when using the tool as a Docker container, you can generate these reports by using the [`saxon` Docker image](https://github.com/pl-strflt/saxon). You can draw inspiration from the [gotest-json-to-junit-xml](https://github.com/pl-strflt/gotest-json-to-junit-xml) and the [junit-xml-to-html](https://github.com/pl-strflt/junit-xml-to-html) GitHub Actions.
-
-Please let us know if you would like to see this feature implemented directly in the Docker image distribution.
-
-## In Development
-
-- How to deal with subdomains & configuration (t0114 for example)?
-  - Some test relies on querying URLs like `http://$CIDv1.ipfs.example.com/`. While `http://$CIDv1.ipfs.localhost/` works by default, do we need / want to test with `.example.com`?
-- Debug logging
-  - Set the environment variable `GOLOG_LOG_LEVEL="conformance=debug"` to toggle debug logging.
+- Apache License, Version 2.0, ([LICENSE-APACHE](https://github.com/ipfs/kubo/blob/master/LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](https://github.com/ipfs/kubo/blob/master/LICENSE-MIT) or http://opensource.org/licenses/MIT)

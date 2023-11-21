@@ -32,8 +32,8 @@ menu:
   <section class="specs-card">
     <h3>Add your Implementation</h3>
     <dl>
-      <dt><a href="https://github.com/ipfs/gateway-conformance#dashboard">Read the Instructions</a></dt>
-      <dd>This dashboard is open to any implementation, create a Pull Request to get your implementation featured.</dd>
+      <dt><a href="https://github.com/ipfs/gateway-conformance/blob/main/docs/web-dashboard.md">Read the Instructions</a></dt>
+      <dd>Similar dashboard can be created for your own implementation. Once it is spec-complaint, create a Pull Request to get your implementation featured.</dd>
     </dl>
   </section>
 </div>

@@ -10,7 +10,7 @@
     {{ if .Page.Params.showHero }}
     <header class="specs-hero bg-specs-gradient">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 text-white">
-        <img src="{{ "logo.png" | absURL }}" alt="Conformance Testing Logo" class="w-32 h-32" />
+        <img src="{{ "logo.png" | absURL }}" alt="Conformance Testing Logo" class="w-32 h-auto" />
         <h1 class="my-6">
         IPFS Gateway Conformance Test Suite
         </h1>
@@ -25,7 +25,7 @@
           CARs, such as HAMT-sharded UnixFS, DAG-CBOR, or even DNSLink and IPNS Records.
         </p>
         <p>
-          Learn how to use this in your own project on <a href="https://github.com/ipfs/gateway-conformance#readme">Github</a>.
+          Learn how to use this in your own project at <a href="https://github.com/ipfs/gateway-conformance#readme">github.com/ipfs/gateway-conformance</a>.
         </p>
       </div>
     </header>
