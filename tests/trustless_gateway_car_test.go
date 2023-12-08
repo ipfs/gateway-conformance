@@ -634,7 +634,7 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						HasBlocks(
 							flattenStrings(t,
 								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[:5])...,
+								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[:len(subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt"))-1])...,
 						).
 						Exactly().
 						InThatOrder(),
