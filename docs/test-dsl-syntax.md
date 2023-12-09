@@ -1,6 +1,6 @@
 # Test DSL syntax
 
-Test cases are written in Domain Specific Language (DLS) based on Golang. 
+Test cases are written in Domain Specific Language (DSL) based on Golang. 
 
 It is a vanilla GO with helper functions for common operations plus the
 simplified string templates described below, which aim to improve readability
