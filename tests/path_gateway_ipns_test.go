@@ -55,7 +55,7 @@ func TestGatewayIPNSPath(t *testing.T) {
 			Name: "GET for /ipns/name with valid V1+V2 signatures with V1-vs-V2 value mismatch MUST fail with 5XX",
 			Hint: `
 			Legacy V1 signatures in IPNS records are considered insecure and
-			got replaced with V2 that sings entire CBOR in the data field.
+			got replaced with V2 that signs entire CBOR in the data field.
 			Producing records with both V1 and V2 signatures is valid for
 			backward-compatibility, but validation logic requires V1 (legacy
 			protobuf fields) and V2 (CBOR in data field) to match. This means
@@ -73,7 +73,7 @@ func TestGatewayIPNSPath(t *testing.T) {
 			Name: "GET for /ipns/name with valid V2 and broken V1 signature succeeds",
 			Hint: `
 			Legacy V1 signatures in IPNS records are considered insecure and
-			got replaced with V2 that sings entire CBOR in the data field.
+			got replaced with V2 that signs entire CBOR in the data field.
 			Integrity of the record is protected by SignatureV2, V1 can be
 			ignored as long V1 values match V2 ones in CBOR.
 			More details in IPIP-428.
@@ -100,7 +100,7 @@ func TestGatewayIPNSPath(t *testing.T) {
 			Name: "GET for /ipns/name with valid V2-only signature succeeds",
 			Hint: `
 			Legacy V1 signatures in IPNS records are considered insecure and
-			got replaced with V2 that sings entire CBOR in the data field.
+			got replaced with V2 that signs entire CBOR in the data field.
 			Gateway MUST correctly resolve IPNS records without V1 fields.
 			More details in IPIP-428.
 			`,
