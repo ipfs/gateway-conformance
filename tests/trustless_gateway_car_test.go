@@ -617,15 +617,45 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET CAR with entity-bytes requesting a range from the end of a file",
+			Name: "GET CAR with entity-bytes requesting a negative range bigger than the length of a file",
 			Hint: `
-				The response MUST contain only the minimal set of blocks necessary for fulfilling the range request
+				When range starts on negative index that makes it bigger than the file
+				the request is truncated and starts at the beginning of a file.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}", subdirWithMixedBlockFiles.MustGetCidWithCodec(0x70, "subdir", "multiblock.txt")).
 				Query("format", "car").
 				Query("dag-scope", "entity").
-				Query("entity-bytes", "-999999:-3"),
+				Query("entity-bytes", "-9999:*"), // multiblock.txt size is 1026 (4*256+2)
+			Response: Expect().
+				Status(200).
+				Body(
+					IsCar().
+						IgnoreRoots().
+						HasBlocks( // expect entire file
+							flattenStrings(t,
+								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"), // dag-pb root of the file DAG
+								"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",    // 256 chunk
+								"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",    // 256
+								"bafkreigu7buvm3cfunb35766dn7tmqyh2um62zcio63en2btvxuybgcpue",    // 256
+								"bafkreicll3huefkc3qnrzeony7zcfo7cr3nbx64hnxrqzsixpceg332fhe",    // 256
+								"bafkreifst3pqztuvj57lycamoi7z34b4emf7gawxs74nwrc2c7jncmpaqm",    // 2
+							)...).
+						Exactly().
+						InThatOrder(),
+				),
+		},
+		{
+			Name: "GET CAR with entity-bytes requesting a range from the end of a file that is bigger than a file itself",
+			Hint: `
+				The response MUST contain only the minimal set of blocks necessary for fulfilling the range request,
+				everything before file start is ignored and the explicit end of the range is respected.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", subdirWithMixedBlockFiles.MustGetCidWithCodec(0x70, "subdir", "multiblock.txt")).
+				Query("format", "car").
+				Query("dag-scope", "entity").
+				Query("entity-bytes", "-9999:-3"), // multiblock.txt size is 1026 (4*256+2)
 			Response: Expect().
 				Status(200).
 				Body(
@@ -633,15 +663,19 @@ func TestTrustlessCarEntityBytes(t *testing.T) {
 						IgnoreRoots().
 						HasBlocks(
 							flattenStrings(t,
-								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"),
-								subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt")[:len(subdirWithMixedBlockFiles.MustGetDescendantsCids("subdir", "multiblock.txt"))-1])...,
-						).
+								subdirWithMixedBlockFiles.MustGetCid("subdir", "multiblock.txt"), // dag-pb root of the file DAG
+								"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",    // 256 chunk
+								"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",    // 256
+								"bafkreigu7buvm3cfunb35766dn7tmqyh2um62zcio63en2btvxuybgcpue",    // 256
+								"bafkreicll3huefkc3qnrzeony7zcfo7cr3nbx64hnxrqzsixpceg332fhe",    // 256
+								// skip "bafkreifst3pqztuvj57lycamoi7z34b4emf7gawxs74nwrc2c7jncmpaqm",    // 2
+							)...).
 						Exactly().
 						InThatOrder(),
 				),
 		},
 		{
-			Name: "GET CAR with entity-bytes requesting the first byte of a file",
+			Name: "GET CAR with entity-bytes requesting only the blocks for the first byte of a file",
 			Hint: `
 				The response MUST contain only the first block of the file.
 			`,
@@ -835,6 +869,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 	RunWithSpecs(t, tests, specs.TrustlessGatewayCAROptional)
 }
 
+// TODO: this feels like it could be an internal detail of HasBlocks
 func flattenStrings(t *testing.T, values ...interface{}) []string {
 	var res []string
 	for _, v := range values {
