@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2024-01-25
+### Changed
+- Fixed tests of CAR requests with `entity-bytes` and negative indexing. [PR](https://github.com/ipfs/gateway-conformance/pull/190) (BREAKING CHANGE)
+- Fixed IPNS provisioning with Kubo. [PR](https://github.com/ipfs/gateway-conformance/pull/192)
+
 ## [0.4.2] - 2023-11-20
 ### Changed
 - Fixed versioning in Docker containers. [PR](https://github.com/ipfs/gateway-conformance/pull/179)
