@@ -31,7 +31,7 @@ The `test` command is the main command of the tool. It is used to test a given I
 | Input | Availability | Description | Default |
 |---|---|---|---|
 | gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
-| subdomain-url | Both | The Subdomain URL of the IPFS Gateway implementation to be tested. | http://example.com |
+| subdomain-url | Both | The URL to be used in Subdomain feature tests based on Host HTTP header. | http://example.com |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
@@ -53,8 +53,8 @@ This input should be used sparingly and with caution, as it involves interacting
 
 #### Subdomain Testing and `subdomain-url`
 
-The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway permits.
-During testing, the suite keeps connecting to the `gateway-url` while employing HTTP techniques to simulate requests as if they were sent to the subdomain.
+The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway has dedicated to and safelisted for the [Subdomain gateway](https://specs.ipfs.tech/http-gateways/subdomain-gateway/) feature.
+During testing, the suite sends HTTP requests to the `gateway-url` and  sets the HTTP `Host` header value to the parent domain name from `subdomain-url` to simulate Subdomain requests.
 This approach enables testing of local gateways during development or continuous integration (CI) scenarios.
 
 A few examples:
