@@ -93,3 +93,8 @@ It's also possible to run test suite locally and use `make ./reports/output.html
 ### How to enable debug logging
 
 Set the environment variable `GOLOG_LOG_LEVEL="conformance=debug"` to toggle debug logging.
+
+### How to make a new release
+
+Create a new PR that modifies CHANGELOG.md,
+see [changelog-driven-release#how-it-works](https://github.com/ipdxco/changelog-driven-release#how-it-works) for more details.
