@@ -53,8 +53,8 @@ This input should be used sparingly and with caution, as it involves interacting
 
 #### Subdomain Testing and `subdomain-url`
 
-The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway dedicated and safelisted for [Subdomain gateway](https://specs.ipfs.tech/http-gateways/subdomain-gateway/) feature.
-During testing, the suite sends HTTP requests to the `gateway-url` while setting HTTP `Host` header value to be based on the parent domain name from `subdomain-url` to simulate Subdomain requests.
+The `subdomain-url` parameter is utilized when testing subdomain support in your IPFS gateway. It can be set to any domain that your gateway has dedicated to and safelisted for the [Subdomain gateway](https://specs.ipfs.tech/http-gateways/subdomain-gateway/) feature.
+During testing, the suite sends HTTP requests to the `gateway-url` and  sets the HTTP `Host` header value to the parent domain name from `subdomain-url` to simulate Subdomain requests.
 This approach enables testing of local gateways during development or continuous integration (CI) scenarios.
 
 A few examples:
