@@ -2,7 +2,6 @@ module github.com/ipfs/gateway-conformance
 
 go 1.21
 
-
 require (
 	github.com/ipfs/boxo v0.12.0
 	github.com/ipfs/go-cid v0.4.1
