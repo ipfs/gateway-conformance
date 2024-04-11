@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2024-04-11
+### Changed
+- Removed overly specific range test for dag-cbor as text/html [PR](https://github.com/ipfs/gateway-conformance/pull/202)
+
 ## [0.5.0] - 2024-01-25
 ### Changed
 - Fixed tests of CAR requests with `entity-bytes` and negative indexing. [PR](https://github.com/ipfs/gateway-conformance/pull/190) (BREAKING CHANGE)
