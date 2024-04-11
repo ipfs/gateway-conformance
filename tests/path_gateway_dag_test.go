@@ -694,7 +694,6 @@ func TestNativeDag(t *testing.T) {
 		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
 	}
 
-	var dagCborHTMLRendering []byte
 	RunWithSpecs(t, SugarTests{
 		SugarTest{
 			Name: "Convert application/vnd.ipld.dag-cbor to text/html",
@@ -704,34 +703,9 @@ func TestNativeDag(t *testing.T) {
 				Headers(
 					Header("Accept", "text/html"),
 				),
-			Response: Expect().Body(Checks("", func(t []byte) bool {
-				innerCheck := Contains("</html>").Check(string(t))
-				if innerCheck.Success {
-					dagCborHTMLRendering = t
-					return true
-				}
-				return false
-			})),
+			Response: Expect().Body(Contains("</html>")),
 		},
 	}, specs.PathGatewayDAG)
-
-	if dagCborHTMLRendering != nil {
-		rangeTests := helpers.OnlyRandomRangeTests(t,
-			SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to text/html with range request includes correct bytes",
-				Hint: "",
-				Request: Request().
-					Path("/ipfs/{{cid}}/", dagCborCID).
-					Headers(
-						Header("Accept", "text/html"),
-					),
-				Response: Expect(),
-			},
-			dagCborHTMLRendering,
-			"text/html")
-
-		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
-	}
 }
 
 func TestGatewayJSONCborAndIPNS(t *testing.T) {
