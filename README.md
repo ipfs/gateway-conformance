@@ -94,7 +94,7 @@ Common operations are possible via reusable GitHub actions:
 To learn how to integrate them in the CI of your project, see real world examples in:
 - [`kubo/../gateway-conformance.yml`](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) (fixtures imported into tested node)
 - [`boxo/../gateway-conformance.yml`](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a sidecar kubo node that is peered with tested library)
-- [`bifrost-gateway/../gateway-conformance.yml`](https://github.com/ipfs/bifrost-gateway/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a kubo node that acts as a delegated block backend)
+- [`rainbow/../gateway-conformance.yml`](https://github.com/ipfs/rainbow/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a kubo node that acts as a delegated block backend)
 
 ### Web Dashboard
 
