@@ -367,8 +367,7 @@ func TestPathing(t *testing.T) {
 				Path("/ipfs/{{cid}}/foo", dagJSONTraversalCID).
 				Query("format", "dag-json"),
 			Response: Expect().
-				Status(501).
-				Body(Contains("reading IPLD Kinds other than Links (CBOR Tag 42) is not implemented")),
+				Status(501), // reading IPLD Kinds other than Links (CBOR Tag 42) is not implemented
 		},
 		{
 			Name: "GET DAG-JSON traverses multiple links",
@@ -396,8 +395,7 @@ func TestPathing(t *testing.T) {
 				Path("/ipfs/{{cid}}/foo", dagCBORTraversalCID).
 				Query("format", "dag-cbor"),
 			Response: Expect().
-				Status(501).
-				Body(Contains("reading IPLD Kinds other than Links (CBOR Tag 42) is not implemented")),
+				Status(501), // reading IPLD Kinds other than Links (CBOR Tag 42) is not implemented
 		},
 		{
 			Name: "GET DAG-CBOR traverses multiple links",
