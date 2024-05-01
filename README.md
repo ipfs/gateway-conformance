@@ -65,6 +65,8 @@ Two high level [commands](/docs/commands.md) exist:
 ### CLI
 
 ```console
+$ # Install the gateway-conformance binary
+$ go install github.com/ipfs/gateway-conformance/cmd/gateway-conformance@latest
 $ # run subdomain-gateway tests against endpoint at http://localhost:8080 output as JSON
 $ gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
 ```
