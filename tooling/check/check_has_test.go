@@ -18,3 +18,16 @@ func TestCheckHas(t *testing.T) {
 
 	assert.True(t, checkOutput.Success, checkOutput.Reason)
 }
+
+func TestCheckHasFailure(t *testing.T) {
+	// Create a Check instance
+	check := Has("value3")
+
+	// Test data
+	testData := []string{"value1", "value2"}
+
+	// Call .Check on the instance
+	checkOutput := check.Check(testData)
+
+	assert.False(t, checkOutput.Success, checkOutput.Reason)
+}
