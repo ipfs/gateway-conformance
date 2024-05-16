@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Relaxed the DAG-CBOR error check: we no longer check the body of the response, only the status code. [PR](https://github.com/ipfs/gateway-conformance/pull/205)
+
+## [0.5.1] - 2024-04-11
+- Removed byte range text for DAG-CBOR objects converted to `text/html`. [PR](https://github.com/ipfs/gateway-conformance/pull/202)
 
 ## [0.5.0] - 2024-01-25
 ### Changed
