@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling/check"
@@ -42,7 +43,29 @@ func validateResponse(
 
 	for _, header := range expected.Headers_ {
 		testName := fmt.Sprintf("Header %s", header.Key_)
+
 		actual := res.Header.Values(header.Key_)
+
+		// HTTP Headers can have multiple values, and that can be represented by comman separated value,
+		// or sending the same header more than once. The `res.Header.Get` only returns the value
+		// from the first header, so we use Values here.
+		// At the same time, we don't want to have two separate checks everywhere, so we normalize
+		// multiple instances of the same header by converting it into a single one, with comma-separated
+		// values.
+		if len(actual) > 1 {
+			var result []string
+			all := strings.Join(actual, ",")
+			split := strings.Split(all, ",")
+			for _, s := range split {
+				value := strings.TrimSpace(s)
+				if value != "" {
+					result = append(result, strings.TrimSpace(s))
+				}
+			}
+			// Normalize values from all instances of the header into a single one and comma-separated notation
+			joined := strings.Join(result, ", ")
+			actual = []string{joined}
+		}
 
 		c := header.Check_
 		if header.Not_ {
