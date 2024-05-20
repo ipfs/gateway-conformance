@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-- Relaxed the DAG-CBOR error check: we no longer check the body of the response, only the status code. [PR](https://github.com/ipfs/gateway-conformance/pull/205)
+## [0.5.2] - 2024-05-20
+### Changed
+- Fixed: relaxed dag-cbor error check ([#205](https://github.com/ipfs/gateway-conformance/pull/205))
+- Fixed: Header().Has works properly for checking multiple values ([#207](https://github.com/ipfs/gateway-conformance/pull/207))
 
 ## [0.5.1] - 2024-04-11
 - Removed byte range text for DAG-CBOR objects converted to `text/html`. [PR](https://github.com/ipfs/gateway-conformance/pull/202)
