@@ -65,6 +65,8 @@ Two high level [commands](/docs/commands.md) exist:
 ### CLI
 
 ```console
+$ # Install the gateway-conformance binary
+$ go install github.com/ipfs/gateway-conformance/cmd/gateway-conformance@latest
 $ # run subdomain-gateway tests against endpoint at http://localhost:8080 output as JSON
 $ gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
 ```
@@ -77,7 +79,7 @@ Prebuilt image at `ghcr.io/ipfs/gateway-conformance` can be used for both `test`
 
 ```console
 $ # extract fixtures to ./fixtures directory
-$ docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C extract-fixtures --output fixtures --merged false
+$ docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C extract-fixtures --directory fixtures --merged false
 
 $ # run subdomain-gateway tests against endpoint at http://localhost:8080
 $ docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
