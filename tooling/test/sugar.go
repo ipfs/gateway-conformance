@@ -436,7 +436,9 @@ func (h HeaderBuilder) Equals(value string, args ...any) HeaderBuilder {
 }
 
 func (h HeaderBuilder) Has(values ...string) HeaderBuilder {
-	h.Check_ = check.Has(values...)
+	for _, value := range values {
+		h.Check_ = check.IsUniqAnd(check.Contains(value))
+	}
 	return h
 }
 
