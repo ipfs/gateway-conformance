@@ -141,7 +141,8 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for example.com/ipfs/{CIDv1} redirects to subdomain",
 				Hint: `
-					subdomains should not return payload directly,
+					path requests to gateways with subdomain support 
+     					should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,
 				Request: Request().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, CIDv1),
@@ -165,7 +166,8 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for example.com/ipfs/{DirCID} redirects to subdomain",
 				Hint: `
-					subdomains should not return payload directly,
+					path requests to gateways with subdomain support 
+     					should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,
 				Request: Request().URL("{{url}}/ipfs/{{cid}}/", gatewayURL, DirCID),
