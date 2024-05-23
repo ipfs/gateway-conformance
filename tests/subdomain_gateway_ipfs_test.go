@@ -22,7 +22,10 @@ func TestUnixFSDirectoryListingOnSubdomainGateway(t *testing.T) {
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
 		SubdomainGatewayURL,
-		SubdomainLocalhostGatewayURL,
+	}
+
+	if EnableKuboLocalhostSubdomains {
+		gatewayURLs = append(gatewayURLs, SubdomainLocalhostGatewayURL)
 	}
 
 	tests := SugarTests{}
@@ -128,7 +131,10 @@ func TestGatewaySubdomains(t *testing.T) {
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
 		SubdomainGatewayURL,
-		SubdomainLocalhostGatewayURL,
+	}
+
+	if EnableKuboLocalhostSubdomains {
+		gatewayURLs = append(gatewayURLs, SubdomainLocalhostGatewayURL)
 	}
 
 	for _, gatewayURL := range gatewayURLs {
@@ -141,7 +147,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for example.com/ipfs/{CIDv1} redirects to subdomain",
 				Hint: `
-					path requests to gateways with subdomain support 
+					path requests to gateways with subdomain support
      					should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,
@@ -166,7 +172,7 @@ func TestGatewaySubdomains(t *testing.T) {
 			{
 				Name: "request for example.com/ipfs/{DirCID} redirects to subdomain",
 				Hint: `
-					path requests to gateways with subdomain support 
+					path requests to gateways with subdomain support
      					should not return payload directly,
 					but redirect to URL with proper origin isolation
 				`,

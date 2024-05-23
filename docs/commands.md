@@ -32,6 +32,7 @@ The `test` command is the main command of the tool. It is used to test a given I
 |---|---|---|---|
 | gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
 | subdomain-url | Both | The URL to be used in Subdomain feature tests based on Host HTTP header. | http://example.com |
+| enable-kubo-localhost-subdomains | Both | If you cannot listen on `localhost` for subdomains like Kubo does, set this to false | `true` |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |

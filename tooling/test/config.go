@@ -25,6 +25,11 @@ var SubdomainGatewayURL = strings.TrimRight(
 	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com"),
 	"/")
 
+// EnableKuboLocalhostSubdomains is a flag that enables testing subdomains by querying no-port 'localhost'
+// you can read more about why this is needed at https://github.com/ipfs/gateway-conformance/issues/185#issuecomment-2127598223
+// default is true
+var EnableKuboLocalhostSubdomains = GetEnv("ENABLE_KUBO_LOCALHOST_SUBDOMAINS", "true") == "true"
+
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""

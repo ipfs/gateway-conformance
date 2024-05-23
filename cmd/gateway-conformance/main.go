@@ -71,6 +71,7 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 func main() {
 	var gatewayURL string
 	var subdomainGatewayURL string
+	var enableKuboLocalhostSubdomains bool
 	var jsonOutput string
 	var jobURL string
 	var specs string
@@ -100,6 +101,12 @@ func main() {
 						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
 						Value:       "http://example.com",
 						Destination: &subdomainGatewayURL,
+					},
+					&cli.BoolFlag{
+						Name:        "enable-kubo-localhost-subdomains",
+						Usage:       "Enable testing subdomains by querying no-port 'localhost' which depends on setting Kubo's `Gateway.PublicGateways` config.",
+						Value:       true,
+						Destination: &enableKuboLocalhostSubdomains,
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
@@ -149,6 +156,9 @@ func main() {
 
 					if subdomainGatewayURL != "" {
 						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
+					}
+					if enableKuboLocalhostSubdomains {
+						cmd.Env = append(cmd.Env, fmt.Sprintf("ENABLE_KUBO_LOCALHOST_SUBDOMAINS=%t", enableKuboLocalhostSubdomains))
 					}
 
 					cmd.Stdout = out{

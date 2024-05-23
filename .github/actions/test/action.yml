@@ -8,6 +8,10 @@ inputs:
     description: "The Subdomain URL of the IPFS Gateway implementation to be tested."
     default: "http://example.com"
     required: false
+  enable-kubo-localhost-subdomains:
+    description: "When set to `false`, the action will disable the querying of `localhost` (without a port) for subdomains."
+    default: "true"
+    required: false
   accept-test-failure:
     # see https://github.com/orgs/community/discussions/15452
     description: "When set to `true`, the action will not fail (become red) if the tests fail. Use the reports to determine the outcome of the tests."
@@ -46,6 +50,7 @@ runs:
       env:
         URL: ${{ inputs.gateway-url }}
         SUBDOMAIN: ${{ inputs.subdomain-url }}
+        ENABLE_KUBO_LOCALHOST_SUBDOMAINS: ${{ inputs.enable-kubo-localhost-subdomains }}
         JSON: ${{ inputs.json }}
         SPECS: ${{ inputs.specs }}
         JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -55,7 +60,7 @@ runs:
         dockerfile: Dockerfile
         allow-exit-codes: ${{ inputs.accept-test-failure == 'false' && '0' || '0,1' }}
         opts: --network=host
-        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" --job-url="$JOB_URL" -- ${{ inputs.args }}
+        args: test --url="$URL" --json="$JSON" --specs="$SPECS" --subdomain-url="$SUBDOMAIN" --job-url="$JOB_URL" --enable-kubo-localhost-subdomains="$ENABLE_KUBO_LOCALHOST_SUBDOMAINS" -- ${{ inputs.args }}
         build-args: |
           VERSION:${{ steps.github.outputs.action_ref }}
     - name: Create the XML

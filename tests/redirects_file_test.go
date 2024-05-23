@@ -29,7 +29,9 @@ func TestRedirectsFileSupport(t *testing.T) {
 	// We're going to run the same test against multiple gateways (localhost, and a subdomain gateway)
 	gatewayURLs := []string{
 		SubdomainGatewayURL,
-		SubdomainLocalhostGatewayURL,
+	}
+	if EnableKuboLocalhostSubdomains {
+		gatewayURLs = append(gatewayURLs, SubdomainLocalhostGatewayURL)
 	}
 
 	for _, gatewayURL := range gatewayURLs {
