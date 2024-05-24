@@ -25,28 +25,47 @@ func UnwrapSubdomainTests(t *testing.T, tests test.SugarTests) test.SugarTests {
 func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests {
 	t.Helper()
 
-	baseURL := unwraped.Request.GetURL()
+	var baseURL, rawURL string
 	req := unwraped.Request
 	expected := unwraped.Response
+	host := req.GetHeader("Host")
+	if host != "" {
+		// when custom Host header and Path are present we skip legacy magic
+		// and use them as-is
+		u, err := url.Parse(test.GatewayURL)
+		if err != nil {
+			panic("failed to parse GatewayURL")
+		}
+		// rawURL is gateway-url + Path
+		u.Path = unwraped.Request.Path_
+		unwraped.Request.Path_ = ""
+		rawURL = u.String()
+		// baseURL is rawURL with hostname from Host header
+		u.Host = host
+		baseURL = u.String()
+		unwraped.Request.URL_ = baseURL
+	} else {
+		// Legacy flow based on URL instead of Host header
+		baseURL := unwraped.Request.GetURL()
 
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		t.Fatal(err)
+		u, err := url.Parse(baseURL)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// change the low level HTTP endpoint to one defined via --gateway-url
+		// to allow testing Host-based logic against arbitrary gateway URL (useful on CI)
+		u.Host = test.GatewayHost
+
+		rawURL = u.String()
 	}
-	// Because you might be testing an IPFS node in CI, or on your local machine, the test are designed
-	// to test the subdomain behavior (querying http://{CID}.my-subdomain-gateway.io/) even if the node is
-	// actually living on http://127.0.0.1:8080 or somewhere else.
-	//
-	// The test knows two addresses:
-	// 		- GatewayURL: the URL we connect to, it might be "dweb.link", "127.0.0.1:8080", etc.
-	// 		- SubdomainGatewayURL: the origin that informs value in Host HTTP header used for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
 
-	// host is the subdomain ggateway origin we are testing, it might be `localhost` or `example.com`
-	host := u.Host
-
-	// rawURL is the low level HTTP endpoint that is supposed to understand Host header (it might be `http://127.0.0.1/ipfs/something`)
-	u.Host = test.GatewayHost
-	rawURL := u.String()
+	// TODO: we want to refactor this magic into explicit Proxy test suite.
+	// Having this magic here silently modifies headers such as Host, and if a
+	// test fails, it is difficult to grasp how much really  is broken, because
+	// number of errors is always multiplied x3. We should have standalone
+	// proxy test for subdomain gateway and dnslink (simple GET should be
+	// enough) and remove need for UnwrapSubdomainTests.
 
 	return test.SugarTests{
 		{

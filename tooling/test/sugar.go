@@ -52,10 +52,22 @@ func (r RequestBuilder) Query(key, value string, args ...any) RequestBuilder {
 
 func (r RequestBuilder) GetURL() string {
 	if r.Path_ != "" {
-		panic("not supported")
+		// This seems to be some tech debt. Generally, we want to move away from URL,
+		// and instead just provide Path + Host header
+		panic("calling GetURL() is not supported when Path is set")
 	}
 
 	return r.URL_
+}
+
+func (r RequestBuilder) GetHeader(hdr string) string {
+	if r.Headers_ != nil {
+		v, ok := r.Headers_[hdr]
+		if ok {
+			return v
+		}
+	}
+	return ""
 }
 
 func (r RequestBuilder) Proxy(path string, args ...any) RequestBuilder {

@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=fixture.schema.json
 dnslinks:
-  custom-dnslink:
-    domain: dnslink-enabled-on-fqdn.example.org
+  redirects-examples:
+    domain: dnslink-redirects-examples.example.org
     # cid of ./redirects.car:/examples/
     path: /ipfs/QmYBhLYDwVFvxos9h8CGU2ibaY66QNgv8hpfewxaQrPiZj
-  dnslink-spa:
+  redirects-spa:
     domain: dnslink-enabled-with-spa.example.org
     # cid of ./redirects-spa.car
     path: /ipfs/bafybeib5lboymwd6p2eo4qb2lkueaine577flvsjjeuevmp2nlio72xv5q

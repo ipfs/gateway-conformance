@@ -35,11 +35,12 @@ func TestRedirectsFileSupport(t *testing.T) {
 
 	redirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, redirectDirCID, u.Host)
 
+	// TODO hostHdr := Fmt("{{cid}}.ipfs.{{host}}", redirectDirCID, u.Host)
+
 	tests = append(tests, SugarTests{
 		{
 			Name: "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
 			Request: Request().
-				Header("Host", u.Host).
 				URL("{{url}}/redirect-one", redirectDirBaseURL),
 			Response: Expect().
 				Status(301).
@@ -235,20 +236,14 @@ func TestRedirectsFileSupport(t *testing.T) {
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 	tooling.LogTestGroup(t, GroupDNSLink)
 	dnsLinks := dnslink.MustOpenDNSLink("redirects_file/dnslink.yml")
-	dnsLink := dnsLinks.MustGet("custom-dnslink")
-
-	u, err := url.Parse(SubdomainGatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	dnsLinkBaseUrl := Fmt("{{scheme}}://{{dnslink}}.{{host}}", u.Scheme, dnsLink, u.Host)
+	dnsLink := dnsLinks.MustGet("redirects-examples")
 
 	tests := SugarTests{
 		{
-			Name: "request for $DNSLINK_FQDN/redirect-one redirects with default of 301, per _redirects file",
+			Name: "request for //{dnslink} redirects with default of 301, per _redirects file",
 			Request: Request().
-				URL("{{url}}/redirect-one", dnsLinkBaseUrl),
+				Header("Host", dnsLink).
+				Path("/redirect-one"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -256,10 +251,11 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $DNSLINK_FQDN/en/has-no-redirects-entry returns custom 404, per _redirects file",
+			Name: "request for //{dnslink}/en/has-no-redirects-entry returns custom 404, per _redirects file",
 			Hint: `ensure custom 404 works and has the same cache headers as regular /ipns/ paths`,
 			Request: Request().
-				URL("{{url}}/not-found/has-no-redirects-entry", dnsLinkBaseUrl),
+				Header("Host", dnsLink).
+				Path("/not-found/has-no-redirects-entry"),
 			Response: Expect().
 				Status(404).
 				Headers(
@@ -274,30 +270,69 @@ func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
 		},
 	}
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway, specs.RedirectsFile)
+	// TODO:
+	RunWithSpecs(t, tests, specs.DNSLinkGateway, specs.RedirectsFile)
 }
 
 func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("redirects_file/redirects-spa.car")
 
 	dnsLinks := dnslink.MustOpenDNSLink("redirects_file/dnslink.yml")
-	dnsLink := dnsLinks.MustGet("dnslink-spa")
+	dnsLink := dnsLinks.MustGet("redirects-spa")
 
 	u, err := url.Parse(SubdomainGatewayURL)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pageURL := Fmt("{{scheme}}://{{dnslink}}.{{host}}/missing-page", u.Scheme, dnsLink, u.Host)
+	dnslinkAtSubdomainGw := Fmt("{{dnslink}}.ipns.{{host}}", dnslink.InlineDNS(dnsLink), u.Host)
 
 	var etag string
 
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
 		{
-			Name: "request for $DNSLINK_FQDN/missing-page returns body of index.html as per _redirects",
+			Name: "request for //{{dnslink}}.ipns.{{subdomain-gateway}}/missing-page returns body of index.html as per _redirects",
 			Request: Request().
-				URL(pageURL).
+				Path("/missing-page").
 				Headers(
+					Header("Host", dnslinkAtSubdomainGw),
+					Header("Accept", "text/html"),
+				),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Etag").
+						Checks(func(v string) bool {
+							etag = v
+							return v != ""
+						}),
+				).
+				Body(fixture.MustGetRawData("index.html")),
+		},
+	}), specs.SubdomainGatewayIPNS, specs.RedirectsFile)
+
+	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+		{
+			Name: "request for //{dnslink}.ipns.{subdomain-gw}/missing-page with If-None-Match returns 304",
+			Request: Request().
+				Path("/missing-page").
+				Headers(
+					Header("Host", dnslinkAtSubdomainGw),
+					Header("Accept", "text/html"),
+					Header("If-None-Match", etag),
+				),
+			Response: Expect().
+				Status(304),
+		},
+	}), specs.SubdomainGatewayIPNS, specs.RedirectsFile)
+
+	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+		{
+			Name: "request for //{dnslink}/missing-page returns body of index.html as per _redirects",
+			Request: Request().
+				Path("/missing-page").
+				Headers(
+					Header("Host", dnsLink),
 					Header("Accept", "text/html"),
 				),
 			Response: Expect().
@@ -315,10 +350,11 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 
 	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
 		{
-			Name: "request for $DNSLINK_FQDN/missing-page with If-None-Match returns 301",
+			Name: "request for //{dnslink}/missing-page with If-None-Match returns 304",
 			Request: Request().
-				URL(pageURL).
+				Path("/missing-page").
 				Headers(
+					Header("Host", dnsLink),
 					Header("Accept", "text/html"),
 					Header("If-None-Match", etag),
 				),
