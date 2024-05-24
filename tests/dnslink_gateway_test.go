@@ -20,25 +20,28 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 	fixture := car.MustOpenUnixfsCar("dir_listing/fixtures.car")
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 
+	// DNSLink domain and fixture we will be using for Host headerthis test
+	dnsLinkHostname := "dnslink-website.example.org"
 	dnsLinks := dnslink.MustOpenDNSLink("dir_listing/dnslink.yml")
-	dnsLink := dnsLinks.MustGet("website")
-
-	gatewayURL := SubdomainGatewayURL
+	dnsLink := dnsLinks.MustGet("dir-listing-website")
 
 	tests := SugarTests{}
 
-	u, err := url.Parse(gatewayURL)
+	// Sent requests to endpoint defined by --gateway-url
+	u, err := url.Parse(GatewayURL)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dnsLinkHostname := tmpl.Fmt("{{dnslink}}.{{host}}", dnsLink, u.Host)
+	// Host header should use dnslink domain with the same scheme as --gateway-url
+	hostHdr := tmpl.Fmt("{{scheme}}://{{dnslink}}", u.Scheme, dnsLink)
 
 	tests = append(tests, SugarTests{
 		{
 			Name: "Backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/`, u.Scheme, dnsLinkHostname),
+				Header("Host", hostHdr).
+				URL(GatewayURL),
 			Response: Expect().
 				Body(
 					And(
@@ -50,7 +53,8 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		{
 			Name: "Redirect dir listing to URL with trailing slash",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/ą/ę`, u.Scheme, dnsLinkHostname),
+				Header("Host", hostHdr).
+				URL(GatewayURL + "/ą/ę"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -60,7 +64,8 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		{
 			Name: "Regular dir listing (TODO: cleanup Kubo-specifics)",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/ą/ę/`, u.Scheme, dnsLinkHostname),
+				Header("Host", hostHdr).
+				URL(GatewayURL + "/ą/ę"),
 			Response: Expect().
 				Headers(
 					Header("Etag").Contains(`"DirIndex-`),

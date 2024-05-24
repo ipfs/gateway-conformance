@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2024-05-27
+### Changed
+- The `--gateway-url` now defaults to `http://127.0.0.1:8080` to ensure no confusion with subdomain gateway feature.
+- The `--subdomain-url` now defaults to `http://localhost:8080`, making it more friendly for local development.
+  - We also simplified the way `--subdomain-url` works. We no longer run implicit tests
+    against `http://localhost` in addition to the URL passed via
+    `--subdomain-url`. To test more than one domain, run test multiple times.
+-  DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated `*.example.org` domains instead.
+
 ## [0.5.2] - 2024-05-20
 ### Changed
 - Fixed: relaxed dag-cbor error check ([#205](https://github.com/ipfs/gateway-conformance/pull/205))

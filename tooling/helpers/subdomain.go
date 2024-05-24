@@ -39,12 +39,12 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 	//
 	// The test knows two addresses:
 	// 		- GatewayURL: the URL we connect to, it might be "dweb.link", "127.0.0.1:8080", etc.
-	// 		- SubdomainGatewayURL: the URL we test for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
+	// 		- SubdomainGatewayURL: the origin that informs value in Host HTTP header used for subdomain requests, it might be "dweb.link", "localhost", "example.com", etc.
 
-	// host is the hostname of the gateway we are testing, it might be `localhost` or `example.com`
+	// host is the subdomain ggateway origin we are testing, it might be `localhost` or `example.com`
 	host := u.Host
 
-	// raw url is the url but we replace the host with our local url, it might be `http://127.0.0.1/ipfs/something`
+	// rawURL is the low level HTTP endpoint that is supposed to understand Host header (it might be `http://127.0.0.1/ipfs/something`)
 	u.Host = test.GatewayHost
 	rawURL := u.String()
 

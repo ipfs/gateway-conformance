@@ -22,14 +22,12 @@ var GatewayURL = strings.TrimRight(
 	"/")
 
 var SubdomainGatewayURL = strings.TrimRight(
-	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://example.com"),
+	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://localhost:8080"),
 	"/")
 
 var GatewayHost = ""
 var SubdomainGatewayHost = ""
 var SubdomainGatewayScheme = ""
-
-var SubdomainLocalhostGatewayURL = "http://localhost"
 
 func init() {
 	parsed, err := url.Parse(GatewayURL)

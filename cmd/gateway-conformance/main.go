@@ -90,16 +90,18 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "gateway-url",
+						EnvVars:     []string{"GATEWAY_URL"},
 						Aliases:     []string{"url", "g"},
 						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://localhost:8080",
+						Value:       "http://127.0.0.1:8080",
 						Destination: &gatewayURL,
 					},
 					&cli.StringFlag{
-						Name:        "subdomain-url",
-						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://example.com",
-						Destination: &subdomainGatewayURL,
+						Name:    "subdomain-url",
+						Aliases: []string{"sg"},
+						EnvVars: []string{"SUBDOMAIN_GATEWAY_URL"},
+						Usage:   "URL of the HTTP Host that should be used when testing https://specs.ipfs.tech/http-gateways/subdomain-gateway/ functionality",
+						Value:   "http://localhost:8080", // TODO: ideally, make these empty by default, and opt-in
 					},
 					&cli.StringFlag{
 						Name:        "json-output",
