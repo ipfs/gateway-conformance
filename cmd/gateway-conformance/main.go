@@ -240,7 +240,7 @@ func main() {
 					},
 					&cli.BoolFlag{
 						Name:        "merged",
-						Usage:       "Merge the fixtures into a single CAR file",
+						Usage:       "Merge the CAR fixtures into a single CAR file",
 						Value:       false,
 						Destination: &merged,
 					},
@@ -256,41 +256,38 @@ func main() {
 						return err
 					}
 
+					// IPNS Records
+					err = copyFiles(fxs.IPNSRecords, directory)
+					if err != nil {
+						return err
+					}
+
+					// DNSLink fixtures as YAML, JSON, and IPNS_NS_MAP env variable
+					err = copyFiles(fxs.ConfigFiles, directory)
+					if err != nil {
+						return err
+					}
+					err = dnslink.MergeJSON(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
+					if err != nil {
+						return err
+					}
+					err = dnslink.MergeNsMapEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.IPFS_NS_MAP"))
+					if err != nil {
+						return err
+					}
+
 					merged := cCtx.Bool("merged")
 					if merged {
+						// All .car fixtures merged into a single .car file
 						err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
 						if err != nil {
 							return err
 						}
-
-						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
-						if err != nil {
-							return err
-						}
-
 						// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
-						// merge the IPNS records into a car file.
-						err = copyFiles(fxs.IPNSRecords, directory)
-						if err != nil {
-							return err
-						}
+						// implement merge support to include the IPNS records in the car file.
 					} else {
+						// Copy .car fixtures as -is
 						err = copyFiles(fxs.CarFiles, directory)
-						if err != nil {
-							return err
-						}
-
-						err = copyFiles(fxs.ConfigFiles, directory)
-						if err != nil {
-							return err
-						}
-
-						err = copyFiles(fxs.IPNSRecords, directory)
-						if err != nil {
-							return err
-						}
-
-						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
 						if err != nil {
 							return err
 						}
