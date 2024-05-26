@@ -25,30 +25,30 @@ func UnwrapSubdomainTests(t *testing.T, tests test.SugarTests) test.SugarTests {
 func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests {
 	t.Helper()
 
-	var baseURL, rawURL string
+	var logicalURL, httpEndpointURL string
 	req := unwraped.Request
 	expected := unwraped.Response
-	host := req.GetHeader("Host")
+	host := req.RemoveHeader("Host")
 	if host != "" {
-		// when custom Host header and Path are present we skip legacy magic
-		// and use them as-is
+		// when custom Host header is present we skip legacy magic
+		// and use Host and Path as-is
 		u, err := url.Parse(test.GatewayURL)
 		if err != nil {
 			panic("failed to parse GatewayURL")
 		}
-		// rawURL is gateway-url + Path
+		u.Host = host
+		// httpEndpointURL is gateway-url + Path
 		u.Path = unwraped.Request.Path_
 		unwraped.Request.Path_ = ""
-		rawURL = u.String()
-		// baseURL is rawURL with hostname from Host header
-		u.Host = host
-		baseURL = u.String()
-		unwraped.Request.URL_ = baseURL
+		httpEndpointURL = u.String()
+		// logicalURL is httpEndpointURL with hostname from Host header
+		logicalURL = u.String()
+		unwraped.Request.URL_ = logicalURL
 	} else {
 		// Legacy flow based on URL instead of Host header
-		baseURL := unwraped.Request.GetURL()
+		logicalURL := unwraped.Request.GetURL()
 
-		u, err := url.Parse(baseURL)
+		u, err := url.Parse(logicalURL)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -57,7 +57,7 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 		// to allow testing Host-based logic against arbitrary gateway URL (useful on CI)
 		u.Host = test.GatewayHost
 
-		rawURL = u.String()
+		httpEndpointURL = u.String()
 	}
 
 	// TODO: we want to refactor this magic into explicit Proxy test suite.
@@ -72,7 +72,7 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 			Name: fmt.Sprintf("%s (direct HTTP)", unwraped.Name),
 			Hint: fmt.Sprintf("%s\n%s", unwraped.Hint, "direct HTTP request (hostname in URL, raw IP in Host header)"),
 			Request: req.
-				URL(rawURL).
+				URL(httpEndpointURL).
 				Headers(
 					test.Header("Host", host),
 				),
@@ -82,7 +82,7 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 			Name: fmt.Sprintf("%s (HTTP proxy)", unwraped.Name),
 			Hint: fmt.Sprintf("%s\n%s", unwraped.Hint, "HTTP proxy (hostname is passed via URL)"),
 			Request: req.
-				URL(baseURL).
+				URL(logicalURL).
 				Proxy(test.GatewayURL),
 			Response: expected,
 		},
@@ -94,7 +94,7 @@ func unwrapSubdomainTest(t *testing.T, unwraped test.SugarTest) test.SugarTests 
 				https://tools.ietf.org/html/rfc7231#section-4.3.6
 			`),
 			Request: req.
-				URL(baseURL).
+				URL(logicalURL).
 				Proxy(test.GatewayURL).
 				WithProxyTunnel().
 				Headers(

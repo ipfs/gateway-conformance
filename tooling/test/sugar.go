@@ -60,10 +60,11 @@ func (r RequestBuilder) GetURL() string {
 	return r.URL_
 }
 
-func (r RequestBuilder) GetHeader(hdr string) string {
+func (r RequestBuilder) RemoveHeader(hdr string) string {
 	if r.Headers_ != nil {
 		v, ok := r.Headers_[hdr]
 		if ok {
+			delete(r.Headers_, v)
 			return v
 		}
 	}
