@@ -74,8 +74,6 @@ func main() {
 	var jsonOutput string
 	var jobURL string
 	var specs string
-	var directory string
-	var merged bool
 	var verbose bool
 
 	app := &cli.App{
@@ -232,20 +230,35 @@ func main() {
 				Usage:   "Extract gateway testing fixtures that are used by the conformance test suite",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "directory",
-						Aliases:     []string{"dir"},
-						Usage:       "The directory to extract the fixtures to",
-						Required:    true,
-						Destination: &directory,
+						Name:     "directory",
+						Aliases:  []string{"dir"},
+						Usage:    "The directory to extract the fixtures to",
+						Required: true,
 					},
 					&cli.BoolFlag{
-						Name:        "merged",
-						Usage:       "Merge the CAR fixtures into a single CAR file",
-						Value:       false,
-						Destination: &merged,
+						Name:  "merged",
+						Usage: "Merge the CAR fixtures into a single CAR file",
+						Value: false,
+					},
+					&cli.BoolFlag{
+						Name:  "car",
+						Usage: "Include CAR fixtures",
+						Value: true,
+					},
+					&cli.BoolFlag{
+						Name:  "ipns",
+						Usage: "Include IPNS Record fixtures",
+						Value: true,
+					},
+					&cli.BoolFlag{
+						Name:  "dnslink",
+						Usage: "Include DNSLink fixtures",
+						Value: true,
 					},
 				},
 				Action: func(cCtx *cli.Context) error {
+					directory := cCtx.String("directory")
+
 					err := os.MkdirAll(directory, 0755)
 					if err != nil {
 						return err
@@ -257,39 +270,44 @@ func main() {
 					}
 
 					// IPNS Records
-					err = copyFiles(fxs.IPNSRecords, directory)
-					if err != nil {
-						return err
-					}
-
-					// DNSLink fixtures as YAML, JSON, and IPNS_NS_MAP env variable
-					err = copyFiles(fxs.ConfigFiles, directory)
-					if err != nil {
-						return err
-					}
-					err = dnslink.MergeJSON(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
-					if err != nil {
-						return err
-					}
-					err = dnslink.MergeNsMapEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.IPFS_NS_MAP"))
-					if err != nil {
-						return err
-					}
-
-					merged := cCtx.Bool("merged")
-					if merged {
-						// All .car fixtures merged into a single .car file
-						err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
+					if cCtx.Bool("ipns") {
+						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
 						}
-						// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
-						// implement merge support to include the IPNS records in the car file.
-					} else {
-						// Copy .car fixtures as -is
-						err = copyFiles(fxs.CarFiles, directory)
+					}
+
+					// DNSLink fixtures as YAML, JSON, and IPNS_NS_MAP env variable
+					if cCtx.Bool("dnslink") {
+						err = copyFiles(fxs.ConfigFiles, directory)
 						if err != nil {
 							return err
+						}
+						err = dnslink.MergeJSON(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
+						if err != nil {
+							return err
+						}
+						err = dnslink.MergeNsMapEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.IPFS_NS_MAP"))
+						if err != nil {
+							return err
+						}
+					}
+
+					if cCtx.Bool("car") {
+						if cCtx.Bool("merged") {
+							// All .car fixtures merged into a single .car file
+							err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
+							if err != nil {
+								return err
+							}
+							// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
+							// implement merge support to include the IPNS records in the car file.
+						} else {
+							// Copy .car fixtures as -is
+							err = copyFiles(fxs.CarFiles, directory)
+							if err != nil {
+								return err
+							}
 						}
 					}
 
