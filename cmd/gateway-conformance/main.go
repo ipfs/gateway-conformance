@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
+	specPresets "github.com/ipfs/gateway-conformance/tooling/specs"
 	"github.com/urfave/cli/v2"
 )
 
@@ -69,13 +70,6 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 }
 
 func main() {
-	var gatewayURL string
-	var subdomainGatewayURL string
-	var jsonOutput string
-	var jobURL string
-	var specs string
-	var verbose bool
-
 	app := &cli.App{
 		Name:    "gateway-conformance",
 		Usage:   "Tooling for the gateway test suite",
@@ -87,70 +81,71 @@ func main() {
 				Usage:   "Run the conformance test suite against your gateway",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "gateway-url",
-						EnvVars:     []string{"GATEWAY_URL"},
-						Aliases:     []string{"url", "g"},
-						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://127.0.0.1:8080",
-						Destination: &gatewayURL,
+						Name:    "gateway-url",
+						EnvVars: []string{"GATEWAY_URL"},
+						Aliases: []string{"url", "g"},
+						Usage:   "The URL of the IPFS Gateway implementation to be tested.",
+						Value:   "http://127.0.0.1:8080",
 					},
 					&cli.StringFlag{
 						Name:    "subdomain-url",
-						Aliases: []string{"sg"},
 						EnvVars: []string{"SUBDOMAIN_GATEWAY_URL"},
 						Usage:   "URL of the HTTP Host that should be used when testing https://specs.ipfs.tech/http-gateways/subdomain-gateway/ functionality",
-						Value:   "http://localhost:8080", // TODO: ideally, make these empty by default, and opt-in
+						Value:   "http://example.com:8080", // TODO: ideally, make these empty by default, and opt-in
 					},
 					&cli.StringFlag{
-						Name:        "json-output",
-						Aliases:     []string{"json", "j"},
-						Usage:       "The path where the JSON test report should be generated.",
-						Value:       "",
-						Destination: &jsonOutput,
+						Name:    "json-output",
+						Aliases: []string{"json", "j"},
+						Usage:   "The path where the JSON test report should be generated.",
+						Value:   "",
 					},
 					&cli.StringFlag{
-						Name:        "job-url",
-						Aliases:     []string{},
-						Usage:       "The Job URL where this run will be visible.",
-						Value:       "",
-						Destination: &jobURL,
+						Name:    "job-url",
+						Aliases: []string{},
+						Usage:   "The Job URL where this run will be visible.",
+						Value:   "",
 					},
 					&cli.StringFlag{
-						Name:        "specs",
-						Usage:       "Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec).",
-						Value:       "",
-						Destination: &specs,
+						Name:    "specs",
+						EnvVars: []string{"SPECS"},
+						Usage:   "Optional explicit scope of tests to run. Accepts a 'spec' (test only this spec), a '+spec' (test also this immature spec), or a '-spec' (do not test this mature spec). Available spec presets: " + strings.Join(getAvailableSpecPresets(), ","),
+						Value:   "",
 					},
 					&cli.BoolFlag{
-						Name:        "verbose",
-						Usage:       "Prints all the output to the console.",
-						Value:       false,
-						Destination: &verbose,
+						Name:  "verbose",
+						Usage: "Prints all the output to the console.",
+						Value: false,
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
+				Action: func(cctx *cli.Context) error {
+					env := os.Environ()
+					verbose := cctx.Bool("verbose")
+					gatewayURL := cctx.String("gateway-url")
+					subdomainGatewayURL := cctx.String("subdomain-url")
+					env = append(env, fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
+					if subdomainGatewayURL != "" {
+						env = append(env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
+					}
+
 					args := []string{"test", "./tests", "-test.v=test2json"}
 
+					specs := cctx.String("specs")
 					if specs != "" {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
 
-					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s -X github.com/ipfs/gateway-conformance/tooling.JobURL=%s", tooling.Version, jobURL)
+					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s -X github.com/ipfs/gateway-conformance/tooling.JobURL=%s", tooling.Version, cctx.String("job-url"))
 					args = append(args, ldFlag)
 
-					args = append(args, cCtx.Args().Slice()...)
+					args = append(args, cctx.Args().Slice()...)
 
 					fmt.Println("go " + strings.Join(args, " "))
+					fmt.Println("ENV " + strings.Join(env, " "))
 
 					output := &bytes.Buffer{}
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
-					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
-
-					if subdomainGatewayURL != "" {
-						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
-					}
-
+					cmd.Env = env
 					cmd.Stdout = out{
 						Writer: output,
 						Filter: func(line string) bool {
@@ -190,9 +185,11 @@ func main() {
 						fmt.Println()
 					}
 
+					jsonOutput := cctx.String("json-output")
 					if jsonOutput != "" {
 						json := &bytes.Buffer{}
 						cmd = exec.Command("go", "tool", "test2json", "-p", "Gateway Tests", "-t")
+						cmd.Env = env
 						cmd.Stdin = output
 						cmd.Stdout = json
 						cmd.Stderr = os.Stderr
@@ -256,8 +253,8 @@ func main() {
 						Value: true,
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
-					directory := cCtx.String("directory")
+				Action: func(cctx *cli.Context) error {
+					directory := cctx.String("directory")
 
 					err := os.MkdirAll(directory, 0755)
 					if err != nil {
@@ -270,7 +267,7 @@ func main() {
 					}
 
 					// IPNS Records
-					if cCtx.Bool("ipns") {
+					if cctx.Bool("ipns") {
 						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
@@ -278,7 +275,7 @@ func main() {
 					}
 
 					// DNSLink fixtures as YAML, JSON, and IPNS_NS_MAP env variable
-					if cCtx.Bool("dnslink") {
+					if cctx.Bool("dnslink") {
 						err = copyFiles(fxs.ConfigFiles, directory)
 						if err != nil {
 							return err
@@ -293,8 +290,8 @@ func main() {
 						}
 					}
 
-					if cCtx.Bool("car") {
-						if cCtx.Bool("merged") {
+					if cctx.Bool("car") {
+						if cctx.Bool("merged") {
 							// All .car fixtures merged into a single .car file
 							err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
 							if err != nil {
@@ -320,4 +317,20 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getAvailableSpecPresets() []string {
+	var presets []string
+	for _, preset := range specPresets.All() {
+		var p string
+		if preset.IsEnabled() && !preset.IsMature() {
+			p += "+"
+		}
+		if !preset.IsEnabled() {
+			p += "-"
+		}
+		p += preset.Name()
+		presets = append(presets, p)
+	}
+	return presets
 }
