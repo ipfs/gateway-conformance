@@ -19,7 +19,7 @@ test-cargateway: provision-cargateway fixtures.car gateway-conformance
 
 test-kubo-subdomains: provision-kubo gateway-conformance
 	./kubo-config.example.sh
-	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://localhost:8080
+	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080
 
 test-kubo: provision-kubo gateway-conformance
 	./gateway-conformance test --json reports/output.json --gateway-url http://127.0.0.1:8080 --specs -subdomain-gateway
@@ -31,13 +31,16 @@ provision-kubo:
 	find ./fixtures -name '*.car' -exec ipfs dag import --stats --pin-roots=false {} \;
 	find ./fixtures -name '*.ipns-record' -exec sh -c 'ipfs routing put --allow-offline /ipns/$$(basename -s .ipns-record "{}" | cut -d'_' -f1) "{}"' \;
 
-start-kubo-docker: stop-kubo-docker gateway-conformance
-	./gateway-conformance extract-fixtures --dnslink=true --car=false --ipns=false --dir=.temp
-	docker pull ipfs/kubo:$(KUBO_VERSION)
-	docker run -d --rm --net=host --name $(KUBO_DOCKER_NAME) -e IPFS_NS_MAP="$(shell cat ./.temp/dnslinks.IPFS_NS_MAP)" -v ./fixtures:/fixtures ipfs/kubo:$(KUBO_VERSION) daemon --init --offline
-	@until docker exec $(KUBO_DOCKER_NAME) ipfs --api=/ip4/127.0.0.1/tcp/5001 dag stat /ipfs/QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn >/dev/null 2>&1; do sleep 0.1; done
-	find ./fixtures -name '*.car' -exec docker exec $(KUBO_DOCKER_NAME) ipfs dag import --stats --pin-roots=false {} \;
-	find ./fixtures -name '*.ipns-record' -exec docker exec $(KUBO_DOCKER_NAME) sh -c 'ipfs routing put --allow-offline /ipns/$$(basename -s .ipns-record "{}" | cut -d'_' -f1) "{}"' \;
+#start-kubo-docker: stop-kubo-docker gateway-conformance
+#	./gateway-conformance extract-fixtures --dir=.temp/fixtures
+#	docker pull ipfs/kubo:$(KUBO_VERSION)
+#	docker run -d --rm --net=host --name $(KUBO_DOCKER_NAME) -v "$(shell realpath .temp/fixtures)":/fixtures -v kubo-config.example.sh:/container-init.d/001-config.sh ipfs/kubo:$(KUBO_VERSION) daemon --init --offline
+#	@until docker exec $(KUBO_DOCKER_NAME) ipfs --api=/ip4/127.0.0.1/tcp/5001 dag stat /ipfs/QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn >/dev/null 2>&1; do sleep 0.1; done
+#	docker exec $(KUBO_DOCKER_NAME) find /fixtures -name '*.car' -exec ipfs dag import --stats --pin-roots=false {} \;
+#	docker exec $(KUBO_DOCKER_NAME) find /fixtures -name '*.ipns-record' -exec sh -c 'ipfs routing put --allow-offline /ipns/$$(basename -s .ipns-record "{}" | cut -d'_' -f1) "{}"' \;
+#	TODO: provision Kubo config at Gateway.PublicGateways  to have subdomain gateway on example.com and also enable inlining on localhost
+#	      See: https://github.com/ipfs/kubo/blob/a07852a3f0294974b802923fb136885ad077384e/.github/workflows/gateway-conformance.yml#L22-L34
+#	      (this is not as trivial as it sounds because Kubo does not apply config inrealtime, and a restart is required.)
 
 stop-kubo-docker: clean
 	docker stop $(KUBO_DOCKER_NAME) || true

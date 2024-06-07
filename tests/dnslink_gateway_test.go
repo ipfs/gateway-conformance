@@ -7,7 +7,6 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
-	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
@@ -74,5 +73,5 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		},
 	}
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway)
+	RunWithSpecs(t, tests, specs.DNSLinkGateway)
 }

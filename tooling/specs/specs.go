@@ -121,6 +121,7 @@ var (
 	SubdomainGateway            = Collection{"subdomain-gateway", []Spec{SubdomainGatewayIPFS, SubdomainGatewayIPNS}}
 	DNSLinkGateway              = Leaf{"dnslink-gateway", stable}
 	RedirectsFile               = Leaf{"redirects-file", stable}
+	ProxyGateway                = Leaf{"proxy-gateway", stable}
 )
 
 // All specs MUST be listed here.
@@ -141,6 +142,7 @@ var specs = []Spec{
 	SubdomainGateway,
 	DNSLinkGateway,
 	RedirectsFile,
+	ProxyGateway,
 }
 
 var specEnabled = map[Spec]bool{}

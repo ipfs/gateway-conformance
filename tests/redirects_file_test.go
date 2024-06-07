@@ -1,14 +1,12 @@
 package tests
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
-	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
@@ -28,20 +26,16 @@ func TestRedirectsFileSupport(t *testing.T) {
 
 	// Redirects require origin isolation (https://specs.ipfs.tech/http-gateways/web-redirects-file/)
 	// This means we only run these tests against origins explicitly passed via --subdomain-url
-	u, err := url.Parse(SubdomainGatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
+	u := SubdomainGatewayURL()
 
-	redirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, redirectDirCID, u.Host)
-
-	// TODO hostHdr := Fmt("{{cid}}.ipfs.{{host}}", redirectDirCID, u.Host)
+	dirCIDInSubdomain := Fmt("{{cid}}.ipfs.{{host}}", redirectDirCID, u.Host)
 
 	tests = append(tests, SugarTests{
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/redirect-one redirects with default of 301, per _redirects file",
 			Request: Request().
-				URL("{{url}}/redirect-one", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/redirect-one"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -49,9 +43,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/301-redirect-one redirects with 301, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/301-redirect-one redirects with 301, per _redirects file",
 			Request: Request().
-				URL("{{url}}/301-redirect-one", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/301-redirect-one"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -59,9 +54,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/302-redirect-two redirects with 302, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/302-redirect-two redirects with 302, per _redirects file",
 			Request: Request().
-				URL("{{url}}/302-redirect-two", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/302-redirect-two"),
 			Response: Expect().
 				Status(302).
 				Headers(
@@ -69,17 +65,19 @@ func TestRedirectsFileSupport(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/200-index returns 200, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/200-index returns 200, per _redirects file",
 			Request: Request().
-				URL("{{url}}/200-index", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/200-index"),
 			Response: Expect().
 				Status(200).
 				Body(Contains("my index")),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/posts/:year/:month/:day/:title redirects with 301 and placeholders, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/posts/:year/:month/:day/:title redirects with 301 and placeholders, per _redirects file",
 			Request: Request().
-				URL("{{url}}/posts/2022/01/01/hello-world", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/posts/2022/01/01/hello-world"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -87,9 +85,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/splat/one.html redirects with 301 and splat placeholder, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/splat/one.html redirects with 301 and splat placeholder, per _redirects file",
 			Request: Request().
-				URL("{{url}}/splat/one.html", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/splat/one.html"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -97,9 +96,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/not-found/has-no-redirects-entry returns custom 404, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/not-found/has-no-redirects-entry returns custom 404, per _redirects file",
 			Request: Request().
-				URL("{{url}}/not-found/has-no-redirects-entry", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/not-found/has-no-redirects-entry"),
 			Response: Expect().
 				Status(404).
 				Headers(
@@ -109,9 +109,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Body(Contains(custom404.ReadFile())),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/gone/has-no-redirects-entry returns custom 410, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/gone/has-no-redirects-entry returns custom 410, per _redirects file",
 			Request: Request().
-				URL("{{url}}/gone/has-no-redirects-entry", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/gone/has-no-redirects-entry"),
 			Response: Expect().
 				Status(410).
 				Headers(
@@ -121,9 +122,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Body(Contains(custom410.ReadFile())),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/unavail/has-no-redirects-entry returns custom 451, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/unavail/has-no-redirects-entry returns custom 451, per _redirects file",
 			Request: Request().
-				URL("{{url}}/unavail/has-no-redirects-entry", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/unavail/has-no-redirects-entry"),
 			Response: Expect().
 				Status(451).
 				Headers(
@@ -133,9 +135,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 				Body(Contains(custom451.ReadFile())),
 		},
 		{
-			Name: "request for $REDIRECTS_DIR_HOSTNAME/catch-all returns 200, per _redirects file",
+			Name: "request for {cid}.ipfs.example.com/catch-all returns 200, per _redirects file",
 			Request: Request().
-				URL("{{url}}/catch-all", redirectDirBaseURL),
+				Header("Host", dirCIDInSubdomain).
+				Path("/catch-all"),
 			Response: Expect().
 				Status(200).
 				Body(Contains("my index")),
@@ -144,17 +147,18 @@ func TestRedirectsFileSupport(t *testing.T) {
 
 	// # Invalid file, containing forced redirect
 	invalidRedirectsDirCID := fixture.MustGetNode("forced").Base32Cid()
-	invalidDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, invalidRedirectsDirCID, u.Host)
+	invalidDirSubdomain := Fmt("{{cid}}.ipfs.{{host}}", invalidRedirectsDirCID, u.Host)
 
 	tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").Base32Cid()
-	tooLargeDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, tooLargeRedirectsDirCID, u.Host)
+	tooLargeDirSubdomain := Fmt("{{cid}}.ipfs.{{host}}", tooLargeRedirectsDirCID, u.Host)
 
 	tests = append(tests, SugarTests{
 		{
 			Name: "invalid file: request for $INVALID_REDIRECTS_DIR_HOSTNAME/not-found returns error about invalid redirects file",
 			Hint: `if accessing a path that doesn't exist, read _redirects and fail parsing, and return error`,
 			Request: Request().
-				URL("{{url}}/not-found", invalidDirBaseURL),
+				Header("Host", invalidDirSubdomain).
+				Path("/not-found"),
 			Response: Expect().
 				Status(500).
 				Body(
@@ -169,7 +173,8 @@ func TestRedirectsFileSupport(t *testing.T) {
 			Name: "invalid file: request for $TOO_LARGE_REDIRECTS_DIR_HOSTNAME/not-found returns error about too large redirects file",
 			Hint: `if accessing a path that doesn't exist and _redirects file is too large, return error`,
 			Request: Request().
-				URL("{{url}}/not-found", tooLargeDirBaseURL),
+				Header("Host", tooLargeDirSubdomain).
+				Path("/not-found"),
 			Response: Expect().
 				Status(500).
 				Body(
@@ -184,21 +189,22 @@ func TestRedirectsFileSupport(t *testing.T) {
 
 	// # With CRLF line terminator
 	newlineRedirectsDirCID := fixture.MustGetNode("newlines").Base32Cid()
-	newlineBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, newlineRedirectsDirCID, u.Host)
+	newlineHost := Fmt("{{cid}}.ipfs.{{host}}", newlineRedirectsDirCID, u.Host)
 
 	// # Good codes
 	goodRedirectDirCID := fixture.MustGetNode("good-codes").Base32Cid()
-	goodRedirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, goodRedirectDirCID, u.Host)
+	goodRedirectDirHost := Fmt("{{cid}}.ipfs.{{host}}", goodRedirectDirCID, u.Host)
 
 	// # Bad codes
 	badRedirectDirCID := fixture.MustGetNode("bad-codes").Base32Cid()
-	badRedirectDirBaseURL := Fmt("{{scheme}}://{{cid}}.ipfs.{{host}}", u.Scheme, badRedirectDirCID, u.Host)
+	badRedirectDirHost := Fmt("{{cid}}.ipfs.{{host}}", badRedirectDirCID, u.Host)
 
 	tests = append(tests, SugarTests{
 		{
 			Name: "newline: request for $NEWLINE_REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
 			Request: Request().
-				URL("{{url}}/redirect-one", newlineBaseURL),
+				Header("Host", newlineHost).
+				Path("/redirect-one"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -208,7 +214,8 @@ func TestRedirectsFileSupport(t *testing.T) {
 		{
 			Name: "good codes: request for $GOOD_REDIRECTS_DIR_HOSTNAME/redirect-one redirects with default of 301, per _redirects file",
 			Request: Request().
-				URL("{{url}}/a301", goodRedirectDirBaseURL),
+				Header("Host", goodRedirectDirHost).
+				Path("/a301"),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -218,7 +225,8 @@ func TestRedirectsFileSupport(t *testing.T) {
 		{
 			Name: "bad codes: request for $BAD_REDIRECTS_DIR_HOSTNAME/found.html doesn't return error about bad code",
 			Request: Request().
-				URL("{{url}}/found.html", badRedirectDirBaseURL),
+				Header("Host", badRedirectDirHost).
+				Path("/found.html"),
 			Response: Expect().
 				Status(200).
 				Body(
@@ -230,7 +238,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 		},
 	}...)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPFS, specs.RedirectsFile)
+	RunWithSpecs(t, tests, specs.SubdomainGatewayIPFS, specs.RedirectsFile)
 }
 
 func TestRedirectsFileSupportWithDNSLink(t *testing.T) {
@@ -280,18 +288,15 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 	dnsLinks := dnslink.MustOpenDNSLink("redirects_file/dnslink.yml")
 	dnsLink := dnsLinks.MustGet("redirects-spa")
 
-	u, err := url.Parse(SubdomainGatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
+	u := SubdomainGatewayURL()
 
 	dnslinkAtSubdomainGw := Fmt("{{dnslink}}.ipns.{{host}}", dnslink.InlineDNS(dnsLink), u.Host)
 
 	var etag string
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+	RunWithSpecs(t, SugarTests{
 		{
-			Name: "request for //{{dnslink}}.ipns.{{subdomain-gateway}}/missing-page returns body of index.html as per _redirects",
+			Name: "request for //{dnslink}.ipns.{subdomain-gateway}/missing-page returns body of index.html as per _redirects",
 			Request: Request().
 				Path("/missing-page").
 				Headers(
@@ -309,11 +314,11 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 				).
 				Body(fixture.MustGetRawData("index.html")),
 		},
-	}), specs.SubdomainGatewayIPNS, specs.RedirectsFile)
+	}, specs.SubdomainGatewayIPNS, specs.RedirectsFile)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+	RunWithSpecs(t, SugarTests{
 		{
-			Name: "request for //{dnslink}.ipns.{subdomain-gw}/missing-page with If-None-Match returns 304",
+			Name: "request for //{dnslink}.ipns.{subdomain-gateway}/missing-page with If-None-Match returns 304",
 			Request: Request().
 				Path("/missing-page").
 				Headers(
@@ -324,9 +329,9 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
-	}), specs.SubdomainGatewayIPNS, specs.RedirectsFile)
+	}, specs.SubdomainGatewayIPNS, specs.RedirectsFile)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+	RunWithSpecs(t, SugarTests{
 		{
 			Name: "request for //{dnslink}/missing-page returns body of index.html as per _redirects",
 			Request: Request().
@@ -346,9 +351,9 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 				).
 				Body(fixture.MustGetRawData("index.html")),
 		},
-	}), specs.DNSLinkGateway, specs.RedirectsFile)
+	}, specs.DNSLinkGateway, specs.RedirectsFile)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, SugarTests{
+	RunWithSpecs(t, SugarTests{
 		{
 			Name: "request for //{dnslink}/missing-page with If-None-Match returns 304",
 			Request: Request().
@@ -361,5 +366,5 @@ func TestRedirectsFileWithIfNoneMatchHeader(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
-	}), specs.DNSLinkGateway, specs.RedirectsFile)
+	}, specs.DNSLinkGateway, specs.RedirectsFile)
 }

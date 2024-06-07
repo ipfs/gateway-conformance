@@ -10,44 +10,23 @@ import (
 
 var log = logging.Logger("conformance")
 
-func GetEnv(key string, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
+func env2url(key string) *url.URL {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		panic(key + " must be set")
 	}
-	return fallback
+	gatewayURL := strings.TrimRight(value, "/")
+	parsed, err := url.Parse(gatewayURL)
+	if err != nil {
+		panic(err)
+	}
+	return parsed
 }
 
-var GatewayURL = strings.TrimRight(
-	GetEnv("GATEWAY_URL", "http://127.0.0.1:8080"),
-	"/")
+func GatewayURL() *url.URL {
+	return env2url("GATEWAY_URL")
+}
 
-var SubdomainGatewayURL = strings.TrimRight(
-	GetEnv("SUBDOMAIN_GATEWAY_URL", "http://localhost:8080"),
-	"/")
-
-var GatewayHost = ""
-var SubdomainGatewayHost = ""
-var SubdomainGatewayScheme = ""
-
-func init() {
-	parsed, err := url.Parse(GatewayURL)
-	if err != nil {
-		panic(err)
-	}
-
-	GatewayHost = parsed.Host
-
-	parsed, err = url.Parse(SubdomainGatewayURL)
-	if err != nil {
-		panic(err)
-	}
-
-	SubdomainGatewayHost = parsed.Host
-	SubdomainGatewayScheme = parsed.Scheme
-
-	log.Debugf("GatewayURL: %s", GatewayURL)
-
-	log.Debugf("SubdomainGatewayURL: %s", SubdomainGatewayURL)
-	log.Debugf("SubdomainGatewayHost: %s", SubdomainGatewayHost)
-	log.Debugf("SubdomainGatewayScheme: %s", SubdomainGatewayScheme)
+func SubdomainGatewayURL() *url.URL {
+	return env2url("SUBDOMAIN_GATEWAY_URL")
 }

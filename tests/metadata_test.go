@@ -12,8 +12,8 @@ func logGatewayURL(t *testing.T) {
 		GatewayURL          string `json:"gateway_url"`
 		SubdomainGatewayURL string `json:"subdomain_gateway_url"`
 	}{
-		GatewayURL:          test.GatewayURL,
-		SubdomainGatewayURL: test.SubdomainGatewayURL,
+		GatewayURL:          test.GatewayURL().String(),
+		SubdomainGatewayURL: test.SubdomainGatewayURL().String(),
 	})
 }
 

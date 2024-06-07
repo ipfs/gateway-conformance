@@ -1,16 +1,15 @@
 package tests
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
-	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
+	. "github.com/ipfs/gateway-conformance/tooling/tmpl"
 	"github.com/multiformats/go-multibase"
 	"github.com/multiformats/go-multicodec"
 )
@@ -32,18 +31,15 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 	}
 
 	// run against origins passed via --subdomain-url (e.g. http://localhost:port)
-	gatewayURL := SubdomainGatewayURL
-	u, err := url.Parse(gatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
+	u := SubdomainGatewayURL()
 
 	for _, record := range ipnsRecords {
 		tests = append(tests, SugarTests{
 			{
 				Name: "request for /ipns/{CIDv0} redirects to CIDv1 with libp2p-key multicodec in subdomain",
 				Request: Request().
-					URL("{{url}}/ipns/{{cid}}", gatewayURL, record.IdV0()),
+					Header("Host", u.Host).
+					Path("/ipns/{{id}}", record.IdV0()),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -52,9 +48,22 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 					),
 			},
 			{
-				Name: "request for {CIDv1-libp2p-key}.ipns.{gateway} returns expected payload",
+				Name: "request for /ipns/{CIDv1} redirects to same CIDv1 on subdomain",
 				Request: Request().
-					URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IdV1(), u.Host),
+					Header("Host", u.Host).
+					Path("/ipns/{{id}}", record.IdV1()),
+				Response: Expect().
+					Status(301).
+					Headers(
+						Header("Location").
+							Equals("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.IdV1(), u.Host),
+					),
+			},
+			{
+				Name: "request for {CIDv1-base36-libp2p-key}.ipns.{gateway} returns expected payload",
+				Request: Request().
+					Header("Host", Fmt("{{cid}}.ipns.{{host}}", record.IdV1(), u.Host)).
+					Path("/"),
 				Response: Expect().
 					Status(200).
 					BodyWithHint("Request for {{cid}}.ipns.{{host}} returns expected payload", payload),
@@ -62,7 +71,8 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 			{
 				Name: "request for {CIDv1-dag-pb}.ipns.{gateway} redirects to CID with libp2p-key multicodec",
 				Request: Request().
-					URL("{{scheme}}://{{cid}}.ipns.{{host}}/", u.Scheme, record.ToCID(multicodec.DagPb, multibase.Base36), u.Host),
+					Header("Host", Fmt("{{cid}}.ipns.{{host}}", record.ToCID(multicodec.DagPb, multibase.Base36), u.Host)).
+					Path("/"),
 				Response: Expect().
 					Status(301).
 					Headers(
@@ -142,7 +152,8 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 		{
 			Name: "request for a ED25519 libp2p-key at example.com/ipns/{b58mh} returns Location HTTP header for DNS-safe subdomain redirect in browsers",
 			Request: Request().
-				URL("{{url}}/ipns/{{cid}}", gatewayURL, ed25519Fixture.B58MH()),
+				Header("Host", u.Host).
+				Path("/ipns/{{b58mh}}", ed25519Fixture.B58MH()),
 			Response: Expect().
 				Headers(
 					Header("Location").
@@ -151,7 +162,7 @@ func TestGatewaySubdomainAndIPNS(t *testing.T) {
 		},
 	}...)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPNS)
+	RunWithSpecs(t, tests, specs.SubdomainGatewayIPNS)
 }
 
 func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
@@ -164,27 +175,34 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 	dnsLinkTest := dnsLinks.MustGet("test")
 
 	// run against origins passed via --subdomain-url
-	gatewayURL := SubdomainGatewayURL
-	u, err := url.Parse(gatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
+	u := SubdomainGatewayURL()
 
 	tests = append(tests, SugarTests{
 		{
-			Name: "request for /ipns/{fqdn} redirects to DNSLink in subdomain",
+			Name: "request for /ipns/{dnslink}/foo/ redirects to {inlined-dnslink}.ipns.example.com",
+			Hint: "https://specs.ipfs.tech/http-gateways/subdomain-gateway/#host-request-header",
 			Request: Request().
-				URL("{{url}}/ipns/{{fqdn}}/wiki/", gatewayURL, wikipedia),
+				Header("Host", u.Host).
+				Path("/ipns/{{dnslink}}/wiki/", wikipedia),
 			Response: Expect().
 				Headers(
 					Header("Location").
-						Equals("{{scheme}}://{{fqdn}}.ipns.{{host}}/wiki/", u.Scheme, dnslink.InlineDNS(wikipedia), u.Host),
+						Equals("{{scheme}}://{{inlined}}.ipns.{{host}}/wiki/", u.Scheme, dnslink.InlineDNS(wikipedia), u.Host),
 				),
 		},
 		{
 			Name: "request for {dnslink}.ipns.{gateway} returns expected payload",
 			Request: Request().
-				URL("{{scheme}}://{{fqdn}}.ipns.{{host}}", u.Scheme, dnsLinkTest, u.Host),
+				Header("Host", Fmt("{{dnslink}}.ipns.{{host}}", dnsLinkTest, u.Host)).
+				Path("/"),
+			Response: Expect().
+				Body("hello\n"),
+		},
+		{
+			Name: "request for {inlineddnslink}.ipns.{gateway} returns expected payload",
+			Request: Request().
+				Header("Host", Fmt("{{inlined}}.ipns.{{host}}", dnslink.InlineDNS(dnsLinkTest), u.Host)).
+				Path("/"),
 			Response: Expect().
 				Body("hello\n"),
 		},
@@ -196,7 +214,8 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 				`,
 			Request: Request().
 				Header("X-Forwarded-Proto", "https").
-				URL("{{url}}/ipns/{{wikipedia}}/wiki/", gatewayURL, wikipedia),
+				Header("Host", u.Host).
+				Path("/ipns/{{wikipedia}}/wiki/", wikipedia),
 			Response: Expect().
 				Headers(
 					Header("Location").
@@ -207,8 +226,9 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 			Name: `request for example.com/ipns/?uri=ipns%3A%2F%2F.. produces redirect to /ipns/.. content path`,
 			Hint: "Support ipns:// in https://developer.mozilla.org/en-US/docs/Web/API/Navigator/registerProtocolHandler",
 			Request: Request().
-				// TODO: use Query or future QueryRaw here
-				URL(`{{url}}/ipns/?uri=ipns%3A%2F%2F{{dnslink}}`, gatewayURL, wikipedia),
+				Header("Host", u.Host).
+				Path("/ipns/").
+				Query("uri", "ipns://{{dnslink}}", wikipedia),
 			Response: Expect().
 				Headers(
 					Header("Location").Equals("/ipns/{{wikipedia}}", wikipedia),
@@ -216,5 +236,5 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 		},
 	}...)
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.SubdomainGatewayIPNS)
+	RunWithSpecs(t, tests, specs.SubdomainGatewayIPNS)
 }

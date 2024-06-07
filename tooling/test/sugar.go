@@ -14,7 +14,6 @@ import (
 type RequestBuilder struct {
 	Method_          string            `json:"method,omitempty"`
 	Path_            string            `json:"path,omitempty"`
-	URL_             string            `json:"url,omitempty"`
 	Proxy_           string            `json:"proxy,omitempty"`
 	UseProxyTunnel_  bool              `json:"useProxyTunnel,omitempty"`
 	Headers_         map[string]string `json:"headers,omitempty"`
@@ -40,24 +39,9 @@ func (r RequestBuilder) Path(path string, args ...any) RequestBuilder {
 	return r
 }
 
-func (r RequestBuilder) URL(path string, args ...any) RequestBuilder {
-	r.URL_ = tmpl.Fmt(path, args...)
-	return r
-}
-
 func (r RequestBuilder) Query(key, value string, args ...any) RequestBuilder {
 	r.Query_.Add(key, tmpl.Fmt(value, args...))
 	return r
-}
-
-func (r RequestBuilder) GetURL() string {
-	if r.Path_ != "" {
-		// This seems to be some tech debt. Generally, we want to move away from URL,
-		// and instead just provide Path + Host header
-		panic("calling GetURL() is not supported when Path is set")
-	}
-
-	return r.URL_
 }
 
 func (r RequestBuilder) RemoveHeader(hdr string) string {
@@ -138,7 +122,6 @@ func (r RequestBuilder) Clone() RequestBuilder {
 	return RequestBuilder{
 		Method_:          r.Method_,
 		Path_:            r.Path_,
-		URL_:             r.URL_,
 		Proxy_:           r.Proxy_,
 		UseProxyTunnel_:  r.UseProxyTunnel_,
 		Headers_:         clonedHeaders,

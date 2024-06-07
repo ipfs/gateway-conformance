@@ -91,7 +91,7 @@ func main() {
 						Name:    "subdomain-url",
 						EnvVars: []string{"SUBDOMAIN_GATEWAY_URL"},
 						Usage:   "URL of the HTTP Host that should be used when testing https://specs.ipfs.tech/http-gateways/subdomain-gateway/ functionality",
-						Value:   "http://example.com:8080", // TODO: ideally, make these empty by default, and opt-in
+						Value:   "http://example.com:8080",
 					},
 					&cli.StringFlag{
 						Name:    "json-output",
@@ -108,7 +108,7 @@ func main() {
 					&cli.StringFlag{
 						Name:    "specs",
 						EnvVars: []string{"SPECS"},
-						Usage:   "Optional explicit scope of tests to run. Accepts a 'spec' (test only this spec), a '+spec' (test also this immature spec), or a '-spec' (do not test this mature spec). Available spec presets: " + strings.Join(getAvailableSpecPresets(), ","),
+						Usage:   "Adjust the scope of tests to run. Accepts a 'spec' (test only this spec), a '+spec' (test also this immature spec), or a '-spec' (do not test this mature spec). Available spec presets: " + strings.Join(getAvailableSpecPresets(), ","),
 						Value:   "",
 					},
 					&cli.BoolFlag{
@@ -120,13 +120,24 @@ func main() {
 				Action: func(cctx *cli.Context) error {
 					env := os.Environ()
 					verbose := cctx.Bool("verbose")
+
+					// Set gateway URLs
 					gatewayURL := cctx.String("gateway-url")
 					subdomainGatewayURL := cctx.String("subdomain-url")
-					env = append(env, fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
+					envGwURL := fmt.Sprintf("GATEWAY_URL=%s", gatewayURL)
+					if verbose {
+						fmt.Println(envGwURL)
+					}
+					env = append(env, envGwURL)
 					if subdomainGatewayURL != "" {
-						env = append(env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
+						envSubdomainGwURL := fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL)
+						if verbose {
+							fmt.Println(envSubdomainGwURL)
+						}
+						env = append(env, envSubdomainGwURL)
 					}
 
+					// Set other parameters
 					args := []string{"test", "./tests", "-test.v=test2json"}
 
 					specs := cctx.String("specs")
@@ -140,8 +151,8 @@ func main() {
 					args = append(args, cctx.Args().Slice()...)
 
 					fmt.Println("go " + strings.Join(args, " "))
-					fmt.Println("ENV " + strings.Join(env, " "))
 
+					// Execute tests against URLs
 					output := &bytes.Buffer{}
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
