@@ -85,13 +85,13 @@ func main() {
 						EnvVars: []string{"GATEWAY_URL"},
 						Aliases: []string{"url", "g"},
 						Usage:   "The URL of the IPFS Gateway implementation to be tested.",
-						Value:   "http://127.0.0.1:8080",
+						Value:   "", // unset by default, requires end user to either provide configured gateway endpoint URL
 					},
 					&cli.StringFlag{
 						Name:    "subdomain-url",
 						EnvVars: []string{"SUBDOMAIN_GATEWAY_URL"},
 						Usage:   "URL of the HTTP Host that should be used when testing https://specs.ipfs.tech/http-gateways/subdomain-gateway/ functionality",
-						Value:   "http://example.com:8080",
+						Value:   "", // unset by default, requires end user to either provide configured subdomain gateway origin URL, or pass '--specs -subdomain-gateway' to disable these tests
 					},
 					&cli.StringFlag{
 						Name:    "json-output",
@@ -120,27 +120,37 @@ func main() {
 				Action: func(cctx *cli.Context) error {
 					env := os.Environ()
 					verbose := cctx.Bool("verbose")
+					specs := cctx.String("specs")
 
-					// Set gateway URLs
+					// Handle Gateway Endpoint URL
 					gatewayURL := cctx.String("gateway-url")
-					subdomainGatewayURL := cctx.String("subdomain-url")
-					envGwURL := fmt.Sprintf("GATEWAY_URL=%s", gatewayURL)
-					if verbose {
-						fmt.Println(envGwURL)
+					if gatewayURL != "" {
+						envGwURL := fmt.Sprintf("GATEWAY_URL=%s", gatewayURL)
+						if verbose {
+							fmt.Println(envGwURL)
+						}
+						env = append(env, envGwURL)
+					} else {
+						return cli.Exit("⚠️ GATEWAY_URL (or --gateway-url) with the endpoint to receive HTTP requests has to be set", 2)
 					}
-					env = append(env, envGwURL)
+
+					// Handle Subdomain URL
+					subdomainGatewayURL := cctx.String("subdomain-url")
 					if subdomainGatewayURL != "" {
+						// If set, pass to `go test` via env
 						envSubdomainGwURL := fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL)
 						if verbose {
 							fmt.Println(envSubdomainGwURL)
 						}
 						env = append(env, envSubdomainGwURL)
+					} else if isSubdomainPresetEnabled(specs) {
+						// If not set, check if `specs` is not set to explicitly disable it,
+						// provide user with a meaningful error
+						return cli.Exit("⚠️ SUBDOMAIN_GATEWAY_URL (or --subdomain-url) must be set when 'subdomain-gateway' tests are enabled. Set the URL and try again, or disable related tests by passing --specs -subdomain-gateway", 2)
 					}
 
 					// Set other parameters
 					args := []string{"test", "./tests", "-test.v=test2json"}
-
-					specs := cctx.String("specs")
 					if specs != "" {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
@@ -344,4 +354,32 @@ func getAvailableSpecPresets() []string {
 		presets = append(presets, p)
 	}
 	return presets
+}
+
+func isSubdomainPresetEnabled(specs string) bool {
+	isEnabledByDefault := specPresets.SubdomainGateway.IsEnabled()
+	if specs == "" && isEnabledByDefault {
+		return true
+	}
+	subdomainSpec := specPresets.SubdomainGateway.Name()
+	userProvidedSpecsList := strings.Split(specs, ",")
+	manualList := false // did user set --specs to at least one without the -/+ prefix
+	for _, s := range userProvidedSpecsList {
+		// Return early if user-provided spec entry is one that controls subdomain gateway tests
+		if s == "-"+subdomainSpec {
+			return false
+		}
+		if strings.HasSuffix(s, subdomainSpec) {
+			return true // at this point  it can be + or manual entry
+		}
+		// Subdomain gateway preset is implicitly enabled, but it gets disabled
+		// if user explicitly enabled other one (without - or + prefix)
+		if !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
+			manualList = true
+		}
+	}
+	// at this point, if the list was manual, and we did not return yet,
+	// subdomain preset is enabled only if user-provided list had no explicit entries
+	// (empty or only with -/+ entries)
+	return !manualList
 }

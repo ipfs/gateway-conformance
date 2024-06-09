@@ -13,7 +13,10 @@ var log = logging.Logger("conformance")
 func env2url(key string) *url.URL {
 	value, ok := os.LookupEnv(key)
 	if !ok {
-		panic(key + " must be set")
+		// Actual validation of GATEWAY_URL and SUBDOMAIN_GATEWAY_URL happens in
+		// in cmd/gateway-conformance/main.go. Here we create a bogus URL
+		// to ensure no error at compilation time.
+		value = "http://todo-changeme.example.com"
 	}
 	gatewayURL := strings.TrimRight(value, "/")
 	parsed, err := url.Parse(gatewayURL)

@@ -4,18 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0] - 2024-05-27
-### Changed
-- Generic tests
-  - The `--gateway-url` now defaults to `http://127.0.0.1:8080` to ensure no confusion with subdomain gateway feature.
-- Subdomain tests
-  - The `--subdomain-url` now defaults to `http://example.com:8080`
-  - We also simplified the way `--subdomain-url` works. We no longer run implicit tests
+## [0.6.0] - 2024-05-27 ### Changed
+- Gateway URL
+  - `--gateway-url` is no longer defaulting to predefined URL. User has to
+    provide it via CLI or `GATEWAY_URL` environment variable or the test suite
+    will refuse to start.
+  - This aims to ensure no confusion about which gateway endpoint is being
+    tested.
+  - Docs and examples use `--gateway-url http://127.0.0.1:8080` to ensure no
+    confusion with `localhost:8080` subdomain gateway feature in IPFS
+    implementations like Kubo.
+- Subdomain URL and UX related to subdomain tests
+  - The `--subdomain-url` is no longer set by default.
+  - User has to provide the origin of the subdomain gateway via CLI or
+    `SUBDOMAIN_GATEWAY_URL` to be used during subdomain tests. This aims to
+    ensure no confusion about which domain name is being tested.
+  - Simplified the way `--subdomain-url` works. We no longer run implicit tests
     against `http://localhost` in addition to the URL passed via
     `--subdomain-url`. To test more than one domain, run test multiple times.
--  DNSLink tests
-  - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated `*.example.org` domains instead.
-  - `gateway-conformance extract-fixtures` creates `dnslinks.IPFS_NS_MAP` with content that can be directly set as `IPNS_NS_MAP` environment variable supported by various implementations, incl. [Kubo](https://github.com/ipfs/kubo/blob/master/docs/environment-variables.md#ipfs_ns_map) and [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
+-  DNSLink test fixtures changed
+  - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated
+    `*.example.org` domains instead.
+  - `gateway-conformance extract-fixtures` creates `dnslinks.IPFS_NS_MAP` with
+    content that can be directly set as `IPNS_NS_MAP` environment variable
+    supported by various implementations, incl.
+    [Kubo](https://github.com/ipfs/kubo/blob/master/docs/environment-variables.md#ipfs_ns_map)
+    and
+    [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
 - Docker
   - The image can now be run under non-root user
 
