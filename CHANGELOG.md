@@ -6,12 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - 2024-05-27
 ### Changed
-- The `--gateway-url` now defaults to `http://127.0.0.1:8080` to ensure no confusion with subdomain gateway feature.
-- The `--subdomain-url` now defaults to `http://localhost:8080`, making it more friendly for local development.
+- Generic tests
+  - The `--gateway-url` now defaults to `http://127.0.0.1:8080` to ensure no confusion with subdomain gateway feature.
+- Subdomain tests
+  - The `--subdomain-url` now defaults to `http://example.com:8080`
   - We also simplified the way `--subdomain-url` works. We no longer run implicit tests
     against `http://localhost` in addition to the URL passed via
     `--subdomain-url`. To test more than one domain, run test multiple times.
--  DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated `*.example.org` domains instead.
+-  DNSLink tests
+  - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated `*.example.org` domains instead.
+  - `gateway-conformance extract-fixtures` creates `dnslinks.IPFS_NS_MAP` with content that can be directly set as `IPNS_NS_MAP` environment variable supported by various implementations, incl. [Kubo](https://github.com/ipfs/kubo/blob/master/docs/environment-variables.md#ipfs_ns_map) and [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
+- Docker
+  - The image can now be run under non-root user
 
 ## [0.5.2] - 2024-05-20
 ### Changed

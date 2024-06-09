@@ -24,12 +24,12 @@
   - [CLI](#cli)
   - [Docker](#docker)
   - [Github Action](#github-action)
-  - [Web Dashboard](#web-dashboard)
 - [Commands](#commands)
   - [Examples](#examples)
 - [Releases](#releases)
 - [Development](#development)
   - [Test DSL Syntax](#test-dsl-syntax)
+  - [Web Dashboard](#web-dashboard)
 - [License](#license)
 
 <!-- /TOC -->
@@ -67,25 +67,32 @@ Two high level [commands](/docs/commands.md) exist:
 ```console
 $ # Install the gateway-conformance binary
 $ go install github.com/ipfs/gateway-conformance/cmd/gateway-conformance@latest
-$ # run subdomain-gateway tests against endpoint at http://localhost:8080 output as JSON
-$ gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
+
+$ # skip path gateway tests, and run subdomain-gateway tests against endpoint at http://127.0.0.1:8080 and use *.ipfs.example.com subdomains, output as JSON
+$ gateway-conformance test --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 5m
 ```
 
-If you are looking for TLDR, see [examples](/docs/examples.md).
+> [!TIP]
+> If want skip individual tests, or only run specific ones based on a regex, see [`/docs/examples`](/docs/examples.md).
 
 ### Docker
 
-Prebuilt image at `ghcr.io/ipfs/gateway-conformance` can be used for both `test` and `extract-fixtures` commands:
+The `gateway-conformace` requires golang runtime to be present to facilitate `go test`.
+If you want to run it on a box without having to instal golang runtime, prebuilt image at `ghcr.io/ipfs/gateway-conformance` is provided.
+
+It can be used for both `test` and `extract-fixtures` commands:
 
 ```console
-$ # extract fixtures to ./fixtures directory
-$ docker run -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C extract-fixtures --directory fixtures --merged false
+$ # extract fixtures to ./extracted-fixtures directory under the current user's permissions
+$ docker run -u "$(id -u):$(id -g)" -v "$(pwd):/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:latest extract-fixtures --directory extracted-fixtures
 
-$ # run subdomain-gateway tests against endpoint at http://localhost:8080
-$ docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:vA.B.C test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
+$ # skip path gateway tests, and run subdomain-gateway tests against endpoint at http://127.0.0.1:8080 and use *.ipfs.example.com subdomains, output as JSON
+$ docker run --net=host -u "$(id -u):$(id -g)" -v "$(pwd):/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance:latest test --gateway-url http://127.0.0.1:8080 --subdomain-url http://example.com:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 5m
 ```
 
-**NOTE:** replace `vA.B.C` with a [semantic version](https://github.com/ipfs/gateway-conformance/releases) version you want to test against
+> [!IMPORTANT]
+> - for stable CI/CD, replace `latest` with a [semantic version](https://github.com/ipfs/gateway-conformance/releases) version you want to test against
+> - `-u` ensures extracted fixtures and created report files can be read by your local user, make sure to adjust it to suit your use case
 
 ### Github Action
 
@@ -94,22 +101,9 @@ Common operations are possible via reusable GitHub actions:
 - [`ipfs/gateway-conformance/.github/actions/extract-fixtures`](https://github.com/ipfs/gateway-conformance/blob/main/.github/actions/extract-fixtures/action.yml)
 
 To learn how to integrate them in the CI of your project, see real world examples in:
-- [`kubo/../gateway-conformance.yml`](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) (fixtures imported into tested node)
-- [`boxo/../gateway-conformance.yml`](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a sidecar kubo node that is peered with tested library)
-- [`rainbow/../gateway-conformance.yml`](https://github.com/ipfs/rainbow/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a kubo node that acts as a delegated block backend)
-
-### Web Dashboard
-
-Conformance test suite output can be plain text or JSON, which in turn can be
-represented as a web dashboard which aggregates results from many test runs and
-renders them on a static website.
-
-The Implementation Dashboard instance at
-[conformance.ipfs.tech](https://conformance.ipfs.tech/) is a view that
-showcases some of well known and complete implementations of IPFS Gateways
-in the ecosystem.
-
-Learn more at [`/docs/web-dashboard.md`](/docs/web-dashboard.md)
+- [`kubo/../gateway-conformance.yml`](https://github.com/ipfs/kubo/blob/master/.github/workflows/gateway-conformance.yml) (fixtures imported into tested kubo node that exposes HTTP gateway feature)
+- [`boxo/../gateway-conformance.yml`](https://github.com/ipfs/boxo/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a sidecar kubo node that is peered with small HTTP server used for testing `boxo/gateway`  library)
+- [`rainbow/../gateway-conformance.yml`](https://github.com/ipfs/rainbow/blob/main/.github/workflows/gateway-conformance.yml) (fixtures imported into a kubo node that acts as a remote block provider, than tested against different `boxo/gateway` backends)
 
 ## Commands
 
@@ -141,6 +135,19 @@ See documentation at [`/docs/development.md`](/docs/development.md)
 Interested in write a new test case?
 Test cases are written in Domain Specific Language (DLS) based on Golang. 
 More details at [`/docs/test-dsl-syntax.md`](/docs/test-dsl-syntax.md)
+
+### Web Dashboard
+
+Conformance test suite output can be plain text or JSON, which in turn can be
+represented as a web dashboard which aggregates results from many test runs and
+renders them on a static website.
+
+Experimental Implementation Dashboard instance at
+[conformance.ipfs.tech](https://conformance.ipfs.tech/) is a view that
+showcases some of well known and complete implementations of IPFS Gateways
+in the ecosystem.
+
+Learn more at [`/docs/web-dashboard.md`](/docs/web-dashboard.md)
 
 ## License
 
