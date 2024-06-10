@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0] - 2024-05-27 ### Changed
+## [0.6.0] - 2024-06-10
+### Changed
 - Gateway URL
   - `--gateway-url` is no longer defaulting to predefined URL. User has to
     provide it via CLI or `GATEWAY_URL` environment variable or the test suite
@@ -22,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplified the way `--subdomain-url` works. We no longer run implicit tests
     against `http://localhost` in addition to the URL passed via
     `--subdomain-url`. To test more than one domain, run test multiple times.
+  - `localhost` subdomain gateway tests  are no longer implicit. To run tests
+    against `localhost` use `--subdomain-url http://localhost:8080`
 -  DNSLink test fixtures changed
   - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated
     `*.example.org` domains instead.
@@ -33,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
 - Docker
   - The image can now be run under non-root user
+- HTTP Proxy tests are no longer implicit. An explicit spec named
+  `proxy-gateway` exists now, and can be disabled via `--specs -proxy-gateway`.
 
 ## [0.5.2] - 2024-05-20
 ### Changed
