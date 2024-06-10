@@ -1,17 +1,14 @@
 package tests
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling"
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	. "github.com/ipfs/gateway-conformance/tooling/check"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
-	"github.com/ipfs/gateway-conformance/tooling/helpers"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
-	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
 
 func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
@@ -21,24 +18,14 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
 
 	dnsLinks := dnslink.MustOpenDNSLink("dir_listing/dnslink.yml")
-	dnsLink := dnsLinks.MustGet("website")
+	dnsLink := dnsLinks.MustGet("dir-listing-website")
 
-	gatewayURL := SubdomainGatewayURL
-
-	tests := SugarTests{}
-
-	u, err := url.Parse(gatewayURL)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	dnsLinkHostname := tmpl.Fmt("{{dnslink}}.{{host}}", dnsLink, u.Host)
-
-	tests = append(tests, SugarTests{
+	tests := SugarTests{
 		{
 			Name: "Backlink on root CID should be hidden (TODO: cleanup Kubo-specifics)",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/`, u.Scheme, dnsLinkHostname),
+				Path("/").
+				Header("Host", dnsLink),
 			Response: Expect().
 				Body(
 					And(
@@ -50,7 +37,8 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		{
 			Name: "Redirect dir listing to URL with trailing slash",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/ą/ę`, u.Scheme, dnsLinkHostname),
+				Path("/ą/ę").
+				Header("Host", dnsLink),
 			Response: Expect().
 				Status(301).
 				Headers(
@@ -60,7 +48,8 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 		{
 			Name: "Regular dir listing (TODO: cleanup Kubo-specifics)",
 			Request: Request().
-				URL(`{{scheme}}://{{hostname}}/ą/ę/`, u.Scheme, dnsLinkHostname),
+				Path("/ą/ę/").
+				Header("Host", dnsLink),
 			Response: Expect().
 				Headers(
 					Header("Etag").Contains(`"DirIndex-`),
@@ -76,13 +65,13 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 					And(
 						Contains("Index of"),
 						Contains(`<a href="/%C4%85/%C4%99/..">..</a>`),
-						Contains(`/ipns/<a href="//{{hostname}}/">{{hostname}}</a>/<a href="//{{hostname}}/%C4%85">ą</a>/<a href="//{{hostname}}/%C4%85/%C4%99">ę</a>`, dnsLinkHostname),
+						Contains(`/ipns/<a href="//{{hostname}}/">{{hostname}}</a>/<a href="//{{hostname}}/%C4%85">ą</a>/<a href="//{{hostname}}/%C4%85/%C4%99">ę</a>`, dnsLink),
 						Contains(`<a href="/%C4%85/%C4%99/file-%C5%BA%C5%82.txt">file-źł.txt</a>`),
 						Contains(`<a class="ipfs-hash" translate="no" href="https://cid.ipfs.tech/#{{cid}}" target="_blank" rel="noreferrer noopener">`, file.Cid()),
 					),
 				),
 		},
-	}...)
+	}
 
-	RunWithSpecs(t, helpers.UnwrapSubdomainTests(t, tests), specs.DNSLinkGateway)
+	RunWithSpecs(t, tests, specs.DNSLinkGateway)
 }

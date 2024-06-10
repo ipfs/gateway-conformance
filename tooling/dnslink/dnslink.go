@@ -15,9 +15,8 @@ type ConfigFixture struct {
 }
 
 type DNSLink struct {
-	Subdomain string `yaml:"subdomain"`
-	Domain    string `yaml:"domain"`
-	Path      string `yaml:"path"`
+	Domain string `yaml:"domain"`
+	Path   string `yaml:"path"`
 }
 
 func InlineDNS(s string) string {
@@ -57,19 +56,13 @@ func (d *ConfigFixture) MustGet(id string) string {
 	if !ok {
 		panic(fmt.Errorf("dnslink %s not found", id))
 	}
-	if dnsLink.Domain != "" && dnsLink.Subdomain != "" {
-		panic(fmt.Errorf("dnslink %s has both domain and subdomain", id))
-	}
-	if dnsLink.Domain == "" && dnsLink.Subdomain == "" {
-		panic(fmt.Errorf("dnslink %s has neither domain nor subdomain", id))
+	if dnsLink.Domain == "" {
+		panic(fmt.Errorf("dnslink %s has no domain", id))
 	}
 	if dnsLink.Path == "" {
 		panic(fmt.Errorf("dnslink %s has no path", id))
 	}
 
-	if dnsLink.Domain != "" {
-		return dnsLink.Domain
-	}
+	return dnsLink.Domain
 
-	return dnsLink.Subdomain
 }

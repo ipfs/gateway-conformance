@@ -14,6 +14,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling/car"
 	"github.com/ipfs/gateway-conformance/tooling/dnslink"
 	"github.com/ipfs/gateway-conformance/tooling/fixtures"
+	specPresets "github.com/ipfs/gateway-conformance/tooling/specs"
 	"github.com/urfave/cli/v2"
 )
 
@@ -69,15 +70,6 @@ func copyFiles(inputPaths []string, outputDirectoryPath string) error {
 }
 
 func main() {
-	var gatewayURL string
-	var subdomainGatewayURL string
-	var jsonOutput string
-	var jobURL string
-	var specs string
-	var directory string
-	var merged bool
-	var verbose bool
-
 	app := &cli.App{
 		Name:    "gateway-conformance",
 		Usage:   "Tooling for the gateway test suite",
@@ -89,68 +81,92 @@ func main() {
 				Usage:   "Run the conformance test suite against your gateway",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "gateway-url",
-						Aliases:     []string{"url", "g"},
-						Usage:       "The URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://localhost:8080",
-						Destination: &gatewayURL,
+						Name:    "gateway-url",
+						EnvVars: []string{"GATEWAY_URL"},
+						Aliases: []string{"url", "g"},
+						Usage:   "The URL of the IPFS Gateway implementation to be tested.",
+						Value:   "", // unset by default, requires end user to either provide configured gateway endpoint URL
 					},
 					&cli.StringFlag{
-						Name:        "subdomain-url",
-						Usage:       "The Subdomain URL of the IPFS Gateway implementation to be tested.",
-						Value:       "http://example.com",
-						Destination: &subdomainGatewayURL,
+						Name:    "subdomain-url",
+						EnvVars: []string{"SUBDOMAIN_GATEWAY_URL"},
+						Usage:   "URL of the HTTP Host that should be used when testing https://specs.ipfs.tech/http-gateways/subdomain-gateway/ functionality",
+						Value:   "", // unset by default, requires end user to either provide configured subdomain gateway origin URL, or pass '--specs -subdomain-gateway' to disable these tests
 					},
 					&cli.StringFlag{
-						Name:        "json-output",
-						Aliases:     []string{"json", "j"},
-						Usage:       "The path where the JSON test report should be generated.",
-						Value:       "",
-						Destination: &jsonOutput,
+						Name:    "json-output",
+						Aliases: []string{"json", "j"},
+						Usage:   "The path where the JSON test report should be generated.",
+						Value:   "",
 					},
 					&cli.StringFlag{
-						Name:        "job-url",
-						Aliases:     []string{},
-						Usage:       "The Job URL where this run will be visible.",
-						Value:       "",
-						Destination: &jobURL,
+						Name:    "job-url",
+						Aliases: []string{},
+						Usage:   "The Job URL where this run will be visible.",
+						Value:   "",
 					},
 					&cli.StringFlag{
-						Name:        "specs",
-						Usage:       "Accepts a spec (test only this spec), a +spec (test also this immature spec), or a -spec (do not test this mature spec).",
-						Value:       "",
-						Destination: &specs,
+						Name:    "specs",
+						EnvVars: []string{"SPECS"},
+						Usage:   "Adjust the scope of tests to run. Accepts a 'spec' (test only this spec), a '+spec' (test also this immature spec), or a '-spec' (do not test this mature spec). Available spec presets: " + strings.Join(getAvailableSpecPresets(), ","),
+						Value:   "",
 					},
 					&cli.BoolFlag{
-						Name:        "verbose",
-						Usage:       "Prints all the output to the console.",
-						Value:       false,
-						Destination: &verbose,
+						Name:  "verbose",
+						Usage: "Prints all the output to the console.",
+						Value: false,
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
-					args := []string{"test", "./tests", "-test.v=test2json"}
+				Action: func(cctx *cli.Context) error {
+					env := os.Environ()
+					verbose := cctx.Bool("verbose")
+					specs := cctx.String("specs")
 
+					// Handle Gateway Endpoint URL
+					gatewayURL := cctx.String("gateway-url")
+					if gatewayURL != "" {
+						envGwURL := fmt.Sprintf("GATEWAY_URL=%s", gatewayURL)
+						if verbose {
+							fmt.Println(envGwURL)
+						}
+						env = append(env, envGwURL)
+					} else {
+						return cli.Exit("⚠️ GATEWAY_URL (or --gateway-url) with the endpoint to receive HTTP requests has to be set", 2)
+					}
+
+					// Handle Subdomain URL
+					subdomainGatewayURL := cctx.String("subdomain-url")
+					if subdomainGatewayURL != "" {
+						// If set, pass to `go test` via env
+						envSubdomainGwURL := fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL)
+						if verbose {
+							fmt.Println(envSubdomainGwURL)
+						}
+						env = append(env, envSubdomainGwURL)
+					} else if isSubdomainPresetEnabled(specs) {
+						// If not set, check if `specs` is not set to explicitly disable it,
+						// provide user with a meaningful error
+						return cli.Exit("⚠️ SUBDOMAIN_GATEWAY_URL (or --subdomain-url) must be set when 'subdomain-gateway' tests are enabled. Set the URL and try again, or disable related tests by passing --specs -subdomain-gateway", 2)
+					}
+
+					// Set other parameters
+					args := []string{"test", "./tests", "-test.v=test2json"}
 					if specs != "" {
 						args = append(args, fmt.Sprintf("-specs=%s", specs))
 					}
 
-					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s -X github.com/ipfs/gateway-conformance/tooling.JobURL=%s", tooling.Version, jobURL)
+					ldFlag := fmt.Sprintf("-ldflags=-X github.com/ipfs/gateway-conformance/tooling.Version=%s -X github.com/ipfs/gateway-conformance/tooling.JobURL=%s", tooling.Version, cctx.String("job-url"))
 					args = append(args, ldFlag)
 
-					args = append(args, cCtx.Args().Slice()...)
+					args = append(args, cctx.Args().Slice()...)
 
 					fmt.Println("go " + strings.Join(args, " "))
 
+					// Execute tests against URLs
 					output := &bytes.Buffer{}
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
-					cmd.Env = append(os.Environ(), fmt.Sprintf("GATEWAY_URL=%s", gatewayURL))
-
-					if subdomainGatewayURL != "" {
-						cmd.Env = append(cmd.Env, fmt.Sprintf("SUBDOMAIN_GATEWAY_URL=%s", subdomainGatewayURL))
-					}
-
+					cmd.Env = env
 					cmd.Stdout = out{
 						Writer: output,
 						Filter: func(line string) bool {
@@ -190,9 +206,11 @@ func main() {
 						fmt.Println()
 					}
 
+					jsonOutput := cctx.String("json-output")
 					if jsonOutput != "" {
 						json := &bytes.Buffer{}
 						cmd = exec.Command("go", "tool", "test2json", "-p", "Gateway Tests", "-t")
+						cmd.Env = env
 						cmd.Stdin = output
 						cmd.Stdout = json
 						cmd.Stderr = os.Stderr
@@ -230,20 +248,35 @@ func main() {
 				Usage:   "Extract gateway testing fixtures that are used by the conformance test suite",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "directory",
-						Aliases:     []string{"dir"},
-						Usage:       "The directory to extract the fixtures to",
-						Required:    true,
-						Destination: &directory,
+						Name:     "directory",
+						Aliases:  []string{"dir"},
+						Usage:    "The directory to extract the fixtures to",
+						Required: true,
 					},
 					&cli.BoolFlag{
-						Name:        "merged",
-						Usage:       "Merge the fixtures into a single CAR file",
-						Value:       false,
-						Destination: &merged,
+						Name:  "merged",
+						Usage: "Merge the CAR fixtures into a single CAR file",
+						Value: false,
+					},
+					&cli.BoolFlag{
+						Name:  "car",
+						Usage: "Include CAR fixtures",
+						Value: true,
+					},
+					&cli.BoolFlag{
+						Name:  "ipns",
+						Usage: "Include IPNS Record fixtures",
+						Value: true,
+					},
+					&cli.BoolFlag{
+						Name:  "dnslink",
+						Usage: "Include DNSLink fixtures",
+						Value: true,
 					},
 				},
-				Action: func(cCtx *cli.Context) error {
+				Action: func(cctx *cli.Context) error {
+					directory := cctx.String("directory")
+
 					err := os.MkdirAll(directory, 0755)
 					if err != nil {
 						return err
@@ -254,43 +287,45 @@ func main() {
 						return err
 					}
 
-					merged := cCtx.Bool("merged")
-					if merged {
-						err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
-						if err != nil {
-							return err
-						}
-
-						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
-						if err != nil {
-							return err
-						}
-
-						// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
-						// merge the IPNS records into a car file.
+					// IPNS Records
+					if cctx.Bool("ipns") {
 						err = copyFiles(fxs.IPNSRecords, directory)
 						if err != nil {
 							return err
 						}
-					} else {
-						err = copyFiles(fxs.CarFiles, directory)
-						if err != nil {
-							return err
-						}
+					}
 
+					// DNSLink fixtures as YAML, JSON, and IPNS_NS_MAP env variable
+					if cctx.Bool("dnslink") {
 						err = copyFiles(fxs.ConfigFiles, directory)
 						if err != nil {
 							return err
 						}
-
-						err = copyFiles(fxs.IPNSRecords, directory)
+						err = dnslink.MergeJSON(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
 						if err != nil {
 							return err
 						}
-
-						err := dnslink.Merge(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.json"))
+						err = dnslink.MergeNsMapEnv(fxs.ConfigFiles, filepath.Join(directory, "dnslinks.IPFS_NS_MAP"))
 						if err != nil {
 							return err
+						}
+					}
+
+					if cctx.Bool("car") {
+						if cctx.Bool("merged") {
+							// All .car fixtures merged into a single .car file
+							err = car.Merge(fxs.CarFiles, filepath.Join(directory, "fixtures.car"))
+							if err != nil {
+								return err
+							}
+							// TODO: when https://github.com/ipfs/specs/issues/369 has been completed,
+							// implement merge support to include the IPNS records in the car file.
+						} else {
+							// Copy .car fixtures as -is
+							err = copyFiles(fxs.CarFiles, directory)
+							if err != nil {
+								return err
+							}
 						}
 					}
 
@@ -303,4 +338,48 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getAvailableSpecPresets() []string {
+	var presets []string
+	for _, preset := range specPresets.All() {
+		var p string
+		if preset.IsEnabled() && !preset.IsMature() {
+			p += "+"
+		}
+		if !preset.IsEnabled() {
+			p += "-"
+		}
+		p += preset.Name()
+		presets = append(presets, p)
+	}
+	return presets
+}
+
+func isSubdomainPresetEnabled(specs string) bool {
+	isEnabledByDefault := specPresets.SubdomainGateway.IsEnabled()
+	if specs == "" && isEnabledByDefault {
+		return true
+	}
+	subdomainSpec := specPresets.SubdomainGateway.Name()
+	userProvidedSpecsList := strings.Split(specs, ",")
+	manualList := false // did user set --specs to at least one without the -/+ prefix
+	for _, s := range userProvidedSpecsList {
+		// Return early if user-provided spec entry is one that controls subdomain gateway tests
+		if s == "-"+subdomainSpec {
+			return false
+		}
+		if strings.HasSuffix(s, subdomainSpec) {
+			return true // at this point  it can be + or manual entry
+		}
+		// Subdomain gateway preset is implicitly enabled, but it gets disabled
+		// if user explicitly enabled other one (without - or + prefix)
+		if !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
+			manualList = true
+		}
+	}
+	// at this point, if the list was manual, and we did not return yet,
+	// subdomain preset is enabled only if user-provided list had no explicit entries
+	// (empty or only with -/+ entries)
+	return !manualList
 }

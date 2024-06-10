@@ -30,8 +30,8 @@ The `test` command is the main command of the tool. It is used to test a given I
 
 | Input | Availability | Description | Default |
 |---|---|---|---|
-| gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://localhost:8080 |
-| subdomain-url | Both | The URL to be used in Subdomain feature tests based on Host HTTP header. | http://example.com |
+| gateway-url | Both | The URL of the IPFS Gateway implementation to be tested. | http://127.0.0.1:8080 |
+| subdomain-url | Both | The URL to be used in Subdomain feature tests based on Host HTTP header. | http://localhost:8080 |
 | json | Both | The path where the JSON test report should be generated. | `./report.json` |
 | xml | GitHub Action | The path where the JUnit XML test report should be generated. | `./report.xml` |
 | html | GitHub Action | The path where the one-page HTML test report should be generated. | `./report.html` |
@@ -61,8 +61,8 @@ A few examples:
 
 | Use Case | gateway-url | subdomain-url |
 |----------|-------------|---------------|
-| CI & Dev   | http://127.0.0.1:8080 | http://example.com |
-| Production | https://dweb.link     | https://dweb.link  |
+| CI & Dev   | `http://127.0.0.1:8080` | `http://localhost:8080` |
+| Production | `https://ipfs.io`     | `https://dweb.link`  |
 
 #### Usage
 
@@ -70,9 +70,10 @@ A few examples:
 
 ```yaml
 - name: Run gateway-conformance tests
-  uses: ipfs/gateway-conformance/.github/actions/test@v1
+  uses: ipfs/gateway-conformance/.github/actions/test@v6 # TODO make sure to use latest
   with:
-    gateway-url: http://localhost:8080
+    gateway-url: http://127.0.0.1:8080
+    subdomain-url: http://localhost:8080
     specs: +subdomain-gateway,-path-gateway
     json: report.json
     xml: report.xml
@@ -84,7 +85,7 @@ A few examples:
 ##### Docker
 
 ```bash
-docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance test --gateway-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
+docker run --network host -v "${PWD}:/workspace" -w "/workspace" ghcr.io/ipfs/gateway-conformance test --gateway-url http://127.0.0.1:8080 --subdomain-url http://localhost:8080 --json report.json --specs +subdomain-gateway,-path-gateway -- -timeout 30m
 ```
 
 ### extract-fixtures

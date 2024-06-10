@@ -46,8 +46,31 @@ gateway-conformance test --specs trustless-gateway,-trustless-gateway-ipns
 Tests are skipped using Go's standard syntax:
 
 ```bash
-gateway-conformance test -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
+gateway-conformance test -- -skip 'TestGatewayCar/GET_response_for_application/vnd.ipld.car/Header_Content-Length'
 ```
+
+It supports regex, allowing for skipping specific group or individual test case:
+
+```bash
+gateway-conformance test -- -skip 'TestGatewayCar/*'
+```
+
+```bash
+./gateway-conformance test --verbose -- -skip '.*/.*TODO.*'
+```
+
+### Run only a specific test
+
+Same syntax as for skipping:
+
+```bash
+gateway-conformance test -- -run 'TestGatewayCar/*'
+```
+
+```bash
+./gateway-conformance test --verbose -- -run '.*/.*TODO.*'
+```
+
 
 ### Extracting the test fixtures
 

@@ -10,6 +10,8 @@ import (
 	"net/url"
 )
 
+// NewProxyTunnelClient creates an HTTP client that routes requests through an HTTP proxy
+// using the CONNECT method, as described in RFC 7231 Section 4.3.6.
 func NewProxyTunnelClient(proxyURL string) *http.Client {
 	proxy, err := url.Parse(proxyURL)
 	if err != nil {
@@ -52,6 +54,7 @@ func NewProxyTunnelClient(proxyURL string) *http.Client {
 
 			return conn, nil
 		},
+		//  Skip TLS cert verification to make it easier to test on CI and dev envs
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 
@@ -62,6 +65,7 @@ func NewProxyTunnelClient(proxyURL string) *http.Client {
 	return client
 }
 
+// NewProxyClient creates an HTTP client that routes requests through an HTTP proxy.
 func NewProxyClient(proxyURL string) *http.Client {
 	proxy, err := url.Parse(proxyURL)
 	if err != nil {

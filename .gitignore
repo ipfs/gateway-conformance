@@ -8,6 +8,7 @@
 /gateway-conformance
 /dnslinks.json
 /*.ipns-record
+extracted-fixtures
 
 # Logs
 logs
@@ -142,3 +143,4 @@ dist
 
 # reports
 reports
+report.json
