@@ -26,16 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `localhost` subdomain gateway tests  are no longer implicit. To run tests
     against `localhost` use `--subdomain-url http://localhost:8080`
 -  DNSLink test fixtures changed
-  - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated
-    `*.example.org` domains instead.
-  - `gateway-conformance extract-fixtures` creates `dnslinks.IPFS_NS_MAP` with
-    content that can be directly set as `IPNS_NS_MAP` environment variable
-    supported by various implementations, incl.
-    [Kubo](https://github.com/ipfs/kubo/blob/master/docs/environment-variables.md#ipfs_ns_map)
-    and
-    [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
-- Docker
-  - The image can now be run under non-root user
+   - DNSLink fixtures no longer depend on `--subdomain-url` and use unrelated
+     `*.example.org` domains instead.
+   - `gateway-conformance extract-fixtures` creates `dnslinks.IPFS_NS_MAP` with
+     content that can be directly set as `IPNS_NS_MAP` environment variable
+     supported by various implementations, incl.
+     [Kubo](https://github.com/ipfs/kubo/blob/master/docs/environment-variables.md#ipfs_ns_map)
+     and
+     [Rainbow](https://github.com/ipfs/rainbow/blob/main/docs/environment-variables.md#ipfs_ns_map).
+- Docker: image can now be run under non-root user
 - HTTP Proxy tests are no longer implicit. An explicit spec named
   `proxy-gateway` exists now, and can be disabled via `--specs -proxy-gateway`.
 
