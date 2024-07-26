@@ -90,7 +90,7 @@ func TestGatewayCache(t *testing.T) {
 				Status(200).
 				Headers(
 					Header("Cache-Control").
-						IsEmpty(),
+						Equals("public, max-age=604800, stale-while-revalidate=2678400"),
 					Header("X-Ipfs-Path").
 						Equals("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
