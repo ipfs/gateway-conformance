@@ -84,20 +84,25 @@ func TestGatewayCache(t *testing.T) {
 	tests := SugarTests{
 		{
 			Name: "GET for /ipfs/ unixfs dir listing succeeds",
+			Hint: "UnixFS directory listings are generated HTML, which may change over time, and can't be cached forever. Still, should have a meaningful cache-control header.",
 			Request: Request().
 				Path("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						IsEmpty(),
-					Header("X-Ipfs-Path").
-						Equals("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
-					Header("X-Ipfs-Roots").
-						Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
-					Header("Etag").
-						Matches("DirIndex-.*_CID-{{cid}}", fixture.MustGetCid("root2", "root3")),
+			Response: AllOf(
+				Expect().
+					Status(200).
+					Headers(
+						Header("X-Ipfs-Path").
+							Equals("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
+						Header("X-Ipfs-Roots").
+							Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
+						Header("Etag").
+							Matches("DirIndex-.*_CID-{{cid}}", fixture.MustGetCid("root2", "root3")),
+					),
+				AnyOf(
+					Expect().Headers(Header("Cache-Control").IsEmpty()),
+					Expect().Headers(Header("Cache-Control").Equals("public, max-age=604800, stale-while-revalidate=2678400")),
 				),
+			),
 		},
 		{
 			Name: "GET for /ipfs/ unixfs dir with index.html succeeds",
