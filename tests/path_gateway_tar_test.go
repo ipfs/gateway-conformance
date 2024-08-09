@@ -94,7 +94,7 @@ func TestTar(t *testing.T) {
 				Query("format", "tar"),
 			Response: Expect().
 				Body(
-					Contains("relative UnixFS paths outside the root are now allowed"),
+					Contains("relative UnixFS paths outside the root are not allowed"),
 				),
 		},
 		{
