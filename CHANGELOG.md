@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2024-08-09
+### Changed
+- Relaxed negative test of TAR response [#221](https://github.com/ipfs/gateway-conformance/pull/221)
+
 ## [0.6.1] - 2024-07-29
 ### Changed
 - Support meaningful `Cache-Control` on generated UnixFS directory listing responses on `/ipfs` namespace

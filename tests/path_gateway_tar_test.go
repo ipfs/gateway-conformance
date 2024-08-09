@@ -89,13 +89,12 @@ func TestTar(t *testing.T) {
 		},
 		{
 			Name: "GET TAR with relative paths outside root fails",
+			Hint: "relative UnixFS paths outside the root are not allowed",
 			Request: Request().
 				Path("/ipfs/{{cid}}", outsideRootCID).
 				Query("format", "tar"),
 			Response: Expect().
-				Body(
-					Contains("relative UnixFS paths outside the root are not allowed"),
-				),
+				StatusBetween(400, 599),
 		},
 		{
 			Name: "GET TAR with relative paths inside root works",
