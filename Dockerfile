@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine
+FROM golang:1.22-alpine
 WORKDIR /app
 ENV GATEWAY_CONFORMANCE_HOME=/app \
     GOCACHE=/go/cache
