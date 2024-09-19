@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/ipfs/boxo v0.23.0
 	github.com/ipfs/go-cid v0.4.1
+	github.com/ipfs/go-test v0.0.4
 	github.com/libp2p/go-libp2p v0.36.3
 	google.golang.org/protobuf v1.34.2
 )
@@ -12,6 +13,8 @@ require (
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/ipfs/go-block-format v0.2.0 // indirect
+	github.com/ipfs/go-ipfs-util v0.0.3 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/ipld/go-ipld-prime v0.21.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
