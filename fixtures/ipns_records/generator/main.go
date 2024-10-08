@@ -8,10 +8,9 @@ import (
 	"github.com/ipfs/boxo/ipns"
 	ipns_pb "github.com/ipfs/boxo/ipns/pb"
 	"github.com/ipfs/boxo/path"
-	"github.com/ipfs/boxo/util"
 	"github.com/ipfs/go-cid"
+	"github.com/ipfs/go-test/random"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -40,13 +39,7 @@ func panicOnErr(err error) {
 }
 
 func makeKeyPair() (ic.PrivKey, ic.PubKey, ipns.Name) {
-	sr := util.NewTimeSeededRand()
-	sk, pk, err := ic.GenerateKeyPairWithReader(ic.Ed25519, 0, sr)
-	panicOnErr(err)
-
-	pid, err := peer.IDFromPublicKey(pk)
-	panicOnErr(err)
-
+	pid, sk, pk := random.Identity()
 	return sk, pk, ipns.NameFromPeer(pid)
 }
 
