@@ -2,11 +2,11 @@ name: Deploy Pages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: "1 * * * *" # every one hour
+  #push:
+  #  branches:
+  #    - main
+  #schedule:
+  #  - cron: "1 * * * *" # every one hour
 
 permissions:
   contents: read
