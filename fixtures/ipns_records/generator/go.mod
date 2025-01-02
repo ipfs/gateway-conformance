@@ -1,6 +1,6 @@
 module generator
 
-go 1.23
+go 1.23.4
 
 require (
 	github.com/ipfs/boxo v0.26.0
