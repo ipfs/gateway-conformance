@@ -77,8 +77,8 @@ $ gateway-conformance test --gateway-url http://127.0.0.1:8080 --subdomain-url h
 
 ### Docker
 
-The `gateway-conformace` requires golang runtime to be present to facilitate `go test`.
-If you want to run it on a box without having to instal golang runtime, prebuilt image at `ghcr.io/ipfs/gateway-conformance` is provided.
+The `gateway-conformance` requires golang runtime to be present to facilitate `go test`.
+If you want to run it on a box without having to install golang runtime, prebuilt image at `ghcr.io/ipfs/gateway-conformance` is provided.
 
 It can be used for both `test` and `extract-fixtures` commands:
 
