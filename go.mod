@@ -2,7 +2,7 @@ module github.com/ipfs/gateway-conformance
 
 go 1.22.0
 
-toolchain go1.23.4
+toolchain go1.22.8
 
 require (
 	github.com/ipfs/boxo v0.26.0
