@@ -10,7 +10,7 @@ for non-GO developers that want to read or contribute tests.
 
 golang's default string formating package is similar to C. Format strings might look like `"this is a %s"` where `%s` is a verb that will be replaced at runtime.
 
-These verbs collides with URL-escaping a lot, strings like `/ipfs/Qm.../%c4%85/%c4%99` might trigger weird errors. We implemented a minimal templating library that is used almost everywhere in the test.
+These verbs collides with URL-escaping a lot, strings like `/ipfs/Qm.../%C4%85/%C4%99` might trigger weird errors. We implemented a minimal templating library that is used almost everywhere in the test.
 
 It uses `{{name}}` as a replacement for `%s`. Other verbs are not supported.
 
@@ -28,7 +28,7 @@ Fmt(`Etag: W/"{{etag-value}}"`, "weak-key") // => "ETag: W/\"weak-key\""
 It is required to always provide a meaningful `{{name}}`:
 
 ```golang
-Fmt(`/ipfs/{{cid}}/%c4%85/%c4%99`, fixture.myCID) // => "/ipfs/Qm..../%c4%85/%c4%99"
+Fmt(`/ipfs/{{cid}}/%C4%85/%C4%99`, fixture.myCID) // => "/ipfs/Qm..../%C4%85/%C4%99"
 ```
 
 Values are replaced in the order they are defined, and you may reuse named values
