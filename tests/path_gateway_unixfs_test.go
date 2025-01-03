@@ -39,7 +39,7 @@ func TestUnixFSDirectoryListing(t *testing.T) {
 			Response: Expect().
 				Status(301).
 				Headers(
-					Header("Location", `/ipfs/{{cid}}/%c4%85/%c4%99/`, root.Cid()),
+					Header("Location", `/ipfs/{{cid}}/%C4%85/%C4%99/`, root.Cid()),
 				),
 		},
 		{
