@@ -42,7 +42,7 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 			Response: Expect().
 				Status(301).
 				Headers(
-					Header("Location").Equals(`/%c4%85/%c4%99/`),
+					Header("Location").Equals(`/%C4%85/%C4%99/`),
 				),
 		},
 		{
