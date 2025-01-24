@@ -93,7 +93,7 @@ jobs:
           edit-mode: replace
           body-path: comment.md
       - name: Upload one-page HTML report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: conformance-${{ matrix.target }}.html
           path: ./output.html

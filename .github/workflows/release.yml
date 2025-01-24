@@ -37,7 +37,7 @@ jobs:
             }
         run: jq -n "$RELEASE" > release.json
       - if: github.event_name != 'pull_request' && steps.release.outputs.tag != ''
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release
           path: release.json
