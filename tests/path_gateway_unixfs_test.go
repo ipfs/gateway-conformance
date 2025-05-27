@@ -610,13 +610,13 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 		Request: Request().
 			Path("/ipfs/{{cid}}", missingBlockFixture.MustGetCidWithCodec(0x70)).
 			Headers(
-				Header("Range", "bytes=0-1000"),
+				Header("Range", "bytes=997-1000"),
 			),
 		Response: Expect().
 			Status(206).
 			Headers(
 				Header("Content-Type").Contains("text/plain"),
-				Header("Content-Range").Equals("bytes 0-1000/3072"),
+				Header("Content-Range").Equals("bytes 997-1000/3072"),
 			),
 		// TODO: we are missing helper for returning byte range from a
 		// CAR. the fixture here is multi-block, and we can use
