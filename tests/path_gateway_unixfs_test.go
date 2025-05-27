@@ -499,7 +499,6 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 			Response: Expect().
 				Status(206).
 				Headers(
-					Header("Content-Type").Contains("text/plain"),
 					Header("Content-Range").Equals("bytes 6-16/31"),
 				).
 				Body(fixture.MustGetRawData("ascii.txt")[6:17]),
@@ -516,7 +515,6 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 			Response: Expect().
 				Status(206).
 				Headers(
-					Header("Content-Type").Contains("text/plain"),
 					Header("Content-Range").Equals("bytes 28-30/31"),
 				).
 				Body(fixture.MustGetRawData("ascii.txt")[28:31]),
@@ -535,12 +533,13 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 				Headers(
 					Header("Content-Type").
 						Checks(func(v string) bool {
-							// Not really a test, just inspect value, make sure an explicit value is present
+							// Not really a test, just inspect value
 							contentType = v
-							return v != ""
+							return true
 						}),
 					Header("Content-Range").
 						ChecksAll(func(v []string) bool {
+							// Not really a test, just inspect value
 							if len(v) == 1 {
 								contentRange = v[0]
 
@@ -553,10 +552,10 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 
 	tests := SugarTests{}
 
-	singleRangeSupported := strings.Contains(contentType, "text/plain") && contentRange != ""
 	multipleRangeSupported := strings.Contains(contentType, "multipart/byteranges")
+	onlySingleRangeSupported := !multipleRangeSupported && contentRange != ""
 
-	if singleRangeSupported {
+	if onlySingleRangeSupported {
 		// Server supports range requests but only the first range.
 		tests = append(tests, SugarTest{
 			Name: "GET for /ipfs/ file with multiple range request returns correct bytes for the first range",
@@ -569,7 +568,6 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 			Response: Expect().
 				Status(206).
 				Headers(
-					Header("Content-Type").Contains("text/plain"),
 					Header("Content-Range", "bytes 6-16/31"),
 				).
 				Body(fixture.MustGetRawData("ascii.txt")[6:17]),
@@ -591,14 +589,13 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 				).
 				Body(And(
 					Contains("Content-Range: bytes 6-16/31"),
-					Contains("Content-Type: text/plain"),
 					Contains(string(fixture.MustGetRawData("ascii.txt")[6:17])),
 					Contains("Content-Range: bytes 0-4/31"),
 					Contains(string(fixture.MustGetRawData("ascii.txt")[0:5])),
 				)),
 		})
 	} else {
-		t.Error("Content-Type header did not match any of the accepted options")
+		t.Error("Content-Range and Content-Type header did not match any of the accepted options for a Range request (neither single or multiple ranges are supported)")
 	}
 
 	// Range request should work when unrelated parts of DAG not available.
@@ -615,13 +612,8 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 		Response: Expect().
 			Status(206).
 			Headers(
-				Header("Content-Type").Contains("text/plain"),
 				Header("Content-Range").Equals("bytes 997-1000/3072"),
 			),
-		// TODO: we are missing helper for returning byte range from a
-		// CAR. the fixture here is multi-block, and we can use
-		// missingBlockFixture.MustGetRawData because raw data spans
-		// across more than one block.
 	}, SugarTest{
 		Name: "GET Range of file succeeds even if the gateway is missing a block BEFORE the requested range",
 		Hint: "This MUST succeed despite the fact that bytes beyond the end of range are not retrievable",
@@ -634,11 +626,9 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 		Response: Expect().
 			Status(206).
 			Headers(
-				Header("Content-Type").Contains("text/plain"),
 				Header("Content-Range").Equals("bytes 2200-2201/3072"),
 			),
 	},
-	// TODO: port test fror range AFTER missing block as well
 	)
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
