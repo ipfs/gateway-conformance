@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2025-05-28
 ### Changed
-- Comprehensive HTTP Range Requests tests were added. At least single range support is now required by `path-gateway` profile [#213](https://github.com/ipfs/gateway-conformance/pull/213)
+- Comprehensive tests for HTTP Range Requests over deserialized UnixFS files have been added. The `--specs path-gateway` now requires support for at least single-range requests. Deserialized range-requests can be skipped with `--skip 'TestGatewayUnixFSFileRanges'` [#213](https://github.com/ipfs/gateway-conformance/pull/213)
 - Updated dependencies [#236](https://github.com/ipfs/gateway-conformance/pull/236) & [#239](https://github.com/ipfs/gateway-conformance/pull/239)
 
 ## [0.7.1] - 2025-01-03
