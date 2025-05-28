@@ -489,6 +489,19 @@ func TestGatewayUnixFSFileRanges(t *testing.T) {
 
 	RunWithSpecs(t, SugarTests{
 		{
+			Name: "GET for /ipfs/ file includes Accept-Ranges header",
+			Hint: "Gateway returns explicit hint that range requests are supported. This is important for interop with HTTP reverse proxies, CDNs, caches.",
+			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#accept-ranges-response-header",
+			Request: Request().
+				Path("/ipfs/{{cid}}/ascii.txt", fixture.MustGetCid()),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Accept-Ranges").Equals("bytes"),
+				).
+				Body(fixture.MustGetRawData("ascii.txt")),
+		},
+		{
 			Name: "GET for /ipfs/ file with single range request includes correct bytes",
 			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#range-request-header",
 			Request: Request().
