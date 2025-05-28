@@ -17,6 +17,8 @@ jobs:
     defaults:
       run:
         shell: bash
+    permissions:
+      pull-requests: write  # Required for commenting on pull requests
     steps:
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -80,13 +82,13 @@ jobs:
       - name: Find latest comment
         id: find-comment
         if: github.event.pull_request
-        uses: peter-evans/find-comment@a54c31d7fa095754bfef525c0c8e5e5674c4b4b1 # v2.4.0
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: "Results against Kubo ${{ matrix.target }}"
       - name: Create comment
         if: github.event.pull_request
-        uses: peter-evans/create-or-update-comment@c6c9a1a66007646a28c153e2a8580a5bad27bcfa # v3.0.2
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}

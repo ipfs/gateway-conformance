@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/ipfs/gateway-conformance/tooling/tmpl"
 )
@@ -157,9 +158,18 @@ func (c CheckIsEqualBytes) Check(v []byte) CheckOutput {
 		}
 	}
 
+	var reason string
+	if utf8.Valid(v) && utf8.Valid(c.Value) {
+		// Print human-readable plain text, when possible
+		reason = fmt.Sprintf("expected %q, got %q", c.Value, v)
+	} else {
+		// Print byte codes
+		reason = fmt.Sprintf("expected '%v', got '%v'", c.Value, v)
+	}
+
 	return CheckOutput{
 		Success: false,
-		Reason:  fmt.Sprintf("expected '%v', got '%v'", c.Value, v),
+		Reason:  reason,
 	}
 }
 
