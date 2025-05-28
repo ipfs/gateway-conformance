@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['latest', 'master', 'fix/range-suffix'] # TODO: remove fix branch before merge
+        target: ['latest', 'master']
     defaults:
       run:
         shell: bash
