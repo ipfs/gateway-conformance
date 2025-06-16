@@ -600,14 +600,21 @@ func TestNativeDag(t *testing.T) {
 				Request: Request().
 					Path("/ipfs/{{cid}}/", dagTraversalCID).
 					Header("Accept", "text/html"),
-				Response: Expect().
-					Headers(
-						Header("Etag").Contains("DagIndex-"),
-						Header("Content-Type").Contains("text/html"),
-						Header("Content-Disposition").IsEmpty(),
-						Header("Cache-Control").IsEmpty(),
-					).Body(
-					Contains("</html>"),
+				Response: AllOf(
+					Expect().
+						Status(200).
+						Headers(
+							Header("Etag").Contains("DagIndex-"),
+							Header("Content-Type").Contains("text/html"),
+							Header("Content-Disposition").IsEmpty(),
+						).
+						Body(
+							Contains("</html>"),
+						),
+					AnyOf(
+						Expect().Headers(Header("Cache-Control").IsEmpty()),
+						Expect().Headers(Header("Cache-Control").Equals("public, max-age=604800, stale-while-revalidate=2678400")),
+					),
 				),
 			},
 		}
