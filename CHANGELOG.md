@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-06-17
+### Changed
+- DAG-CBOR HTML preview pages previously had to be returned without Cache-Control headers. Now they can use Cache-Control headers similar to those used in generated UnixFS directory listings. [#241](https://github.com/ipfs/gateway-conformance/pull/241)
+
 ## [0.8.0] - 2025-05-28
 ### Changed
 - Comprehensive tests for HTTP Range Requests over deserialized UnixFS files have been added. The `--specs path-gateway` now requires support for at least single-range requests. Deserialized range-requests can be skipped with `--skip 'TestGatewayUnixFSFileRanges'` [#213](https://github.com/ipfs/gateway-conformance/pull/213)
