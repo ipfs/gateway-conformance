@@ -94,26 +94,35 @@ func TestTrustlessCarPathing(t *testing.T) {
 		{
 			Name: "GET default CAR response for non-existing file",
 			Hint: `
-				CAR stream of a non-existing path must return 200 OK and all the blocks necessary
-				to traverse the path up to and including the parent of the first non-existing
-				segment of the path, in order to allow the client to verify that the request
-				path does not exist.
+				The response code depends on implementation details such as the locality and the cost of path traversal checks,
+				and trade-off between latency and correctness.
+				Implementations that are able to efficiently detect requested content path does not exist,
+				should not return CAR response, but a simple 404.
+				Implementations that are focusing on stateless streaming and low latency are free to return
+				partial CAR up to the missing link (blocks necessary to traverse the path up to and including
+				the parent of the first non-existing segment).
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}/subdir/i-do-not-exist", subdirTwoSingleBlockFilesFixture.MustGetCidWithCodec(0x70)).
 				Query("format", "car"),
-			Response: Expect().
-				Status(200).
-				Body(
-					IsCar().
-						IgnoreRoots().
-						HasBlocks(
-							subdirTwoSingleBlockFilesFixture.MustGetCid(),
-							subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
-						).
-						Exactly().
-						InThatOrder(),
-				),
+			Response: AnyOf(
+				// Stateless streaming implementations: 200 with partial CAR
+				Expect().
+					Status(200).
+					Body(
+						IsCar().
+							IgnoreRoots().
+							HasBlocks(
+								subdirTwoSingleBlockFilesFixture.MustGetCid(),
+								subdirTwoSingleBlockFilesFixture.MustGetCid("subdir"),
+							).
+							Exactly().
+							InThatOrder(),
+					),
+				// Implementations with efficient path checks: 404 Not Found
+				Expect().
+					Status(404),
+			),
 		},
 	}
 
