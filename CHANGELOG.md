@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2025-08-31
+### Changed
+- Relaxed CAR tests to accept both HTTP 200 and 404 for non-existing paths. The response code now depends on implementation details such as locality and cost of path traversal checks. Implementations that can efficiently detect non-existing paths should return 404 (improved behavior per [ipfs/boxo#458](https://github.com/ipfs/boxo/issues/458)). Implementations focusing on stateless streaming and low latency may return 200 with partial CAR up to the missing link (legacy behavior). [#244](https://github.com/ipfs/gateway-conformance/pull/244)
+
 ## [0.8.1] - 2025-06-17
 ### Changed
 - DAG-CBOR HTML preview pages previously had to be returned without Cache-Control headers. Now they can use Cache-Control headers similar to those used in generated UnixFS directory listings. [#241](https://github.com/ipfs/gateway-conformance/pull/241)

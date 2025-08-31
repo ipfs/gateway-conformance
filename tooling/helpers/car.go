@@ -17,12 +17,9 @@ func StandardCARTestTransforms(t *testing.T, sts test.SugarTests) test.SugarTest
 	return out
 }
 
-func applyStandardCarResponseHeaders(t *testing.T, st test.SugarTest) test.SugarTest {
-	resp, ok := st.Response.(test.ExpectBuilder)
-	if !ok {
-		t.Fatal("can only apply test transformation on an ExpectBuilder")
-	}
-	st.Response = resp.Headers(
+// carResponseHeaders returns the standard headers expected for CAR responses
+func carResponseHeaders() []test.HeaderBuilder {
+	return []test.HeaderBuilder{
 		// TODO: Go always sends Content-Length and it's not possible to explicitly disable the behavior.
 		// For now, we ignore this check. It should be able to be resolved soon: https://github.com/ipfs/boxo/pull/177
 		// test.Header("Content-Length").
@@ -43,7 +40,31 @@ func applyStandardCarResponseHeaders(t *testing.T, st test.SugarTest) test.Sugar
 		test.Header("Etag").
 			Hint("Etag must be present for caching purposes").
 			Not().IsEmpty(),
-	)
+	}
+}
+
+func applyStandardCarResponseHeaders(t *testing.T, st test.SugarTest) test.SugarTest {
+	switch resp := st.Response.(type) {
+	case test.AnyOfExpectBuilder:
+		// Apply headers only to successful CAR responses (status 200)
+		transformedExpects := make([]test.ExpectBuilder, 0, len(resp.Expect_))
+		for _, expect := range resp.Expect_ {
+			// Only apply CAR headers to 200 responses
+			// 404/410 responses don't have CAR content, so no CAR headers needed
+			if expect.StatusCode_ == 200 {
+				expect = expect.Headers(carResponseHeaders()...)
+			}
+			transformedExpects = append(transformedExpects, expect)
+		}
+		st.Response = test.AnyOf(transformedExpects...)
+
+	case test.ExpectBuilder:
+		st.Response = resp.Headers(carResponseHeaders()...)
+
+	default:
+		t.Fatal("can only apply test transformation on an ExpectBuilder or AnyOfExpectBuilder")
+	}
+
 	return st
 }
 
