@@ -122,6 +122,14 @@ func TestTrustlessCarPathing(t *testing.T) {
 				// Implementations with efficient path checks: 404 Not Found
 				Expect().
 					Status(404),
+				// TODO: remove once Kubo ships with https://github.com/ipfs/boxo/pull/1019
+				// Legacy behavior: 200 with X-Stream-Error header when missing blocks detected during streaming
+				// is returned by boxo/gateway with remote car backend that implements the above PR
+				Expect().
+					Status(200).
+					Headers(
+						Header("X-Stream-Error").Not().IsEmpty(),
+					),
 			),
 		},
 	}
