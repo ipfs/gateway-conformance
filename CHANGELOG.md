@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2025-09-01
+### Changed
+- Added temporary support for legacy 200 with X-Stream-Error header behavior when missing blocks are detected during CAR streaming. This ensures compatibility with current boxo/gateway implementations that defer header setting. This third option will be removed once implementations ship with [ipfs/boxo#1019](https://github.com/ipfs/boxo/pull/1019). [#245](https://github.com/ipfs/gateway-conformance/pull/245)
+
 ## [0.8.2] - 2025-08-31
 ### Changed
 - Relaxed CAR tests to accept both HTTP 200 and 404 for non-existing paths. The response code now depends on implementation details such as locality and cost of path traversal checks. Implementations that can efficiently detect non-existing paths should return 404 (improved behavior per [ipfs/boxo#458](https://github.com/ipfs/boxo/issues/458)). Implementations focusing on stateless streaming and low latency may return 200 with partial CAR up to the missing link (legacy behavior). [#244](https://github.com/ipfs/gateway-conformance/pull/244)
