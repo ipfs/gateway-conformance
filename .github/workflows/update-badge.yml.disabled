@@ -1,3 +1,10 @@
+# DISABLED: This workflow is no longer functional as it depends on test-prod-e2e.yml
+# which was part of the conformance.ipfs.tech dashboard infrastructure that was
+# discontinued in 2023 when Protocol Labs ran out of time before nucleation.
+# The workflow references a non-existent "Test Production (e2e)" workflow.
+#
+# This file has been renamed to update-badge.yml.disabled to prevent execution.
+#
 # Note: this workflow requires the repository to give Write access to Github Workflows.
 # in Settings > Actions > General > Workflow permissions
 

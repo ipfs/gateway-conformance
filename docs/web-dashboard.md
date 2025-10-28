@@ -1,5 +1,9 @@
 # Web Dashboard
 
+> [!WARNING]
+> The dashboard does not exist as Protocol Labs ran out of time in 2023 before _nucleation_.
+> This work could be picked up if anyone in the gateway ecosystem is interested in having their implementation tested on a rolling basis and sponsoring the infrastructure to maintain and run these tests.
+
 - [Summary](#summary)
 - [How it works](#how-it-works)
   - [Building the dashboard](#building-the-dashboard)
@@ -12,10 +16,9 @@ Gateway Conformance test suite output can be represented as a web dashboard
 which aggregates results from many test runs and renders them on a static
 website.
 
-IPFS Project uses the web dashboard instance at
-[conformance.ipfs.tech](https://conformance.ipfs.tech/) for tracking selected
-reference implementations, but everyone is free to fork this repository and use
-own instance for internal purposes, if needed.
+IPFS Project could publish a web dashboard instance (e.g., at `conformance.example.com`) for tracking selected
+reference implementations. Everyone is free to fork this repository and use
+their own instance for internal purposes, if needed.
 
 ## How it works
 
@@ -42,8 +45,7 @@ in the `REPOSITORIES` file. Then it generates a static website with Hugo in the
 
 ### Adding new implementation to the dashboard
 
-The dashboard is hosted at
-[conformance.ipfs.tech](https://conformance.ipfs.tech/). It aggregates test
+The dashboard could be hosted at a domain like `conformance.example.com`. It aggregates test
 outputs from various IPFS implementations and renders them on a static website.
 
 To add a new implementation to the dashboard:

@@ -29,7 +29,6 @@
 - [Releases](#releases)
 - [Development](#development)
   - [Test DSL Syntax](#test-dsl-syntax)
-  - [Web Dashboard](#web-dashboard)
 - [License](#license)
 
 <!-- /TOC -->
@@ -133,21 +132,8 @@ See documentation at [`/docs/development.md`](/docs/development.md)
 ### Test DSL Syntax
 
 Interested in write a new test case?
-Test cases are written in Domain Specific Language (DLS) based on Golang. 
+Test cases are written in Domain Specific Language (DLS) based on Golang.
 More details at [`/docs/test-dsl-syntax.md`](/docs/test-dsl-syntax.md)
-
-### Web Dashboard
-
-Conformance test suite output can be plain text or JSON, which in turn can be
-represented as a web dashboard which aggregates results from many test runs and
-renders them on a static website.
-
-Experimental Implementation Dashboard instance at
-[conformance.ipfs.tech](https://conformance.ipfs.tech/) is a view that
-showcases some of well known and complete implementations of IPFS Gateways
-in the ecosystem.
-
-Learn more at [`/docs/web-dashboard.md`](/docs/web-dashboard.md)
 
 ## License
 

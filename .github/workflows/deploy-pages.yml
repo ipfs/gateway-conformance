@@ -1,3 +1,9 @@
+# NOTE: Automatic deployment is disabled. The conformance.ipfs.tech web dashboard
+# was discontinued in 2023 when Protocol Labs ran out of time before nucleation.
+# The workflow can still be triggered manually via workflow_dispatch if needed
+# for testing purposes. The scheduled hourly runs and push triggers (lines 7-11)
+# are commented out to prevent automatic deployments.
+
 name: Deploy Pages
 
 on:
