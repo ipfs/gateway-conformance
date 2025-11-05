@@ -86,5 +86,5 @@ runs:
         REPORT: ${{ inputs.report }}
       run: |
         # TODO: checkout here.
-        wget 'https://raw.githubusercontent.com/singulargarden/gateway-conformance/main/munge.js' -O munge.js
+        wget 'https://raw.githubusercontent.com/ipfs/gateway-conformance/main/munge.js' -O munge.js
         cat "${JSON}" | node munge.js > "${REPORT}"
