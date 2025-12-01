@@ -850,16 +850,85 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						InThatOrder(),
 				),
 		},
+	}
+
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAROptional)
+}
+
+func TestTrustlessCarFormatPrecedence(t *testing.T) {
+	tooling.LogTestGroup(t, GroupBlockCar)
+
+	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
+
+	tests := SugarTests{
 		{
-			Name: "GET CAR with Accept and ?format, specific Accept header is prioritized",
+			Name: "GET with format=car query parameter takes precedence over Accept header",
+			Spec: "https://specs.ipfs.tech/http-gateways/trustless-gateway/#format-request-query-parameter",
 			Hint: `
-				The response MUST contain all the blocks found during traversal even if they
-				are duplicate. In this test, a directory that contains duplicate files is
-				requested. The blocks corresponding to the duplicate files must be returned.
+			Per IPIP-0523, the format query parameter should be preferred over the
+			Accept header when both are present. This test verifies that format=car
+			overrides Accept: application/vnd.ipld.raw.
 			`,
 			Request: Request().
-				Path("/ipfs/{{cid}}", dirWithDuplicateFiles.MustGetCid()).
-				Query("format", "car").
+				Path("/ipfs/{{cid}}?format=car", fixture.MustGetCid("dir")).
+				Headers(
+					Header("Accept", "application/vnd.ipld.raw"),
+				),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").
+						Contains("application/vnd.ipld.car"),
+				),
+		},
+		{
+			Name: "GET with format=raw query parameter takes precedence over Accept header",
+			Spec: "https://specs.ipfs.tech/http-gateways/trustless-gateway/#format-request-query-parameter",
+			Hint: `
+			Per IPIP-0523, the format query parameter should be preferred over the
+			Accept header when both are present. This test verifies that format=raw
+			overrides Accept: application/vnd.ipld.car.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}?format=raw", fixture.MustGetCid("dir")).
+				Headers(
+					Header("Accept", "application/vnd.ipld.car"),
+				),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").
+						Equals("application/vnd.ipld.raw"),
+				),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAR)
+}
+
+func TestTrustlessCarParamPrecedence(t *testing.T) {
+	tooling.LogTestGroup(t, GroupBlockCar)
+
+	fixture := car.MustOpenUnixfsCar("gateway-raw-block.car")
+	dirWithDuplicateFiles := car.MustOpenUnixfsCar("trustless_gateway_car/dir-with-duplicate-files.car")
+	multiblockCIDs := []string{
+		"bafkreie5noke3mb7hqxukzcy73nl23k6lxszxi5w3dtmuwz62wnvkpsscm",
+		"bafkreih4ephajybraj6wnxsbwjwa77fukurtpl7oj7t7pfq545duhot7cq",
+		"bafkreigu7buvm3cfunb35766dn7tmqyh2um62zcio63en2btvxuybgcpue",
+		"bafkreicll3huefkc3qnrzeony7zcfo7cr3nbx64hnxrqzsixpceg332fhe",
+		"bafkreifst3pqztuvj57lycamoi7z34b4emf7gawxs74nwrc2c7jncmpaqm",
+	}
+
+	tests := SugarTests{
+		{
+			Name: "GET CAR with format=car respects Accept header CAR content type parameters",
+			Hint: `
+			When format=car is used, the Accept header can still provide CAR-specific
+			parameters like order and dups. The response MUST contain all the blocks
+			found during traversal even if they are duplicate.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}?format=car", dirWithDuplicateFiles.MustGetCid()).
 				Header("Accept", "application/vnd.ipld.car; version=1; order=dfs; dups=y"),
 			Response: Expect().
 				Status(200).
@@ -872,7 +941,7 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 					IsCar().
 						IgnoreRoots().
 						HasBlock(dirWithDuplicateFiles.MustGetCid()).
-						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")). // ascii.txt = ascii-copy.txt
+						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("ascii-copy.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("hello.txt")).
 						HasBlock(dirWithDuplicateFiles.MustGetCid("multiblock.txt")).
@@ -881,9 +950,47 @@ func TestTrustlessCarOrderAndDuplicates(t *testing.T) {
 						InThatOrder(),
 				),
 		},
+		{
+			Name: "GET CAR with car-order=dfs in URL takes precedence over order=unk in Accept",
+			Spec: "https://specs.ipfs.tech/http-gateways/trustless-gateway/#car-order-request-query-parameter",
+			Hint: `
+			Per IPIP-0523, URL query parameters should take precedence over Accept header parameters.
+			When car-order=dfs is in URL and order=unk is in Accept, response should have order=dfs.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}?format=car&car-order=dfs", fixture.MustGetCid("dir")).
+				Headers(
+					Header("Accept", "application/vnd.ipld.car; order=unk"),
+				),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("order=dfs"),
+				),
+		},
+		{
+			Name: "GET CAR with car-dups=y in URL takes precedence over dups=n in Accept",
+			Spec: "https://specs.ipfs.tech/http-gateways/trustless-gateway/#car-dups-request-query-parameter",
+			Hint: `
+			Per IPIP-0523, URL query parameters should take precedence over Accept header parameters.
+			When car-dups=y is in URL and dups=n is in Accept, response should have dups=y.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}?format=car&car-dups=y", fixture.MustGetCid("dir")).
+				Headers(
+					Header("Accept", "application/vnd.ipld.car; dups=n"),
+				),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Content-Type").Contains("application/vnd.ipld.car"),
+					Header("Content-Type").Contains("dups=y"),
+				),
+		},
 	}
 
-	RunWithSpecs(t, tests, specs.TrustlessGatewayCAROptional)
+	RunWithSpecs(t, tests, specs.TrustlessGatewayCAR)
 }
 
 // TODO: this feels like it could be an internal detail of HasBlocks

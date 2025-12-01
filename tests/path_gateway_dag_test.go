@@ -64,11 +64,12 @@ func TestGatewayJsonCbor(t *testing.T) {
 				Body(fileJSONData),
 		},
 		{
-			Name: "GET raw block with JSON bytes prefers format over accept header",
+			Name: "GET raw block with JSON bytes prefers format over Accept header",
 			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#format-request-query-parameter",
 			Hint: `
-			## The format search query parameter should be preferred over the Accept
-			## header when both are present
+			Per IPIP-0523, the format query parameter should be preferred over the
+			Accept header when both are present. This test verifies that format=json
+			overrides Accept: application/vnd.ipld.raw.
 			`,
 			Request: Request().
 				Path("/ipfs/{{cid}}?format=json", fileJSONCID).
