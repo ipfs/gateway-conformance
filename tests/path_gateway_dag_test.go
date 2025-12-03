@@ -479,16 +479,16 @@ func TestNativeDag(t *testing.T) {
 					),
 			},
 			{
-				Name: Fmt("HEAD {{name}} with an explicit DAG-JSON format returns HTTP 200", row.Name),
+				Name: Fmt("HEAD {{name}} with an explicit format returns HTTP 200", row.Name),
 				Request: Request().
 					Path("/ipfs/{{cid}}", dagTraversalCID).
-					Query("format", "dag-json").
+					Query("format", Fmt("dag-{{format}}", row.Format)).
 					Method("HEAD"),
 				Response: Expect().
 					Status(200).
 					Headers(
-						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-json", dagTraversalCID),
-						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-json"),
+						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-{{format}}", dagTraversalCID, row.Format),
+						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Length").Hint("includes Content-Length").Exists(),
 					),
 			},
