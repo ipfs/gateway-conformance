@@ -74,11 +74,11 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 				// "http: ContentLength=6 with Body length 0"
 				b, err = httputil.DumpResponse(v, false)
 			default:
-				panic("unknown type")
+				return fmt.Sprintf("error: unknown type %T", v)
 			}
 
 			if err != nil {
-				panic(err)
+				return fmt.Sprintf("error: failed to dump %T: %v", v, err)
 			}
 
 			return string(b)
