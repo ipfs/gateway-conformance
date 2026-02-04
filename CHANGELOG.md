@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - YYYY-MM-DD
+### Changed
+- [IPIP-523](https://github.com/ipfs/specs/pull/523): `?format=` URL query parameter now takes precedence over `Accept` HTTP header. URL query parameters for CAR options (`car-version`, `car-order`, `car-dups`) also take precedence over parameters in the `Accept` header. [#252](https://github.com/ipfs/gateway-conformance/pull/252)
+
 ## [0.8.4] - 2025-12-12
 ### Fixed
 - Prevent panic in report template when dump fails, allowing test reports to render gracefully on timeouts. [#253](https://github.com/ipfs/gateway-conformance/pull/253)
