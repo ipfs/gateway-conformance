@@ -31,10 +31,18 @@ jobs:
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
           output: fixtures
-      - run: go install github.com/ipfs/kubo/cmd/ipfs@${{ matrix.target }}
-        shell: bash
-        env:
-          GOPROXY: direct
+      - name: Build and install Kubo
+        run: |
+          # clone+build instead of go install to avoid issues with exclude directives in go.mod
+          git clone --depth 1 https://github.com/ipfs/kubo.git "$RUNNER_TEMP/kubo"
+          cd "$RUNNER_TEMP/kubo"
+          if [[ "${{ matrix.target }}" == "latest" ]]; then
+            LATEST_TAG=$(curl -s https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r '.tag_name')
+            git fetch --depth 1 origin tag "$LATEST_TAG"
+            git checkout "$LATEST_TAG"
+          fi
+          make build
+          make install
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
@@ -68,14 +76,25 @@ jobs:
           markdown: output.md
           accept-test-failure: true
       - name: Set summary
-        run: cat ./output.md >> $GITHUB_STEP_SUMMARY
+        run: |
+          if [[ "${{ matrix.target }}" == "master" ]] && grep -q '"Action":"fail"' output.json; then
+            echo "> [!IMPORTANT]" >> $GITHUB_STEP_SUMMARY
+            echo "> This PR cannot be merged until there is a Kubo PR that uses tests from this branch and passes CI. Link related PRs (boxo, kubo) in the PR description." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          cat ./output.md >> $GITHUB_STEP_SUMMARY
       - name: Prepare Comment
         if: github.event.pull_request
         env:
           TARGET: ${{ matrix.target }}
         run: |
           echo "Results against Kubo ${{ matrix.target }}:" > comment.md
-          echo "(check the action's summary for the full results)" >> comment.md
+          if [[ "${{ matrix.target }}" == "master" ]] && grep -q '"Action":"fail"' output.json; then
+            echo "" >> comment.md
+            echo "> [!IMPORTANT]" >> comment.md
+            echo "> See the [action summary](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for full results. This PR cannot be merged until there is a Kubo PR that uses tests from this branch and passes CI. Link related PRs (boxo, kubo) in the PR description." >> comment.md
+          fi
+          echo "" >> comment.md
 
           # Strip everything after the results table
           cat output.md | sed '/Failures\/Errors/,$d' >> comment.md
