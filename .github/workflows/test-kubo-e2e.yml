@@ -31,10 +31,18 @@ jobs:
         uses: ./gateway-conformance/.github/actions/extract-fixtures
         with:
           output: fixtures
-      - run: go install github.com/ipfs/kubo/cmd/ipfs@${{ matrix.target }}
-        shell: bash
-        env:
-          GOPROXY: direct
+      - name: Build and install Kubo
+        run: |
+          # clone+build instead of go install to avoid issues with exclude directives in go.mod
+          git clone --depth 1 https://github.com/ipfs/kubo.git "$RUNNER_TEMP/kubo"
+          cd "$RUNNER_TEMP/kubo"
+          if [[ "${{ matrix.target }}" == "latest" ]]; then
+            LATEST_TAG=$(curl -s https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r '.tag_name')
+            git fetch --depth 1 origin tag "$LATEST_TAG"
+            git checkout "$LATEST_TAG"
+          fi
+          make build
+          make install
       - name: Configure Kubo Gateway
         run: |
           ipfs init;
