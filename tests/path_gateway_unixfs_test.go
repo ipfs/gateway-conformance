@@ -139,31 +139,29 @@ func TestGatewayCache(t *testing.T) {
 				),
 		},
 		{
-			Name: "GET for /ipfs/ unixfs dir as DAG-JSON succeeds",
+			Name: "GET for /ipfs/ unixfs dir as raw block succeeds",
 			Request: Request().
-				Path("/ipfs/{{cid}}/root2/root3/root4/?format=dag-json", fixture.MustGetCid()),
+				Path("/ipfs/{{cid}}/root2/root3/root4/?format=raw", fixture.MustGetCid()),
 			Response: Expect().
 				Status(200).
 				Headers(
 					Header("Cache-Control").
 						Equals("public, max-age=29030400, immutable"),
-				),
-		},
-		{
-			Name: "GET for /ipfs/ unixfs dir as JSON succeeds",
-			Request: Request().
-				Path("/ipfs/{{cid}}/root2/root3/root4/?format=json", fixture.MustGetCid()),
-			Response: Expect().
-				Status(200).
-				Headers(
-					Header("Cache-Control").
-						Equals("public, max-age=29030400, immutable"),
+				).
+				Body(
+					IsEqualBytes([]byte{
+						0x12, 0x34, 0x0a, 0x24, 0x01, 0x55, 0x12, 0x20, 0x58, 0x91, 0xb5, 0xb5,
+						0x22, 0xd5, 0xdf, 0x08, 0x6d, 0x0f, 0xf0, 0xb1, 0x10, 0xfb, 0xd9, 0xd2,
+						0x1b, 0xb4, 0xfc, 0x71, 0x63, 0xaf, 0x34, 0xd0, 0x82, 0x86, 0xa2, 0xe8,
+						0x46, 0xf6, 0xbe, 0x03, 0x12, 0x0a, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x2e,
+						0x68, 0x74, 0x6d, 0x6c, 0x18, 0x06, 0x0a, 0x02, 0x08, 0x01,
+					}),
 				),
 		},
 		{
 			Name: "HEAD for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: Request().
-				Path("/ipfs/{{cid}}/root2/root3/root4/?format=json", fixture.MustGetCid()).
+				Path("/ipfs/{{cid}}/root2/root3/root4/?format=raw", fixture.MustGetCid()).
 				Headers(
 					Header("Cache-Control", "only-if-cached"),
 				).
@@ -185,7 +183,7 @@ func TestGatewayCache(t *testing.T) {
 		{
 			Name: "GET for /ipfs/ with only-if-cached succeeds when in local datastore",
 			Request: Request().
-				Path("/ipfs/{{cid}}/root2/root3/root4/?format=json", fixture.MustGetCid()).
+				Path("/ipfs/{{cid}}/root2/root3/root4/?format=raw", fixture.MustGetCid()).
 				Headers(
 					Header("Cache-Control", "only-if-cached"),
 				),
@@ -393,27 +391,22 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 			),
 		},
 		{
-			Name: "GET for /ipns/ unixfs dir as DAG-JSON succeeds",
+			Name: "GET for /ipns/ unixfs dir as raw block succeeds",
 			Request: Request().
 				Path("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey).
-				Query("format", "dag-json"),
+				Query("format", "raw"),
 			Response: AllOf(
 				Expect().
-					Status(200),
-				AnyOf(
-					Expect().Headers(Header("Cache-Control").IsEmpty()),
-					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),
-				),
-			),
-		},
-		{
-			Name: "GET for /ipns/ unixfs dir as JSON succeeds",
-			Request: Request().
-				Path("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey).
-				Query("format", "json"),
-			Response: AllOf(
-				Expect().
-					Status(200),
+					Status(200).
+					Body(
+						IsEqualBytes([]byte{
+							0x12, 0x34, 0x0a, 0x24, 0x01, 0x55, 0x12, 0x20, 0x58, 0x91, 0xb5, 0xb5,
+							0x22, 0xd5, 0xdf, 0x08, 0x6d, 0x0f, 0xf0, 0xb1, 0x10, 0xfb, 0xd9, 0xd2,
+							0x1b, 0xb4, 0xfc, 0x71, 0x63, 0xaf, 0x34, 0xd0, 0x82, 0x86, 0xa2, 0xe8,
+							0x46, 0xf6, 0xbe, 0x03, 0x12, 0x0a, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x2e,
+							0x68, 0x74, 0x6d, 0x6c, 0x18, 0x06, 0x0a, 0x02, 0x08, 0x01,
+						}),
+					),
 				AnyOf(
 					Expect().Headers(Header("Cache-Control").IsEmpty()),
 					Expect().Headers(Header("Cache-Control").Matches("public, max-age=*")),

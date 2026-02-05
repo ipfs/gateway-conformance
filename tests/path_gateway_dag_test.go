@@ -89,145 +89,111 @@ func TestGatewayJsonCbor(t *testing.T) {
 	RunWithSpecs(t, tests, specs.PathGatewayDAG)
 }
 
-// ## Reading UnixFS (data encoded with dag-pb codec) as DAG-CBOR and DAG-JSON
-// ## (returns representation defined in https://ipld.io/specs/codecs/dag-pb/spec/#logical-format)
-func TestDagPbConversion(t *testing.T) {
+// ## IPIP-0524: Codec mismatch returns 406 Not Acceptable
+// ## Conversions between codecs are not part of the generic gateway specs.
+// ## Requesting a format that doesn't match the block's codec returns 406.
+// ##
+// ## Implementations that support optional codec conversions for backward
+// ## compatibility are free to skip these tests.
+func TestCodecMismatchReturns406(t *testing.T) {
 	tooling.LogTestGroup(t, GroupJSONCbor)
 
-	fixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
+	// UnixFS (dag-pb) fixture
+	unixfsFixture := car.MustOpenUnixfsCar("path_gateway_dag/gateway-json-cbor.car")
+	unixfsFile := unixfsFixture.MustGetNode("ą", "ę", "file-źł.txt")
+	unixfsFileCID := unixfsFile.Cid()
 
-	dir := fixture.MustGetRoot()
-	file := fixture.MustGetNode("ą", "ę", "file-źł.txt")
+	// Native DAG-JSON fixture
+	dagJSONFixture := car.MustOpenUnixfsCar("path_gateway_dag/dag-json-traversal.car").MustGetRoot()
+	dagJSONCID := dagJSONFixture.Cid()
 
-	dirCID := dir.Cid()
-	fileCID := file.Cid()
-	fileData := file.RawData()
+	// Native DAG-CBOR fixture
+	dagCBORFixture := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
+	dagCBORCID := dagCBORFixture.Cid()
 
-	table := []struct {
-		Name        string
-		Format      string
-		Disposition string
-	}{
-		{"DAG-JSON", "json", "inline"},
-		{"DAG-CBOR", "cbor", "attachment"},
+	tests := SugarTests{
+		// UnixFS (dag-pb) cannot be returned as dag-json or dag-cbor
+		{
+			Name: "GET UnixFS (dag-pb) file with format=dag-json returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-json for a dag-pb block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", unixfsFileCID).
+				Query("format", "dag-json"),
+			Response: Expect().
+				Status(406),
+		},
+		{
+			Name: "GET UnixFS (dag-pb) file with format=dag-cbor returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-cbor for a dag-pb block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", unixfsFileCID).
+				Query("format", "dag-cbor"),
+			Response: Expect().
+				Status(406),
+		},
+		{
+			Name: "GET UnixFS (dag-pb) file with Accept: application/vnd.ipld.dag-json returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-json for a dag-pb block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", unixfsFileCID).
+				Headers(
+					Header("Accept", "application/vnd.ipld.dag-json"),
+				),
+			Response: Expect().
+				Status(406),
+		},
+		// DAG-JSON cannot be returned as dag-cbor
+		{
+			Name: "GET DAG-JSON block with format=dag-cbor returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-cbor for a dag-json block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dagJSONCID).
+				Query("format", "dag-cbor"),
+			Response: Expect().
+				Status(406),
+		},
+		// DAG-CBOR cannot be returned as dag-json
+		{
+			Name: "GET DAG-CBOR block with format=dag-json returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-json for a dag-cbor block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dagCBORCID).
+				Query("format", "dag-json"),
+			Response: Expect().
+				Status(406),
+		},
+		{
+			Name: "GET DAG-CBOR block with Accept: application/vnd.ipld.dag-json returns 406 Not Acceptable",
+			Hint: `
+			IPIP-0524 clarifies that codec conversions are not part of the specs.
+			Requesting dag-json for a dag-cbor block returns 406.
+			`,
+			Request: Request().
+				Path("/ipfs/{{cid}}", dagCBORCID).
+				Headers(
+					Header("Accept", "application/vnd.ipld.dag-json"),
+				),
+			Response: Expect().
+				Status(406),
+		},
 	}
 
-	for _, row := range table {
-		// ipfs dag get --output-codec dag-$format $FILE_CID > ipfs_dag_get_output
-		formatedFile := file.Formatted("dag-" + row.Format)
-		formatedDir := dir.Formatted("dag-" + row.Format)
-
-		tests := SugarTests{
-			{
-				Name: Fmt("GET UnixFS file as {{name}} with format=dag-{{format}} converts to the expected Content-Type", row.Name, row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}", fileCID).
-					Query("format", "dag-"+row.Format),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, fileCID, row.Format),
-						Header("Content-Type").
-							Not().Contains("application/{{format}}", row.Format),
-					).Body(
-					formatedFile,
-				),
-			},
-			{
-				Name: Fmt("GET UnixFS directory as {{name}} with format=dag-{{format}} converts to the expected Content-Type", row.Name, row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}?format=dag-{{format}}", dirCID, row.Format),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dirCID, row.Format),
-						Header("Content-Type").
-							Not().Contains("application/{{format}}", row.Format),
-					).Body(
-					formatedDir,
-				),
-			},
-			{
-				Name: Fmt("GET UnixFS as {{name}} with 'Accept: application/vnd.ipld.dag-{{format}}' converts to the expected Content-Type", row.Name, row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}", fileCID).
-					Headers(
-						Header("Accept", "application/vnd.ipld.dag-{{format}}", row.Format),
-					),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Disposition").
-							Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, fileCID, row.Format),
-						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-						Header("Content-Type").
-							Not().Contains("application/{{format}}", row.Format),
-					),
-			},
-			{
-				Name: Fmt("GET UnixFS as {{name}} with 'Accept: foo, application/vnd.ipld.dag-{{format}},bar' converts to the expected Content-Type", row.Name, row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}", fileCID).
-					Headers(
-						Header("Accept", "foo, application/vnd.ipld.dag-{{format}},bar", row.Format),
-					),
-				Response: Expect().
-					Status(200).
-					Headers(
-						Header("Content-Type").
-							Equals("application/vnd.ipld.dag-{{format}}", row.Format),
-					),
-			},
-			{
-				Name: Fmt("GET UnixFS with format={{format}} (not dag-{{format}}) is no-op (no conversion)", row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}?format={{format}}", fileCID, row.Format),
-				Response: Expect().
-					Status(200).
-					Headers(
-						// NOTE: kubo gateway returns "text/plain; charset=utf-8" for example
-						Header("Content-Type").
-							Contains("text/plain"),
-						Header("Content-Type").
-							Not().Contains("application/{{format}}", row.Format),
-						Header("Content-Type").
-							Not().Contains("application/vnd.ipld.dag-{{format}}", row.Format),
-					).Body(
-					fileData,
-				),
-			},
-			{
-				Name: Fmt("GET UnixFS with 'Accept: application/{{format}}' (not dag-{{format}}) is no-op (no conversion)", row.Format),
-				Request: Request().
-					Path("/ipfs/{{cid}}", fileCID).
-					Headers(
-						Header("Accept", "application/{{format}}", row.Format),
-					),
-				Response: Expect().
-					Status(200).
-					Headers(
-						// NOTE: kubo gateway returns "text/plain; charset=utf-8" for example
-						Header("Content-Type").
-							Contains("text/plain"),
-						Header("Content-Type").
-							Not().Contains("application/{{format}}", row.Format),
-						Header("Content-Type").
-							Not().Contains("application/vnd.ipld.dag-{{format}}", row.Format),
-					).Body(
-					fileData,
-				),
-			},
-		}
-
-		RunWithSpecs(t, tests, specs.PathGatewayDAG)
-	}
+	RunWithSpecs(t, tests, specs.PathGatewayDAG)
 }
 
 // # Requesting CID with plain json (0x0200) and cbor (0x51) codecs
@@ -247,13 +213,7 @@ func TestPlainCodec(t *testing.T) {
 
 	for _, row := range table {
 		plain := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-{{format}}.car", row.Format)).MustGetRoot()
-		plainOrDag := car.MustOpenUnixfsCar(Fmt("path_gateway_dag/plain-cbor-that-can-be-dag-{{format}}.car", row.Format)).MustGetRoot()
-		formatted := plainOrDag.Formatted("dag-" + row.Format)
-
 		plainCID := plain.Cid()
-		plainOrDagCID := plainOrDag.Cid()
-
-		var dagFormattedResponse []byte
 
 		tests := SugarTests{}.
 			Append(
@@ -313,61 +273,9 @@ func TestPlainCodec(t *testing.T) {
 					},
 					plain.RawData(),
 					Fmt("application/{{format}}", row.Format),
-				)...).
-			Append(
-				SugarTest{
-					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body", row.Name, row.Format),
-					Hint: `
-				Explicit dag-* format passed, attempt to parse as dag* variant
-				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
-				`,
-					Request: Request().
-						Path("/ipfs/{{cid}}", plainOrDagCID).
-						Query("format", Fmt("dag-{{format}}", row.Format)),
-					Response: Expect().
-						Status(200).
-						Headers(
-							Header("Content-Disposition").
-								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
-							Header("Content-Type").
-								Contains("application/vnd.ipld.dag-{{format}}", row.Format),
-						).Body(
-						Checks("", func(t []byte) bool {
-							innerCheck := row.Checker(formatted).Check(t)
-							if innerCheck.Success {
-								dagFormattedResponse = t
-								return true
-							}
-							return false
-						}),
-					),
-				},
-			)
+				)...)
 
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
-
-		if dagFormattedResponse != nil {
-			rangeTests := helpers.OnlyRandomRangeTests(t,
-				SugarTest{
-					Name: Fmt("GET {{name}} with format=dag-{{format}} interprets {{format}} as dag-* variant and produces expected Content-Type and body, with single range request", row.Name, row.Format),
-					Hint: `
-				Explicit dag-* format passed, attempt to parse as dag* variant
-				Note: this works only for simple JSON that can be upgraded to  DAG-JSON.
-				`,
-					Request: Request().
-						Path("/ipfs/{{cid}}", plainOrDagCID).
-						Query("format", Fmt("dag-{{format}}", row.Format)),
-					Response: Expect().
-						Headers(
-							Header("Content-Disposition").
-								Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, plainOrDagCID, row.Format),
-						),
-				},
-				dagFormattedResponse,
-				Fmt("application/vnd.ipld.dag-{{format}}", row.Format),
-			)
-			RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
-		}
 	}
 }
 
@@ -422,13 +330,12 @@ func TestPathing(t *testing.T) {
 			Name: "GET DAG-CBOR traverses multiple links",
 			Request: Request().
 				Path("/ipfs/{{cid}}/foo/link/bar", dagCBORTraversalCID).
-				Query("format", "dag-json"),
+				Query("format", "dag-cbor"),
 			Response: Expect().
 				Status(200).
 				Body(
-					// TODO: I like that this text is readable and easy to understand.
-					// 		 but we might prefer matching abstract values, something like "IsJSONEqual(someFixture.formatedAsJSON))"
-					IsJSONEqual([]byte(`{"hello": "this is not a link"}`)),
+					// CBOR bytes for {"hello": "this is not a link"}
+					IsEqualBytes([]byte{0xa1, 0x65, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x72, 0x74, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20, 0x6e, 0x6f, 0x74, 0x20, 0x61, 0x20, 0x6c, 0x69, 0x6e, 0x6b}),
 				),
 		},
 		{
@@ -593,16 +500,16 @@ func TestNativeDag(t *testing.T) {
 					),
 			},
 			{
-				Name: Fmt("HEAD {{name}} with an explicit DAG-JSON format returns HTTP 200", row.Name),
+				Name: Fmt("HEAD {{name}} with an explicit format returns HTTP 200", row.Name),
 				Request: Request().
 					Path("/ipfs/{{cid}}", dagTraversalCID).
-					Query("format", "dag-json").
+					Query("format", Fmt("dag-{{format}}", row.Format)).
 					Method("HEAD"),
 				Response: Expect().
 					Status(200).
 					Headers(
-						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-json", dagTraversalCID),
-						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-json"),
+						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-{{format}}", dagTraversalCID, row.Format),
+						Header("Content-Type").Hint("includes Content-Type").Contains("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Length").Hint("includes Content-Length").Exists(),
 					),
 			},
@@ -678,52 +585,15 @@ func TestNativeDag(t *testing.T) {
 		RunWithSpecs(t, tests, specs.PathGatewayDAG)
 	}
 
+	// Test that DAG-CBOR can be rendered as HTML. This is not codec conversion,
+	// but a human-readable preview for browsing. Unlike codec conversions which
+	// were removed by IPIP-0524, HTML rendering remains part of the gateway spec.
 	dagCborFixture := car.MustOpenUnixfsCar("path_gateway_dag/dag-cbor-traversal.car").MustGetRoot()
 	dagCborCID := dagCborFixture.Cid()
-	var dagJsonConvertedData []byte
 	RunWithSpecs(t, SugarTests{
 		SugarTest{
-			Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json",
-			Hint: "",
-			Request: Request().
-				Path("/ipfs/{{cid}}/", dagCborCID).
-				Headers(
-					Header("Accept", "application/vnd.ipld.dag-json"),
-				),
-			Response: Expect().Body(Checks("", func(t []byte) bool {
-				innerCheck := IsJSONEqual(dagCborFixture.Formatted("dag-json")).Check(t)
-				if innerCheck.Success {
-					dagJsonConvertedData = t
-					return true
-				}
-				return false
-			})),
-		},
-	}, specs.PathGatewayDAG)
-
-	if dagJsonConvertedData != nil {
-		rangeTests := helpers.OnlyRandomRangeTests(
-			t,
-			SugarTest{
-				Name: "Convert application/vnd.ipld.dag-cbor to application/vnd.ipld.dag-json with range request includes correct bytes",
-				Hint: "",
-				Request: Request().
-					Path("/ipfs/{{cid}}/", dagCborCID).
-					Headers(
-						Header("Accept", "application/vnd.ipld.dag-json"),
-					),
-				Response: Expect(),
-			},
-			dagJsonConvertedData,
-			"application/vnd.ipld.dag-json")
-
-		RunWithSpecs(t, rangeTests, specs.PathGatewayDAG)
-	}
-
-	RunWithSpecs(t, SugarTests{
-		SugarTest{
-			Name: "Convert application/vnd.ipld.dag-cbor to text/html",
-			Hint: "",
+			Name: "GET DAG-CBOR with Accept: text/html returns HTML preview",
+			Hint: "text/html returns a human-readable representation of the data",
 			Request: Request().
 				Path("/ipfs/{{cid}}/", dagCborCID).
 				Headers(
