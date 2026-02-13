@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-02-13
+### Fixed
+- Renamed `Base32Cid()` to `DNSSafeCidV1()` and fixed it to convert CIDv0 to CIDv1 before encoding. Uses base36 for `libp2p-key` codec (IPNS keys) and base32 for everything else, producing valid DNS-safe CID strings for subdomain gateway tests. [#264](https://github.com/ipfs/gateway-conformance/issues/264)
+
 ## [0.10.0] - 2026-02-05
 ### Changed
 - [IPIP-524](https://github.com/ipfs/specs/pull/524): codec conversion tests now expect HTTP 406 Not Acceptable when the requested format does not match the block's native codec. Implementations supporting optional codec conversions for backward compatibility may skip these tests. [#254](https://github.com/ipfs/gateway-conformance/pull/254)

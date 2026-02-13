@@ -16,7 +16,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 	tooling.LogSpecs(t, "https://specs.ipfs.tech/http-gateways/web-redirects-file/")
 	fixture := car.MustOpenUnixfsCar("redirects_file/redirects.car")
 	redirectDir := fixture.MustGetNode("examples")
-	redirectDirCID := redirectDir.Base32Cid()
+	redirectDirCID := redirectDir.DNSSafeCidV1()
 
 	custom404 := fixture.MustGetNode("examples", "404.html")
 	custom410 := fixture.MustGetNode("examples", "410.html")
@@ -146,10 +146,10 @@ func TestRedirectsFileSupport(t *testing.T) {
 	}...)
 
 	// # Invalid file, containing forced redirect
-	invalidRedirectsDirCID := fixture.MustGetNode("forced").Base32Cid()
+	invalidRedirectsDirCID := fixture.MustGetNode("forced").DNSSafeCidV1()
 	invalidDirSubdomain := Fmt("{{cid}}.ipfs.{{host}}", invalidRedirectsDirCID, u.Host)
 
-	tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").Base32Cid()
+	tooLargeRedirectsDirCID := fixture.MustGetNode("too-large").DNSSafeCidV1()
 	tooLargeDirSubdomain := Fmt("{{cid}}.ipfs.{{host}}", tooLargeRedirectsDirCID, u.Host)
 
 	tests = append(tests, SugarTests{
@@ -188,15 +188,15 @@ func TestRedirectsFileSupport(t *testing.T) {
 	}...)
 
 	// # With CRLF line terminator
-	newlineRedirectsDirCID := fixture.MustGetNode("newlines").Base32Cid()
+	newlineRedirectsDirCID := fixture.MustGetNode("newlines").DNSSafeCidV1()
 	newlineHost := Fmt("{{cid}}.ipfs.{{host}}", newlineRedirectsDirCID, u.Host)
 
 	// # Good codes
-	goodRedirectDirCID := fixture.MustGetNode("good-codes").Base32Cid()
+	goodRedirectDirCID := fixture.MustGetNode("good-codes").DNSSafeCidV1()
 	goodRedirectDirHost := Fmt("{{cid}}.ipfs.{{host}}", goodRedirectDirCID, u.Host)
 
 	// # Bad codes
-	badRedirectDirCID := fixture.MustGetNode("bad-codes").Base32Cid()
+	badRedirectDirCID := fixture.MustGetNode("bad-codes").DNSSafeCidV1()
 	badRedirectDirHost := Fmt("{{cid}}.ipfs.{{host}}", badRedirectDirCID, u.Host)
 
 	tests = append(tests, SugarTests{
