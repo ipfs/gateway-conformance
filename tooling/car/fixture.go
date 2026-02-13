@@ -25,12 +25,25 @@ func (n *FixtureNode) Cid() cid.Cid {
 	return n.node.Cid()
 }
 
-func (n *FixtureNode) Base32Cid() string {
-	redirectDirCID, err := mb.Encode(mb.Base32, n.Cid().Bytes())
+// DNSSafeCidV1 returns the CID as a DNS-safe CIDv1 string suitable for use
+// in subdomain gateway hostnames. If the underlying CID is v0, it is
+// converted to v1 first. The encoding is chosen based on the codec:
+// libp2p-key uses base36 (to fit Ed25519 keys within the 63-char DNS label
+// limit), everything else uses base32.
+func (n *FixtureNode) DNSSafeCidV1() string {
+	c := n.Cid()
+	if c.Version() == 0 {
+		c = cid.NewCidV1(c.Type(), c.Hash())
+	}
+	var base mb.Encoding = mb.Base32
+	if c.Type() == cid.Libp2pKey {
+		base = mb.Base36
+	}
+	s, err := mb.Encode(base, c.Bytes())
 	if err != nil {
 		panic(err)
 	}
-	return redirectDirCID
+	return s
 }
 
 func (n *FixtureNode) RawData() []byte {
