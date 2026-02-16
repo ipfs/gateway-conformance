@@ -972,7 +972,7 @@ func TestTrustlessCarFormatPrecedence(t *testing.T) {
 }
 
 // TODO: this feels like it could be an internal detail of HasBlocks
-func flattenStrings(t *testing.T, values ...interface{}) []string {
+func flattenStrings(t *testing.T, values ...any) []string {
 	var res []string
 	for _, v := range values {
 		switch tv := v.(type) {

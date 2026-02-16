@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
 	"testing"
@@ -102,9 +103,7 @@ func (r RequestBuilder) Clone() RequestBuilder {
 
 	if r.Headers_ != nil {
 		clonedHeaders = make(map[string]string)
-		for k, v := range r.Headers_ {
-			clonedHeaders[k] = v
-		}
+		maps.Copy(clonedHeaders, r.Headers_)
 	}
 
 	if r.Query_ != nil {
@@ -143,7 +142,7 @@ type ExpectBuilder struct {
 	StatusCodeFrom_ int             `json:"statusCodeFrom,omitempty"`
 	StatusCodeTo_   int             `json:"statusCodeTo,omitempty"`
 	Headers_        []HeaderBuilder `json:"headers,omitempty"`
-	Body_           interface{}     `json:"body,omitempty"`
+	Body_           any             `json:"body,omitempty"`
 	Specs_          []string        `json:"specs,omitempty"`
 }
 
@@ -193,7 +192,7 @@ func (e ExpectBuilder) Headers(hs ...HeaderBuilder) ExpectBuilder {
 	return e
 }
 
-func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
+func (e ExpectBuilder) Body(body any) ExpectBuilder {
 	switch body := body.(type) {
 	case string:
 		e.Body_ = []byte(body)
@@ -214,7 +213,7 @@ func (e ExpectBuilder) Body(body interface{}) ExpectBuilder {
 	return e
 }
 
-func (e ExpectBuilder) BodyWithHint(hint string, body interface{}) ExpectBuilder {
+func (e ExpectBuilder) BodyWithHint(hint string, body any) ExpectBuilder {
 	switch body := body.(type) {
 	case string:
 		e.Body_ = check.WithHint[string](

@@ -47,11 +47,11 @@ func report(t *testing.T, test SugarTest, req *http.Request, res *http.Response,
 	}
 
 	tmpl, err := template.New("report").Funcs(template.FuncMap{
-		"json": func(v interface{}) string {
+		"json": func(v any) string {
 			j, _ := json.MarshalIndent(v, "", "  ")
 			return string(j)
 		},
-		"dump": func(v interface{}) string {
+		"dump": func(v any) string {
 			if v == nil {
 				return "nil"
 			}

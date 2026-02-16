@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func LogMetadata(t *testing.T, value interface{}) {
+func LogMetadata(t *testing.T, value any) {
 	t.Helper()
 
 	jsonValue, err := json.Marshal(value)

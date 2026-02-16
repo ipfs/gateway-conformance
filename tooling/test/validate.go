@@ -55,8 +55,8 @@ func validateResponse(
 		if len(actual) > 1 {
 			var result []string
 			all := strings.Join(actual, ",")
-			split := strings.Split(all, ",")
-			for _, s := range split {
+			split := strings.SplitSeq(all, ",")
+			for s := range split {
 				value := strings.TrimSpace(s)
 				if value != "" {
 					result = append(result, strings.TrimSpace(s))
