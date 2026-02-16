@@ -3,17 +3,17 @@ module generator
 go 1.24.6
 
 require (
-	github.com/ipfs/boxo v0.35.2
+	github.com/ipfs/boxo v0.36.0
 	github.com/ipfs/go-cid v0.6.0
 	github.com/ipfs/go-test v0.2.3
-	github.com/libp2p/go-libp2p v0.46.0
+	github.com/libp2p/go-libp2p v0.47.0
 	google.golang.org/protobuf v1.36.11
 )
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/ipfs/go-block-format v0.2.3 // indirect
-	github.com/ipfs/go-log/v2 v2.9.0 // indirect
+	github.com/ipfs/go-log/v2 v2.9.1 // indirect
 	github.com/ipld/go-ipld-prime v0.21.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
@@ -32,9 +32,9 @@ require (
 	github.com/polydawn/refmt v0.89.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.45.0 // indirect
-	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/sys v0.38.0 // indirect
+	go.uber.org/zap v1.27.1 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 )
