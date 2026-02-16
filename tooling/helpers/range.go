@@ -45,17 +45,18 @@ func parseRange(t *testing.T, str string) (from, to uint64) {
 
 // combineRanges combines the multiple request ranges into a single Range header.
 func combineRanges(t *testing.T, ranges []string) string {
-	str := "bytes="
+	var str strings.Builder
+	str.WriteString("bytes=")
 
 	for i, rng := range ranges {
 		from, to := parseRange(t, rng)
-		str += fmt.Sprintf("%d-%d", from, to)
+		str.WriteString(fmt.Sprintf("%d-%d", from, to))
 		if i != len(ranges)-1 {
-			str += ","
+			str.WriteString(",")
 		}
 	}
 
-	return str
+	return str.String()
 }
 
 // SingleRangeTestTransform takes a test where there is no "Range" header set in the request, or checks on the

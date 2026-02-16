@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -73,7 +74,7 @@ func (c CheckIsEmpty) Check(v []string) CheckOutput {
 
 var _ Check[[]string] = CheckIsEmpty{}
 
-func IsEmpty(hint ...string) interface{} {
+func IsEmpty(hint ...string) any {
 	if len(hint) > 1 {
 		panic("hint can only be one string")
 	}
@@ -216,13 +217,7 @@ func Has(values ...string) Check[[]string] {
 
 func (c *CheckHas) Check(v []string) CheckOutput {
 	for _, value := range c.values {
-		found := false
-		for _, v := range v {
-			if v == value {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(v, value)
 
 		if !found {
 			return CheckOutput{
@@ -346,11 +341,11 @@ func (c CheckNot[T]) Check(v T) CheckOutput {
 var _ Check[string] = CheckNot[string]{}
 
 type CheckIsJSONEqual struct {
-	Value interface{}
+	Value any
 }
 
 func IsJSONEqual(value []byte) Check[[]byte] {
-	var result interface{}
+	var result any
 	err := json.Unmarshal(value, &result)
 	if err != nil {
 		panic(err) // TODO: move a t.Testing around to `t.Fatal` this case

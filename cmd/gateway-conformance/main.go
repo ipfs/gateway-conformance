@@ -25,9 +25,9 @@ type out struct {
 
 func (o out) Write(p []byte) (n int, err error) {
 	if o.Filter != nil {
-		for _, line := range strings.Split(string(p), "\n") {
+		for line := range strings.SplitSeq(string(p), "\n") {
 			if o.Filter(line) {
-				os.Stdout.Write([]byte(fmt.Sprintf("%s\n", line)))
+				os.Stdout.Write(fmt.Appendf(nil, "%s\n", line))
 			}
 		}
 	}
@@ -189,7 +189,7 @@ func main() {
 						fmt.Println()
 						strOutput := output.String()
 						lineDump := []string{}
-						for _, line := range strings.Split(strOutput, "\n") {
+						for line := range strings.SplitSeq(strOutput, "\n") {
 							if strings.HasPrefix(line, "\u0016FAIL") || strings.HasPrefix(line, "\u0016--- FAIL") {
 								fmt.Println(line)
 								for _, l := range lineDump {

@@ -12,7 +12,7 @@ import (
 	"github.com/ipfs/gateway-conformance/tooling"
 )
 
-type Reporter func(t *testing.T, msg interface{}, rest ...interface{})
+type Reporter func(t *testing.T, msg any, rest ...any)
 
 func runRequest(ctx context.Context, t *testing.T, test SugarTest, builder RequestBuilder) (*http.Request, *http.Response, Reporter) {
 	method := builder.Method_
@@ -44,7 +44,7 @@ func runRequest(ctx context.Context, t *testing.T, test SugarTest, builder Reque
 	var res *http.Response = nil
 	var req *http.Request = nil
 
-	var localReport Reporter = func(t *testing.T, msg interface{}, rest ...interface{}) {
+	var localReport Reporter = func(t *testing.T, msg any, rest ...any) {
 		var err error
 		switch msg := msg.(type) {
 		case string:

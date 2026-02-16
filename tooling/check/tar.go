@@ -24,7 +24,7 @@ func IsTarFile() *CheckIsTarFile {
 	}
 }
 
-func (c *CheckIsTarFile) HasFile(format string, a ...interface{}) *CheckIsTarFile {
+func (c *CheckIsTarFile) HasFile(format string, a ...any) *CheckIsTarFile {
 	fileName := tmpl.Fmt(format, a...)
 	c.fileNames = append(c.fileNames, fileName)
 	return c

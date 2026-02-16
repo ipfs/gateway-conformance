@@ -49,7 +49,7 @@ func CidArrayEquals(a, b []cid.Cid) CheckOutput {
 		}
 	}
 
-	for i := 0; i < len(a); i++ {
+	for i := range a {
 		if a[i] != b[i] {
 			return CheckOutput{
 				Success: false,

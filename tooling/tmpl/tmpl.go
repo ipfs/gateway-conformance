@@ -50,10 +50,10 @@ func countBraces(s string) (int, int) {
  * string, the second argument will be interpolated into the second {{name}},
  * and so on.
  */
-func fmtSafe(format string, args ...interface{}) (string, error) {
+func fmtSafe(format string, args ...any) (string, error) {
 	re := regexp.MustCompile(`({){2,}(\w+)?(}){2,}`)
 	varNames := re.FindAllString(format, -1)
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	for _, varName := range varNames {
 		left, right := countBraces(varName)
@@ -149,7 +149,7 @@ func fmtSafe(format string, args ...interface{}) (string, error) {
 	return result, nil
 }
 
-func Fmt(format string, args ...interface{}) string {
+func Fmt(format string, args ...any) string {
 	x, err := fmtSafe(format, args...)
 	if err != nil {
 		panic(err)
