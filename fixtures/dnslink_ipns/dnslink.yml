@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../fixture.schema.json
+dnslinks:
+  dnslink-over-ipns:
+    domain: dnslink-over-ipns.example.org
+    # Ed25519 IPNS key from subdomain_gateway fixtures (base58 peer ID)
+    path: /ipns/12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d
