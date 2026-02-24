@@ -2,5 +2,9 @@
 dnslinks:
   dnslink-over-ipns:
     domain: dnslink-over-ipns.example.org
-    # Ed25519 IPNS key from subdomain_gateway fixtures (base58 peer ID)
+    # Ed25519 IPNS key from subdomain_gateway fixtures (base58btc peer ID)
     path: /ipns/12D3KooWLQzUv2FHWGVPXTXSZpdHs7oHbXub2G5WC8Tx4NQhyd2d
+  dnslink-over-ipns-cidv1:
+    domain: dnslink-over-ipns-cidv1.example.org
+    # same Ed25519 key as above, but using CIDv1 with libp2p-key multicodec (base36)
+    path: /ipns/k51qzi5uqu5dk3v4rmjber23h16xnr23bsggmqqil9z2gduiis5se8dht36dam

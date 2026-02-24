@@ -14,7 +14,8 @@ func TestDNSLinkGatewayIPNS(t *testing.T) {
 	tooling.LogTestGroup(t, GroupDNSLink)
 
 	dnsLinks := dnslink.MustOpenDNSLink("dnslink_ipns/dnslink.yml")
-	dnsLinkDomain := dnsLinks.MustGet("dnslink-over-ipns")
+	dnsLinkB58 := dnsLinks.MustGet("dnslink-over-ipns")
+	dnsLinkCIDv1 := dnsLinks.MustGet("dnslink-over-ipns-cidv1")
 
 	// same content the Ed25519 IPNS record from subdomain_gateway points at
 	fixture := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
@@ -22,14 +23,28 @@ func TestDNSLinkGatewayIPNS(t *testing.T) {
 
 	tests := SugarTests{
 		{
-			Name: "GET for DNSLink domain with dnslink=/ipns/{key} returns expected payload",
+			Name: "GET for DNSLink with dnslink=/ipns/{peer-id} returns expected payload",
 			Hint: `
-			When a DNSLink TXT record points to /ipns/<key> instead of /ipfs/<cid>,
-			the gateway must first resolve the IPNS name and then serve the content
+			When a DNSLink TXT record points to /ipns/<peer-id> (base58btc),
+			the gateway must resolve the IPNS name and then serve the content
 			it points to.
 			`,
 			Request: Request().
-				Header("Host", dnsLinkDomain).
+				Header("Host", dnsLinkB58).
+				Path("/"),
+			Response: Expect().
+				Status(200).
+				Body(payload),
+		},
+		{
+			Name: "GET for DNSLink with dnslink=/ipns/{cidv1-libp2p-key} returns expected payload",
+			Hint: `
+			When a DNSLink TXT record points to /ipns/<cidv1-libp2p-key> (base36),
+			the gateway must resolve the IPNS name and then serve the content
+			it points to.
+			`,
+			Request: Request().
+				Header("Host", dnsLinkCIDv1).
 				Path("/"),
 			Response: Expect().
 				Status(200).

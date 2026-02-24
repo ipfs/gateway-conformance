@@ -239,32 +239,41 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 	// DNSLink with dnslink=/ipns/{key} (resolves through IPNS)
 	dnsLinksIPNS := dnslink.MustOpenDNSLink("dnslink_ipns/dnslink.yml")
 	dnsLinkOverIPNS := dnsLinksIPNS.MustGet("dnslink-over-ipns")
+	dnsLinkOverIPNSCIDv1 := dnsLinksIPNS.MustGet("dnslink-over-ipns-cidv1")
 
 	fixture := car.MustOpenUnixfsCar("subdomain_gateway/fixtures.car")
 	ipnsPayload := string(fixture.MustGetRawData("hello-CIDv1"))
 
-	tests = append(tests, SugarTests{
-		{
-			Name: "request for {dnslink}.ipns.{gateway} with dnslink=/ipns/{key} returns expected payload",
-			Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS",
-			Request: Request().
-				Header("Host", Fmt("{{dnslink}}.ipns.{{host}}", dnsLinkOverIPNS, u.Host)).
-				Path("/"),
-			Response: Expect().
-				Status(200).
-				Body(ipnsPayload),
-		},
-		{
-			Name: "request for {inlined-dnslink}.ipns.{gateway} with dnslink=/ipns/{key} returns expected payload",
-			Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS (inlined form)",
-			Request: Request().
-				Header("Host", Fmt("{{inlined}}.ipns.{{host}}", dnslink.InlineDNS(dnsLinkOverIPNS), u.Host)).
-				Path("/"),
-			Response: Expect().
-				Status(200).
-				Body(ipnsPayload),
-		},
-	}...)
+	for _, dnsLinkIPNS := range []struct {
+		name   string
+		domain string
+	}{
+		{"peer-id", dnsLinkOverIPNS},
+		{"cidv1-libp2p-key", dnsLinkOverIPNSCIDv1},
+	} {
+		tests = append(tests, SugarTests{
+			{
+				Name: Fmt("request for {dnslink}.ipns.{gateway} with dnslink=/ipns/{{{name}}} returns expected payload", dnsLinkIPNS.name),
+				Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS",
+				Request: Request().
+					Header("Host", Fmt("{{dnslink}}.ipns.{{host}}", dnsLinkIPNS.domain, u.Host)).
+					Path("/"),
+				Response: Expect().
+					Status(200).
+					Body(ipnsPayload),
+			},
+			{
+				Name: Fmt("request for {inlined-dnslink}.ipns.{gateway} with dnslink=/ipns/{{{name}}} returns expected payload", dnsLinkIPNS.name),
+				Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS (inlined form)",
+				Request: Request().
+					Header("Host", Fmt("{{inlined}}.ipns.{{host}}", dnslink.InlineDNS(dnsLinkIPNS.domain), u.Host)).
+					Path("/"),
+				Response: Expect().
+					Status(200).
+					Body(ipnsPayload),
+			},
+		}...)
+	}
 
 	RunWithSpecs(t, tests, specs.SubdomainGatewayIPNS)
 }
