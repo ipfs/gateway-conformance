@@ -253,7 +253,7 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 	} {
 		tests = append(tests, SugarTests{
 			{
-				Name: Fmt("request for {dnslink}.ipns.{gateway} with dnslink=/ipns/{{{name}}} returns expected payload", dnsLinkIPNS.name),
+				Name: "request for {dnslink}.ipns.{gateway} with dnslink=/ipns/{" + dnsLinkIPNS.name + "} returns expected payload",
 				Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS",
 				Request: Request().
 					Header("Host", Fmt("{{dnslink}}.ipns.{{host}}", dnsLinkIPNS.domain, u.Host)).
@@ -263,7 +263,7 @@ func TestSubdomainGatewayDNSLinkInlining(t *testing.T) {
 					Body(ipnsPayload),
 			},
 			{
-				Name: Fmt("request for {inlined-dnslink}.ipns.{gateway} with dnslink=/ipns/{{{name}}} returns expected payload", dnsLinkIPNS.name),
+				Name: "request for {inlined-dnslink}.ipns.{gateway} with dnslink=/ipns/{" + dnsLinkIPNS.name + "} returns expected payload",
 				Hint: "DNSLink TXT record pointing at /ipns/<key> must be resolved recursively via IPNS (inlined form)",
 				Request: Request().
 					Header("Host", Fmt("{{inlined}}.ipns.{{host}}", dnslink.InlineDNS(dnsLinkIPNS.domain), u.Host)).
