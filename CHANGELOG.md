@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-02-24
+### Added
+- New test `TestDNSLinkGatewayIPNS` for DNSLink TXT records pointing at `/ipns/<key>` instead of `/ipfs/<cid>`. All prior DNSLink tests only covered the `/ipfs/` case. [#272](https://github.com/ipfs/gateway-conformance/pull/272)
+- New test cases in `TestSubdomainGatewayDNSLinkInlining` for the subdomain form of DNSLink -> IPNS resolution (`{dnslink}.ipns.{gateway}` and `{inlined-dnslink}.ipns.{gateway}`). [#272](https://github.com/ipfs/gateway-conformance/pull/272)
+
 ## [0.10.1] - 2026-02-13
 ### Fixed
 - Renamed `Base32Cid()` to `DNSSafeCidV1()` and fixed it to convert CIDv0 to CIDv1 before encoding. Uses base36 for `libp2p-key` codec (IPNS keys) and base32 for everything else, producing valid DNS-safe CID strings for subdomain gateway tests. [#264](https://github.com/ipfs/gateway-conformance/issues/264)
