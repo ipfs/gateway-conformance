@@ -190,6 +190,28 @@ func makeV2Only() {
 	saveToFile(raw, name.String()+"_v2.ipns-record", v)
 }
 
+// makeSubpathRecord creates a valid V1+V2 IPNS record whose Value contains a
+// sub-path (e.g. /ipfs/<cid>/root2) instead of a bare CID. This record is
+// placed in gateway-cache/ alongside the CAR it references.
+func makeSubpathRecord() {
+	// ROOT1_CID from gateway-cache/fixtures.car (see ../gateway-cache/README.md)
+	root1CID, err := cid.Decode("bafybeib3ffl2teiqdncv3mkz4r23b5ctrwkzrrhctdbne6iboayxuxk5ui")
+	panicOnErr(err)
+
+	v, err := path.Join(path.FromCid(root1CID), "root2")
+	panicOnErr(err)
+
+	sk, _, name := makeKeyPair()
+
+	rec, err := ipns.NewRecord(sk, v, seq, eol, ttl, ipns.WithV1Compatibility(true))
+	panicOnErr(err)
+
+	raw, err := ipns.MarshalRecord(rec)
+	panicOnErr(err)
+
+	saveToFile(raw, "../gateway-cache/"+name.String()+".ipns-record", v)
+}
+
 func main() {
 	makeV1Only()
 	makeV1V2()
@@ -197,4 +219,5 @@ func main() {
 	makeV1V2WithBrokenSignatureV1()
 	makeV1V2WithBrokenSignatureV2()
 	makeV2Only()
+	makeSubpathRecord()
 }
