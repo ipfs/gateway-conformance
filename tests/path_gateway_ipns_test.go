@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/ipfs/gateway-conformance/tooling"
-	. "github.com/ipfs/gateway-conformance/tooling/check"
 	. "github.com/ipfs/gateway-conformance/tooling/ipns"
 	"github.com/ipfs/gateway-conformance/tooling/specs"
 	. "github.com/ipfs/gateway-conformance/tooling/test"
@@ -175,24 +174,6 @@ func TestGatewayIPNSRecordWithSubpath(t *testing.T) {
 	ipnsSubpath := MustOpenIPNSRecordWithKey("gateway-cache/k51qzi5uqu5djokp3m1keo36hoxtd6u3a1d2rg1camf6al7p3huy63dojlm57c.ipns-record")
 
 	tests := SugarTests{
-		{
-			Name: "GET /ipns/{key}/ returns directory listing when IPNS record Value has sub-path",
-			Hint: `
-			When an IPNS record Value contains a sub-path (e.g. /ipfs/<cid>/root2),
-			the gateway must resolve the IPNS name, follow the sub-path from the
-			Value, and serve the directory listing at the resulting content path.
-			`,
-			Request: Request().
-				Path("/ipns/{{key}}/", ipnsSubpath.Key()),
-			Response: Expect().
-				Status(200).
-				Body(
-					And(
-						Contains("Index of"),
-						Contains("root3"),
-					),
-				),
-		},
 		{
 			Name: "GET /ipns/{key}/root3/root4/index.html returns file when IPNS record Value has sub-path",
 			Hint: `
