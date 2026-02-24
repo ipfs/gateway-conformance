@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../fixture.schema.json
+dnslinks:
+  dnslink-with-subpath:
+    domain: dnslink-subpath.example.org
+    # ROOT1_CID from gateway-cache/fixtures.car with /root2 sub-path
+    path: /ipfs/bafybeib3ffl2teiqdncv3mkz4r23b5ctrwkzrrhctdbne6iboayxuxk5ui/root2

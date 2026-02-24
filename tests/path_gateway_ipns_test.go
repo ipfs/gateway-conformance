@@ -165,3 +165,29 @@ func TestRedirectCanonicalIPNS(t *testing.T) {
 
 	RunWithSpecs(t, tests, specs.PathGatewayIPNS)
 }
+
+func TestGatewayIPNSRecordWithSubpath(t *testing.T) {
+	tooling.LogTestGroup(t, GroupIPNS)
+
+	// IPNS record whose Value = /ipfs/ROOT1_CID/root2 (note the sub-path)
+	// reuses the gateway-cache/fixtures.car which has root2/root3/root4/index.html
+	ipnsSubpath := MustOpenIPNSRecordWithKey("gateway-cache/k51qzi5uqu5djokp3m1keo36hoxtd6u3a1d2rg1camf6al7p3huy63dojlm57c.ipns-record")
+
+	tests := SugarTests{
+		{
+			Name: "GET /ipns/{key}/root3/root4/index.html returns file when IPNS record Value has sub-path",
+			Hint: `
+			When an IPNS record Value contains a sub-path (e.g. /ipfs/<cid>/root2),
+			the gateway must concatenate the request path with the IPNS-resolved
+			content path and serve the resulting file.
+			`,
+			Request: Request().
+				Path("/ipns/{{key}}/root3/root4/index.html", ipnsSubpath.Key()),
+			Response: Expect().
+				Status(200).
+				Body("hello\n"),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.PathGatewayIPNS)
+}

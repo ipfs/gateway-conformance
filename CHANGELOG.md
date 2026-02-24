@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2026-02-24
+### Added
+- New test `TestGatewayIPNSRecordWithSubpath` for IPNS records whose Value field contains a sub-path (e.g. `/ipfs/<cid>/root2`). All prior IPNS tests only covered bare `/ipfs/<cid>` in the record Value.
+- New test `TestDNSLinkGatewayWithSubpath` for DNSLink TXT records pointing at a content path with a sub-path (e.g. `dnslink=/ipfs/<cid>/root2`).
+
 ## [0.11.0] - 2026-02-24
 ### Added
 - New test `TestDNSLinkGatewayIPNS` for DNSLink TXT records pointing at `/ipns/<key>` instead of `/ipfs/<cid>`. All prior DNSLink tests only covered the `/ipfs/` case. [#272](https://github.com/ipfs/gateway-conformance/pull/272)
