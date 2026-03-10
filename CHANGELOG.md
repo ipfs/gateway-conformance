@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.2] - 2026-03-10
+### Fixed
+- Relaxed `_redirects` error message assertion in `TestRedirectsFileSupport` to no longer require a specific "forced redirects" error string. Implementations may report `301!` as an invalid status code, unsupported forced redirect syntax, or any other parse error. [#269](https://github.com/ipfs/gateway-conformance/issues/269)
+
 ## [0.11.1] - 2026-02-24
 ### Added
 - New test `TestGatewayIPNSRecordWithSubpath` for IPNS records whose Value field contains a sub-path (e.g. `/ipfs/<cid>/root2`). All prior IPNS tests only covered bare `/ipfs/<cid>` in the record Value.

@@ -145,7 +145,7 @@ func TestRedirectsFileSupport(t *testing.T) {
 		},
 	}...)
 
-	// # Invalid file, containing forced redirect
+	// # Invalid file, containing unsupported status code syntax ("301!")
 	invalidRedirectsDirCID := fixture.MustGetNode("forced").DNSSafeCidV1()
 	invalidDirSubdomain := Fmt("{{cid}}.ipfs.{{host}}", invalidRedirectsDirCID, u.Host)
 
@@ -155,17 +155,16 @@ func TestRedirectsFileSupport(t *testing.T) {
 	tests = append(tests, SugarTests{
 		{
 			Name: "invalid file: request for $INVALID_REDIRECTS_DIR_HOSTNAME/not-found returns error about invalid redirects file",
-			Hint: `if accessing a path that doesn't exist, read _redirects and fail parsing, and return error`,
+			Hint: `if accessing a path that doesn't exist, read _redirects and fail parsing, and return error.
+the fixture uses "301!" which is not a valid status code; implementations may report this as
+an invalid status, unsupported forced redirect syntax, or any other parse error`,
 			Request: Request().
 				Header("Host", invalidDirSubdomain).
 				Path("/not-found"),
 			Response: Expect().
 				Status(500).
 				Body(
-					And(
-						Contains("could not parse _redirects:"),
-						Contains(`forced redirects (or "shadowing") are not supported`),
-					),
+					Contains("could not parse _redirects:"),
 				).Spec("https://specs.ipfs.tech/http-gateways/web-redirects-file/#no-forced-redirects"),
 			Spec: "https://specs.ipfs.tech/http-gateways/web-redirects-file/#error-handling",
 		},
