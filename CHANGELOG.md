@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-03-11
+### Changed
+- Split `TestRedirectsFileWithIfNoneMatchHeader` into independent subtests (`SubdomainIPFS`, `SubdomainIPNS`, `DNSLinkGateway`) so `dnslink-gateway` and `subdomain-ipns-gateway` tests can be disabled via `--specs` without losing `If-None-Match` coverage for CID-based subdomain gateways. [#270](https://github.com/ipfs/gateway-conformance/issues/270)
+
 ## [0.11.2] - 2026-03-10
 ### Fixed
 - Relaxed `_redirects` error message assertion in `TestRedirectsFileSupport` to no longer require a specific "forced redirects" error string. Implementations may report `301!` as an invalid status code, unsupported forced redirect syntax, or any other parse error. [#269](https://github.com/ipfs/gateway-conformance/issues/269)
