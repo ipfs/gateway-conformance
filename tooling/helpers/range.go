@@ -187,9 +187,6 @@ func IncludeRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []b
 
 func includeRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
 	standardBaseRequest := baseTest.Request.Clone()
-	if contentType != "" {
-		standardBaseRequest = standardBaseRequest.Header("Content-Type", contentType)
-	}
 	standardBase := test.SugarTest{
 		Name:     fmt.Sprintf("%s - full request", baseTest.Name),
 		Hint:     baseTest.Hint,
@@ -244,10 +241,6 @@ func OnlyRandomRangeTests(t *testing.T, baseTest test.SugarTest, fullData []byte
 
 func onlyRangeTests(t *testing.T, baseTest test.SugarTest, byteRanges []string, fullData []byte, contentType string) test.SugarTests {
 	singleBaseRequest := baseTest.Request.Clone()
-	if contentType != "" {
-		singleBaseRequest = singleBaseRequest.Header("Content-Type", contentType)
-	}
-
 	singleBase := test.SugarTest{
 		Name:      fmt.Sprintf("%s - single range", baseTest.Name),
 		Hint:      baseTest.Hint,
