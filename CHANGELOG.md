@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Removed `If-None-Match` test that sent bare CID as weak ETag (`W/"<CID>"`) for directory listings. Matching a bare CID against a `DirIndex-*` ETag is not a spec requirement, just an optimization specific to `boxo/gateway`. Test moved to [ipfs/boxo#1129](https://github.com/ipfs/boxo/pull/1129). [#261](https://github.com/ipfs/gateway-conformance/issues/261)
+
 ### Fixed
 - `HeaderBuilder.Clone()` was copying `Key_` into `Value_`, silently weakening response header assertions in cloned test cases (e.g. range request and CAR helpers). [#280](https://github.com/ipfs/gateway-conformance/pull/280)
 
