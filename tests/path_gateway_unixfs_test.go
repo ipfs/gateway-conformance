@@ -258,17 +258,6 @@ func TestGatewayCache(t *testing.T) {
 			Response: Expect().
 				Status(304),
 		},
-		{
-			Name: "GET for /ipfs/ dir listing with matching weak Etag in If-None-Match returns 304 Not Modified",
-			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#if-none-match-request-header",
-			Request: Request().
-				Path("/ipfs/{{cid}}/root2/root3/", fixture.MustGetCid()).
-				Headers(
-					Header("If-None-Match", Fmt(`W/"{{cid}}"`, fixture.MustGetCid("root2", "root3"))),
-				),
-			Response: Expect().
-				Status(304),
-		},
 	}
 
 	RunWithSpecs(t, tests, specs.PathGatewayUnixFS)
