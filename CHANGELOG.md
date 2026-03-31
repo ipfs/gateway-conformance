@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- `HeaderBuilder.Clone()` was copying `Key_` into `Value_`, silently weakening response header assertions in cloned test cases (e.g. range request and CAR helpers). [#280](https://github.com/ipfs/gateway-conformance/pull/280)
+
 ## [0.12.0] - 2026-03-11
 ### Changed
 - Split `TestRedirectsFileWithIfNoneMatchHeader` into independent subtests (`SubdomainIPFS`, `SubdomainIPNS`, `DNSLinkGateway`) so `dnslink-gateway` and `subdomain-ipns-gateway` tests can be disabled via `--specs` without losing `If-None-Match` coverage for CID-based subdomain gateways. [#270](https://github.com/ipfs/gateway-conformance/issues/270)
