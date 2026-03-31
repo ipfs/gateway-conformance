@@ -470,7 +470,7 @@ func (h HeaderBuilder) Exists() HeaderBuilder {
 func (h HeaderBuilder) Clone() HeaderBuilder {
 	clone := HeaderBuilder{
 		Key_:   h.Key_,
-		Value_: h.Key_,
+		Value_: h.Value_,
 		Check_: h.Check_,
 		Hint_:  h.Hint_,
 		Not_:   h.Not_,
