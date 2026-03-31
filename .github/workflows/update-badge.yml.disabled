@@ -33,7 +33,7 @@ jobs:
   update-badge:
     runs-on: ubuntu-latest
     steps:
-      - uses: pl-strflt/job-summary-url-action@v1
+      - uses: ipdxco/job-summary-url-action@v1
         id: metadata
         with:
           workflow: test-prod-e2e.yml # ${{ github.event.workflow.path }}
