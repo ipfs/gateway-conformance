@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `HeaderBuilder.Clone()` was copying `Key_` into `Value_`, silently weakening response header assertions in cloned test cases (e.g. range request and CAR helpers). [#280](https://github.com/ipfs/gateway-conformance/pull/280)
+- Removed `X-Content-Type-Options: nosniff` assertion from `dag-json` and `dag-cbor` response tests in `TestNativeDag`. The spec only requires this header for `application/vnd.ipld.car` and `application/vnd.ipld.raw` responses. [#257](https://github.com/ipfs/gateway-conformance/issues/257)
 
 ## [0.12.0] - 2026-03-11
 ### Changed
