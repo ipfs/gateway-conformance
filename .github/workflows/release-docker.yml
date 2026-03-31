@@ -37,7 +37,7 @@ jobs:
       # will also parse the release.json file.
       - id: workflow-run
         if: github.event.workflow_run.artifacts_url != '' || github.event.inputs.artifacts-url != ''
-        uses: pl-strflt/rich-workflow-run@v1
+        uses: ipdxco/workflow-run-context@v1
         with:
           artifacts-url: ${{ github.event.workflow_run.artifacts_url || github.event.inputs.artifacts-url }}
           artifact-names: release
