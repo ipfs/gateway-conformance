@@ -75,3 +75,29 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 
 	RunWithSpecs(t, tests, specs.DNSLinkGateway)
 }
+
+func TestDNSLinkGatewayWithSubpath(t *testing.T) {
+	tooling.LogTestGroup(t, GroupDNSLink)
+
+	dnsLinks := dnslink.MustOpenDNSLink("gateway-cache/dnslink.yml")
+	dnsLink := dnsLinks.MustGet("dnslink-with-subpath")
+
+	tests := SugarTests{
+		{
+			Name: "GET for DNSLink with dnslink=/ipfs/<cid>/sub-path returns file at sub-path",
+			Hint: `
+			When a DNSLink TXT record points to a content path with a sub-path
+			(e.g. /ipfs/<cid>/root2), the gateway must resolve the full path and
+			concatenate any additional request path segments to serve the file.
+			`,
+			Request: Request().
+				Header("Host", dnsLink).
+				Path("/root3/root4/index.html"),
+			Response: Expect().
+				Status(200).
+				Body("hello\n"),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.DNSLinkGateway)
+}

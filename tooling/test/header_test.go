@@ -27,6 +27,18 @@ func TestHeader(t *testing.T) {
 	assert.True(t, checkOutput.Success, checkOutput.Reason)
 }
 
+func TestHeaderBuilderClone(t *testing.T) {
+	hb := Header("Etag", `"someCID123"`)
+
+	cloned := hb.Clone()
+
+	assert.Equal(t, hb.Key_, cloned.Key_, "Clone must preserve Key_")
+	assert.Equal(t, hb.Value_, cloned.Value_, "Clone must preserve Value_")
+	assert.Equal(t, hb.Hint_, cloned.Hint_, "Clone must preserve Hint_")
+	assert.Equal(t, hb.Not_, cloned.Not_, "Clone must preserve Not_")
+	assert.NotEqual(t, cloned.Value_, cloned.Key_, "Value_ must not be copied from Key_")
+}
+
 func TestHeaderFailure(t *testing.T) {
 	resp := &http.Response{
 		Header: http.Header{

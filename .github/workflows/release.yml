@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: release
-        uses: pl-strflt/changelog-driven-release@v1
+        uses: ipdxco/changelog-driven-release@v1
         with:
           path: CHANGELOG.md
           draft: ${{ github.event_name == 'pull_request' }}

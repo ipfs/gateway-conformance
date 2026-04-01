@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Removed `If-None-Match` test that sent bare CID as weak ETag (`W/"<CID>"`) for directory listings. Matching a bare CID against a `DirIndex-*` ETag is not a spec requirement, just an optimization specific to `boxo/gateway`. Test moved to [ipfs/boxo#1129](https://github.com/ipfs/boxo/pull/1129). [#261](https://github.com/ipfs/gateway-conformance/issues/261)
+- **BREAKING**: Range request tests (`TestGatewayUnixFSFileRanges`) moved to a new `path-range-gateway` spec. Gateways that do not support HTTP Range requests can now skip them with `--specs -path-range-gateway`. Multi-range response detection via side-effect was replaced by `AnyOf` that accepts both single-range and multipart responses. [#258](https://github.com/ipfs/gateway-conformance/issues/258)
+
+### Fixed
+- `HeaderBuilder.Clone()` was copying `Key_` into `Value_`, silently weakening response header assertions in cloned test cases (e.g. range request and CAR helpers). [#280](https://github.com/ipfs/gateway-conformance/pull/280)
+- Removed `X-Content-Type-Options: nosniff` assertion from `dag-json` and `dag-cbor` response tests in `TestNativeDag`. The spec only requires this header for `application/vnd.ipld.car` and `application/vnd.ipld.raw` responses. [#282](https://github.com/ipfs/gateway-conformance/pull/282)
+- `CheckNot` error messages now include a human-readable description of the negated check instead of printing Go pointer addresses (e.g. `not(contains 'nosniff')` instead of `&{0x140001b3710}`). [#282](https://github.com/ipfs/gateway-conformance/pull/282)
+- Removed `Content-Type` request header from range test helpers. GET requests should not include `Content-Type` per RFC 7231 section 3.1.1.5, as it describes message body payload. [#282](https://github.com/ipfs/gateway-conformance/pull/282)
+- JSON report now uses `suite_pass`/`suite_fail` actions for the overall test suite result, making it easier to distinguish from individual test `pass`/`fail` events. [#250](https://github.com/ipfs/gateway-conformance/issues/250)
+
+## [0.12.0] - 2026-03-11
+### Changed
+- Split `TestRedirectsFileWithIfNoneMatchHeader` into independent subtests (`SubdomainIPFS`, `SubdomainIPNS`, `DNSLinkGateway`) so `dnslink-gateway` and `subdomain-ipns-gateway` tests can be disabled via `--specs` without losing `If-None-Match` coverage for CID-based subdomain gateways. [#270](https://github.com/ipfs/gateway-conformance/issues/270)
+
+## [0.11.2] - 2026-03-10
+### Fixed
+- Relaxed `_redirects` error message assertion in `TestRedirectsFileSupport` to no longer require a specific "forced redirects" error string. Implementations may report `301!` as an invalid status code, unsupported forced redirect syntax, or any other parse error. [#269](https://github.com/ipfs/gateway-conformance/issues/269)
+
+## [0.11.1] - 2026-02-24
+### Added
+- New test `TestGatewayIPNSRecordWithSubpath` for IPNS records whose Value field contains a sub-path (e.g. `/ipfs/<cid>/root2`). All prior IPNS tests only covered bare `/ipfs/<cid>` in the record Value.
+- New test `TestDNSLinkGatewayWithSubpath` for DNSLink TXT records pointing at a content path with a sub-path (e.g. `dnslink=/ipfs/<cid>/root2`).
+
+## [0.11.0] - 2026-02-24
+### Added
+- New test `TestDNSLinkGatewayIPNS` for DNSLink TXT records pointing at `/ipns/<key>` instead of `/ipfs/<cid>`. All prior DNSLink tests only covered the `/ipfs/` case. [#272](https://github.com/ipfs/gateway-conformance/pull/272)
+- New test cases in `TestSubdomainGatewayDNSLinkInlining` for the subdomain form of DNSLink -> IPNS resolution (`{dnslink}.ipns.{gateway}` and `{inlined-dnslink}.ipns.{gateway}`). [#272](https://github.com/ipfs/gateway-conformance/pull/272)
+
 ## [0.10.1] - 2026-02-13
 ### Fixed
 - Renamed `Base32Cid()` to `DNSSafeCidV1()` and fixed it to convert CIDv0 to CIDv1 before encoding. Uses base36 for `libp2p-key` codec (IPNS keys) and base32 for everything else, producing valid DNS-safe CID strings for subdomain gateway tests. [#264](https://github.com/ipfs/gateway-conformance/issues/264)

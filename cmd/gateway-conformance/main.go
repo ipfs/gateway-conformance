@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -231,7 +232,7 @@ func main() {
 							return err
 						}
 						defer f.Close()
-						_, err = f.Write(json.Bytes())
+						_, err = f.Write(transformSuiteEvents(json.Bytes()))
 						if err != nil {
 							return err
 						}
@@ -354,6 +355,32 @@ func getAvailableSpecPresets() []string {
 		presets = append(presets, p)
 	}
 	return presets
+}
+
+// transformSuiteEvents renames "pass"/"fail" actions to "suite_pass"/"suite_fail"
+// for package-level events (those without a "Test" key) in test2json NDJSON output,
+// so consumers can distinguish individual test results from the overall suite result.
+func transformSuiteEvents(input []byte) []byte {
+	var out bytes.Buffer
+	for line := range bytes.SplitSeq(input, []byte("\n")) {
+		if len(line) == 0 {
+			continue
+		}
+		var ev map[string]any
+		if err := json.Unmarshal(line, &ev); err == nil {
+			if _, hasTest := ev["Test"]; !hasTest {
+				switch ev["Action"] {
+				case "pass":
+					line = bytes.Replace(line, []byte(`"Action":"pass"`), []byte(`"Action":"suite_pass"`), 1)
+				case "fail":
+					line = bytes.Replace(line, []byte(`"Action":"fail"`), []byte(`"Action":"suite_fail"`), 1)
+				}
+			}
+		}
+		out.Write(line)
+		out.WriteByte('\n')
+	}
+	return out.Bytes()
 }
 
 func isSubdomainPresetEnabled(specs string) bool {

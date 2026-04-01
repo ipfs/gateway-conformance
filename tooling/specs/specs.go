@@ -115,7 +115,8 @@ var (
 	PathGatewayTAR              = Leaf{"path-tar-gateway", stable}
 	PathGatewayDAG              = Leaf{"path-dag-gateway", stable}
 	PathGatewayRaw              = Leaf{"path-raw-gateway", stable}
-	PathGateway                 = Collection{"path-gateway", []Spec{PathGatewayUnixFS, PathGatewayIPNS, PathGatewayTAR, PathGatewayDAG, PathGatewayRaw}}
+	PathGatewayRange            = Leaf{"path-range-gateway", stable}
+	PathGateway                 = Collection{"path-gateway", []Spec{PathGatewayUnixFS, PathGatewayIPNS, PathGatewayTAR, PathGatewayDAG, PathGatewayRaw, PathGatewayRange}}
 	SubdomainGatewayIPFS        = Leaf{"subdomain-ipfs-gateway", stable}
 	SubdomainGatewayIPNS        = Leaf{"subdomain-ipns-gateway", stable}
 	SubdomainGateway            = Collection{"subdomain-gateway", []Spec{SubdomainGatewayIPFS, SubdomainGatewayIPNS}}
@@ -136,6 +137,7 @@ var specs = []Spec{
 	PathGatewayTAR,
 	PathGatewayDAG,
 	PathGatewayRaw,
+	PathGatewayRange,
 	PathGateway,
 	SubdomainGatewayIPFS,
 	SubdomainGatewayIPNS,

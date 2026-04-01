@@ -443,7 +443,6 @@ func TestNativeDag(t *testing.T) {
 						Header("Content-Type").Hint("expected Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Content-Length").Spec("https://specs.ipfs.tech/http-gateways/path-gateway/#content-disposition-response-header").Hint("includes Content-Length").Equals("{{length}}", len(dagTraversal.RawData())),
 						Header("Content-Disposition").Hint("includes Content-Disposition").Contains(`{{disposition}}; filename="{{cid}}.{{format}}"`, row.Disposition, dagTraversalCID, row.Format),
-						Header("X-Content-Type-Options").Hint("includes nosniff hint").Contains("nosniff"),
 					),
 			},
 			{

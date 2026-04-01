@@ -51,6 +51,8 @@ func (c CheckWithHint[T]) Check(v T) CheckOutput {
 	return output
 }
 
+func (c CheckWithHint[T]) String() string { return fmt.Sprintf("%v (%s)", c.Check_, c.Hint) }
+
 var _ Check[string] = CheckWithHint[string]{}
 
 // Base
@@ -71,6 +73,8 @@ func (c CheckIsEmpty) Check(v []string) CheckOutput {
 		Reason:  fmt.Sprintf("expected empty array, got '%s'", v),
 	}
 }
+
+func (c CheckIsEmpty) String() string { return "is empty" }
 
 var _ Check[[]string] = CheckIsEmpty{}
 
@@ -138,6 +142,8 @@ func (c CheckIsEqual[T]) Check(v T) CheckOutput {
 		Reason:  fmt.Sprintf("expected '%v', got '%v'", c.Value, v),
 	}
 }
+
+func (c CheckIsEqual[T]) String() string { return fmt.Sprintf("equals '%v'", c.Value) }
 
 var _ Check[string] = CheckIsEqual[string]{}
 
@@ -207,6 +213,8 @@ type CheckHas struct {
 	values []string
 }
 
+func (c *CheckHas) String() string { return fmt.Sprintf("has %v", c.values) }
+
 var _ Check[[]string] = &CheckHas{}
 
 func Has(values ...string) Check[[]string] {
@@ -259,6 +267,8 @@ func ContainsWithHint(hint string, value string, rest ...any) CheckWithHint[stri
 	return WithHint(hint, Contains(value, rest...))
 }
 
+func (c *CheckContains) String() string { return fmt.Sprintf("contains '%s'", c.Value) }
+
 var _ Check[string] = &CheckContains{}
 
 type CheckRegexpMatch struct {
@@ -286,6 +296,8 @@ func Matches(value string, rest ...any) Check[string] {
 	}
 }
 
+func (c *CheckRegexpMatch) String() string { return fmt.Sprintf("matches '%s'", c.Value.String()) }
+
 var _ Check[string] = &CheckRegexpMatch{}
 
 type CheckFunc[T any] struct {
@@ -310,6 +322,8 @@ func (c CheckFunc[T]) Check(v T) CheckOutput {
 		Reason:  fmt.Sprintf("expected to 'f(%v) = true'", v),
 	}
 }
+
+func (c CheckFunc[T]) String() string { return "custom check function" }
 
 var _ Check[string] = &CheckFunc[string]{}
 
@@ -337,6 +351,8 @@ func (c CheckNot[T]) Check(v T) CheckOutput {
 		Success: true,
 	}
 }
+
+func (c CheckNot[T]) String() string { return fmt.Sprintf("not(%v)", c.check) }
 
 var _ Check[string] = CheckNot[string]{}
 
