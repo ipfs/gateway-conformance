@@ -163,13 +163,52 @@ func main() {
 
 					fmt.Println("go " + strings.Join(args, " "))
 
+					// Set up streaming JSON pipeline if requested.
+					// go test → MultiWriter(buffer, pipe) → test2json → transformWriter → file
+					jsonOutput := cctx.String("json-output")
+
+					var (
+						pipeWriter *io.PipeWriter
+						test2json  *exec.Cmd
+						jsonFile   *os.File
+					)
+
+					if jsonOutput != "" {
+						if err := os.MkdirAll(filepath.Dir(jsonOutput), 0755); err != nil {
+							return err
+						}
+						var err error
+						jsonFile, err = os.Create(jsonOutput)
+						if err != nil {
+							return err
+						}
+						defer jsonFile.Close()
+
+						pr, pw := io.Pipe()
+						pipeWriter = pw
+
+						test2json = exec.Command("go", "tool", "test2json", "-p", "Gateway Tests", "-t")
+						test2json.Env = env
+						test2json.Stdin = pr
+						test2json.Stdout = &transformWriter{w: jsonFile}
+						test2json.Stderr = os.Stderr
+						if err := test2json.Start(); err != nil {
+							return err
+						}
+					}
+
 					// Execute tests against URLs
 					output := &bytes.Buffer{}
+					testWriter := io.Writer(output)
+					if pipeWriter != nil {
+						testWriter = io.MultiWriter(output, pipeWriter)
+					}
+
 					cmd := exec.Command("go", args...)
 					cmd.Dir = tooling.Home()
 					cmd.Env = env
 					cmd.Stdout = out{
-						Writer: output,
+						Writer: testWriter,
 						Filter: func(line string) bool {
 							return verbose ||
 								strings.HasPrefix(line, "\u0016FAIL") ||
@@ -182,6 +221,15 @@ func main() {
 					fmt.Println("Running tests...")
 					fmt.Println()
 					testErr := cmd.Run()
+
+					// Close pipe to signal EOF to test2json, then wait for it
+					if pipeWriter != nil {
+						pipeWriter.Close()
+						if err := test2json.Wait(); err != nil && testErr == nil {
+							return err
+						}
+					}
+
 					fmt.Println("\nDONE!")
 					fmt.Println()
 
@@ -204,39 +252,6 @@ func main() {
 							}
 						}
 						fmt.Println("\nDONE!")
-						fmt.Println()
-					}
-
-					jsonOutput := cctx.String("json-output")
-					if jsonOutput != "" {
-						json := &bytes.Buffer{}
-						cmd = exec.Command("go", "tool", "test2json", "-p", "Gateway Tests", "-t")
-						cmd.Env = env
-						cmd.Stdin = output
-						cmd.Stdout = json
-						cmd.Stderr = os.Stderr
-
-						fmt.Println("\nGenerating JSON report...")
-						err := cmd.Run()
-						if err != nil {
-							return err
-						}
-						// create directory if it doesn't exist
-						err = os.MkdirAll(filepath.Dir(jsonOutput), 0755)
-						if err != nil {
-							return err
-						}
-						// write jsonOutput to json file
-						f, err := os.Create(jsonOutput)
-						if err != nil {
-							return err
-						}
-						defer f.Close()
-						_, err = f.Write(transformSuiteEvents(json.Bytes()))
-						if err != nil {
-							return err
-						}
-						fmt.Println("DONE!")
 						fmt.Println()
 					}
 
@@ -357,30 +372,60 @@ func getAvailableSpecPresets() []string {
 	return presets
 }
 
-// transformSuiteEvents renames "pass"/"fail" actions to "suite_pass"/"suite_fail"
-// for package-level events (those without a "Test" key) in test2json NDJSON output,
-// so consumers can distinguish individual test results from the overall suite result.
-func transformSuiteEvents(input []byte) []byte {
-	var out bytes.Buffer
-	for line := range bytes.SplitSeq(input, []byte("\n")) {
+// transformWriter wraps an io.Writer and applies transformSuiteEventLine to
+// each complete NDJSON line before writing it to the underlying writer.
+type transformWriter struct {
+	w   io.Writer
+	buf []byte
+}
+
+func (tw *transformWriter) Write(p []byte) (int, error) {
+	tw.buf = append(tw.buf, p...)
+	for {
+		i := bytes.IndexByte(tw.buf, '\n')
+		if i < 0 {
+			break
+		}
+		line := tw.buf[:i]
+		tw.buf = tw.buf[i+1:]
 		if len(line) == 0 {
 			continue
 		}
-		var ev map[string]any
-		if err := json.Unmarshal(line, &ev); err == nil {
-			if _, hasTest := ev["Test"]; !hasTest {
-				switch ev["Action"] {
-				case "pass":
-					line = bytes.Replace(line, []byte(`"Action":"pass"`), []byte(`"Action":"suite_pass"`), 1)
-				case "fail":
-					line = bytes.Replace(line, []byte(`"Action":"fail"`), []byte(`"Action":"suite_fail"`), 1)
-				}
+		transformed := transformSuiteEventLine(line)
+		if _, err := tw.w.Write(transformed); err != nil {
+			return len(p), err
+		}
+		if _, err := tw.w.Write([]byte("\n")); err != nil {
+			return len(p), err
+		}
+	}
+	return len(p), nil
+}
+
+// transformSuiteEvents applies transformSuiteEventLine to each line in a
+// complete NDJSON buffer. Used by tests; the streaming path uses transformWriter.
+func transformSuiteEvents(input []byte) []byte {
+	var buf bytes.Buffer
+	tw := &transformWriter{w: &buf}
+	tw.Write(input)
+	return buf.Bytes()
+}
+
+// transformSuiteEventLine renames "pass"/"fail" actions to "suite_pass"/"suite_fail"
+// for package-level events (those without a "Test" key) in a single test2json NDJSON line.
+func transformSuiteEventLine(line []byte) []byte {
+	var ev map[string]any
+	if err := json.Unmarshal(line, &ev); err == nil {
+		if _, hasTest := ev["Test"]; !hasTest {
+			switch ev["Action"] {
+			case "pass":
+				line = bytes.Replace(line, []byte(`"Action":"pass"`), []byte(`"Action":"suite_pass"`), 1)
+			case "fail":
+				line = bytes.Replace(line, []byte(`"Action":"fail"`), []byte(`"Action":"suite_fail"`), 1)
 			}
 		}
-		out.Write(line)
-		out.WriteByte('\n')
 	}
-	return out.Bytes()
+	return line
 }
 
 func isSubdomainPresetEnabled(specs string) bool {
