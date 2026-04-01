@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -125,6 +126,66 @@ func TestTransformSuiteEvents(t *testing.T) {
 			got := string(transformSuiteEvents([]byte(tt.input)))
 			if got != tt.want {
 				t.Errorf("got:\n%s\nwant:\n%s", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTransformWriterChunked(t *testing.T) {
+	tests := []struct {
+		name   string
+		chunks []string
+		want   string
+	}{
+		{
+			name: "line split across two writes",
+			chunks: []string{
+				`{"Action":"pass","Pack`,
+				`age":"example.com/pkg"}` + "\n",
+			},
+			want: `{"Action":"suite_pass","Package":"example.com/pkg"}` + "\n",
+		},
+		{
+			name: "two lines in a single write",
+			chunks: []string{
+				`{"Action":"fail","Package":"example.com/pkg"}` + "\n" +
+					`{"Action":"fail","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+			},
+			want: `{"Action":"suite_fail","Package":"example.com/pkg"}` + "\n" +
+				`{"Action":"fail","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+		},
+		{
+			name: "byte-at-a-time delivery",
+			chunks: func() []string {
+				line := `{"Action":"pass","Package":"example.com/pkg"}` + "\n"
+				out := make([]string, len(line))
+				for i, b := range []byte(line) {
+					out[i] = string([]byte{b})
+				}
+				return out
+			}(),
+			want: `{"Action":"suite_pass","Package":"example.com/pkg"}` + "\n",
+		},
+		{
+			name: "trailing data without newline is buffered",
+			chunks: []string{
+				`{"Action":"pass","Package":"example.com/pkg"}` + "\n",
+				`{"Action":"incomplete"`,
+			},
+			want: `{"Action":"suite_pass","Package":"example.com/pkg"}` + "\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			tw := &transformWriter{w: &buf}
+			for _, chunk := range tt.chunks {
+				tw.Write([]byte(chunk))
+			}
+			got := buf.String()
+			if got != tt.want {
+				t.Errorf("got:\n%q\nwant:\n%q", got, tt.want)
 			}
 		})
 	}
