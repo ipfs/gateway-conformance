@@ -31,7 +31,8 @@ jobs:
           RELEASE_TAGS: ${{ steps.release.outputs.tags }}
           RELEASE_BODY: ${{ steps.release.outputs.body }}
           RELEASE_URL: ${{ steps.release.outputs.url }}
-        run: jq -n '{tag: $ENV.RELEASE_TAG, tags: $ENV.RELEASE_TAGS, body: $ENV.RELEASE_BODY, url: $ENV.RELEASE_URL, draft: false}' > release.json
+        run: |
+          jq -n '{tag: $ENV.RELEASE_TAG, tags: $ENV.RELEASE_TAGS, body: $ENV.RELEASE_BODY, url: $ENV.RELEASE_URL, draft: false}' > release.json
       - if: github.event_name != 'pull_request' && steps.release.outputs.tag != ''
         uses: actions/upload-artifact@v4
         with:
