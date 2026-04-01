@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.13.0] - 2026-04-01
 ### Changed
 - Removed `If-None-Match` test that sent bare CID as weak ETag (`W/"<CID>"`) for directory listings. Matching a bare CID against a `DirIndex-*` ETag is not a spec requirement, just an optimization specific to `boxo/gateway`. Test moved to [ipfs/boxo#1129](https://github.com/ipfs/boxo/pull/1129). [#261](https://github.com/ipfs/gateway-conformance/issues/261)
 - **BREAKING**: Range request tests (`TestGatewayUnixFSFileRanges`) moved to a new `path-range-gateway` spec. Gateways that do not support HTTP Range requests can now skip them with `--specs -path-range-gateway`. Multi-range response detection via side-effect was replaced by `AnyOf` that accepts both single-range and multipart responses. [#258](https://github.com/ipfs/gateway-conformance/issues/258)
