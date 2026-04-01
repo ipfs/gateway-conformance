@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Removed `If-None-Match` test that sent bare CID as weak ETag (`W/"<CID>"`) for directory listings. Matching a bare CID against a `DirIndex-*` ETag is not a spec requirement, just an optimization specific to `boxo/gateway`. Test moved to [ipfs/boxo#1129](https://github.com/ipfs/boxo/pull/1129). [#261](https://github.com/ipfs/gateway-conformance/issues/261)
+- **BREAKING**: Range request tests (`TestGatewayUnixFSFileRanges`) moved to a new `path-range-gateway` spec. Gateways that do not support HTTP Range requests can now skip them with `--specs -path-range-gateway`. Multi-range response detection via side-effect was replaced by `AnyOf` that accepts both single-range and multipart responses. [#258](https://github.com/ipfs/gateway-conformance/issues/258)
 
 ### Fixed
 - `HeaderBuilder.Clone()` was copying `Key_` into `Value_`, silently weakening response header assertions in cloned test cases (e.g. range request and CAR helpers). [#280](https://github.com/ipfs/gateway-conformance/pull/280)
