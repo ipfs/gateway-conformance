@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -61,6 +62,69 @@ func TestIsSubdomainPresetEnabled(t *testing.T) {
 			if actualEnabled != test.expectedEnabled {
 				t.Errorf("Expected isSubdomainPresetEnabled(%q) to be %v, but got %v",
 					test.specs, test.expectedEnabled, actualEnabled)
+			}
+		})
+	}
+}
+
+func TestTransformSuiteEvents(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "suite pass renamed",
+			input: `{"Action":"pass","Package":"example.com/pkg"}` + "\n",
+			want:  `{"Action":"suite_pass","Package":"example.com/pkg"}` + "\n",
+		},
+		{
+			name:  "suite fail renamed",
+			input: `{"Action":"fail","Package":"example.com/pkg"}` + "\n",
+			want:  `{"Action":"suite_fail","Package":"example.com/pkg"}` + "\n",
+		},
+		{
+			name:  "test pass unchanged",
+			input: `{"Action":"pass","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+			want:  `{"Action":"pass","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+		},
+		{
+			name:  "test fail unchanged",
+			input: `{"Action":"fail","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+			want:  `{"Action":"fail","Package":"example.com/pkg","Test":"TestFoo"}` + "\n",
+		},
+		{
+			name:  "other actions unchanged",
+			input: `{"Action":"run","Package":"example.com/pkg"}` + "\n",
+			want:  `{"Action":"run","Package":"example.com/pkg"}` + "\n",
+		},
+		{
+			name: "mixed events",
+			input: strings.Join([]string{
+				`{"Action":"run","Package":"example.com/pkg","Test":"TestFoo"}`,
+				`{"Action":"pass","Package":"example.com/pkg","Test":"TestFoo"}`,
+				`{"Action":"pass","Package":"example.com/pkg"}`,
+				"",
+			}, "\n"),
+			want: strings.Join([]string{
+				`{"Action":"run","Package":"example.com/pkg","Test":"TestFoo"}`,
+				`{"Action":"pass","Package":"example.com/pkg","Test":"TestFoo"}`,
+				`{"Action":"suite_pass","Package":"example.com/pkg"}`,
+				"",
+			}, "\n"),
+		},
+		{
+			name:  "output containing Test key does not prevent rename",
+			input: `{"Action":"pass","Package":"example.com/pkg","Output":"no \"Test\": field found\n"}` + "\n",
+			want:  `{"Action":"suite_pass","Package":"example.com/pkg","Output":"no \"Test\": field found\n"}` + "\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := string(transformSuiteEvents([]byte(tt.input)))
+			if got != tt.want {
+				t.Errorf("got:\n%s\nwant:\n%s", got, tt.want)
 			}
 		})
 	}
