@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2026-04-08
+### Fixed
+- Release workflow failed when changelog body contained special characters (`<`, `"`), preventing the v0.13.0 Docker image from being published. [#292](https://github.com/ipfs/gateway-conformance/pull/292)
+
 ## [0.13.0] - 2026-04-01
 ### Changed
 - Removed `If-None-Match` test that sent bare CID as weak ETag (`W/"<CID>"`) for directory listings. Matching a bare CID against a `DirIndex-*` ETag is not a spec requirement, just an optimization specific to `boxo/gateway`. Test moved to [ipfs/boxo#1129](https://github.com/ipfs/boxo/pull/1129). [#261](https://github.com/ipfs/gateway-conformance/issues/261)
