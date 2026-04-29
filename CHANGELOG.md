@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- `check.CheckIsJSONEqual.Check` no longer panics when the gateway response body is not valid JSON (e.g. an HTML wrapper page or upstream error). It now returns a graceful failure that includes the parser error and offending body, so consumers can use Go's `-skip` to selectively skip leaf sub-tests like `.../GET_for/Body` without losing sibling coverage.
+
 ## [0.13.1] - 2026-04-08
 ### Fixed
 - Release workflow failed when changelog body contained special characters (`<`, `"`), preventing the v0.13.0 Docker image from being published. [#292](https://github.com/ipfs/gateway-conformance/pull/292)
