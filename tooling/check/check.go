@@ -373,10 +373,12 @@ func IsJSONEqual(value []byte) Check[[]byte] {
 }
 
 func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
-	var o map[string]any
-	err := json.Unmarshal(v, &o)
-	if err != nil {
-		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case
+	var o any
+	if err := json.Unmarshal(v, &o); err != nil {
+		return CheckOutput{
+			Success: false,
+			Reason:  fmt.Sprintf("response body is not valid JSON: %s\nbody: %s", err, string(v)),
+		}
 	}
 
 	if reflect.DeepEqual(o, c.Value) {
@@ -387,7 +389,10 @@ func (c *CheckIsJSONEqual) Check(v []byte) CheckOutput {
 
 	b, err := json.Marshal(c.Value)
 	if err != nil {
-		panic(err) // TODO: move a t.Testing around to call `t.Fatal` on this case
+		return CheckOutput{
+			Success: false,
+			Reason:  fmt.Sprintf("could not marshal expected JSON value: %s", err),
+		}
 	}
 
 	return CheckOutput{
