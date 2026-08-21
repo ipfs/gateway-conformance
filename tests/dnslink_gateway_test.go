@@ -53,6 +53,10 @@ func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 			Response: Expect().
 				Headers(
 					Header("Etag").Contains(`"DirIndex-`),
+					Header("Ipfs-Uri").
+						Hint("DNSLink content paths produce an ipns:// URI with the dotted DNS name as authority (IPIP-548)").
+						Spec("https://specs.ipfs.tech/http-gateways/path-gateway/#ipfs-uri-response-header").
+						Equals("ipns://{{host}}{{path}}", dnsLink, "/%C4%85/%C4%99/"),
 				).
 				BodyWithHint(`
 					- backlink on subdirectory should point at parent directory (TODO:  kubo-specific)

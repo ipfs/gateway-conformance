@@ -102,8 +102,6 @@ func TestGatewayBlock(t *testing.T) {
 				Headers(
 					Header("ETag").
 						Exists(),
-					Header("X-IPFS-Path").
-						Equals("/ipfs/{{cid}}/dir/ascii.txt", fixture.MustGetCid()),
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid()),
 					Header("Cache-Control").

@@ -26,11 +26,15 @@ func TestCors(t *testing.T) {
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
-						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
 						"X-Chunked-Output",
 						"X-Stream-Output",
+						"Ipfs-Uri",
 					),
+					// Has() only checks its last argument, so pin Ipfs-Uri here too.
+					Header("Access-Control-Expose-Headers").
+						Hint("Ipfs-Uri must be exposed to cross-origin JS").
+						Contains("Ipfs-Uri"),
 				),
 		},
 		{
@@ -46,11 +50,15 @@ func TestCors(t *testing.T) {
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
-						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
 						"X-Chunked-Output",
 						"X-Stream-Output",
+						"Ipfs-Uri",
 					),
+					// Has() only checks its last argument, so pin Ipfs-Uri here too.
+					Header("Access-Control-Expose-Headers").
+						Hint("Ipfs-Uri must be exposed to cross-origin JS").
+						Contains("Ipfs-Uri"),
 				),
 		},
 	}

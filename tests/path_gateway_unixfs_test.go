@@ -91,8 +91,8 @@ func TestGatewayCache(t *testing.T) {
 				Expect().
 					Status(200).
 					Headers(
-						Header("X-Ipfs-Path").
-							Equals("/ipfs/{{CID}}/root2/root3/", fixture.MustGetCid()),
+						Header("Ipfs-Uri").
+							Equals("ipfs://{{CID}}/root2/root3/", fixture.MustGetCid()),
 						Header("X-Ipfs-Roots").
 							Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
 						Header("Etag").
@@ -113,8 +113,8 @@ func TestGatewayCache(t *testing.T) {
 				Headers(
 					Header("Cache-Control").
 						Equals("public, max-age=29030400, immutable"),
-					Header("X-Ipfs-Path").
-						Equals("/ipfs/{{CID}}/root2/root3/root4/", fixture.MustGetCid()),
+					Header("Ipfs-Uri").
+						Equals("ipfs://{{CID}}/root2/root3/root4/", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
 						Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
 					Header("Etag").
@@ -130,8 +130,8 @@ func TestGatewayCache(t *testing.T) {
 				Headers(
 					Header("Cache-Control").
 						Equals("public, max-age=29030400, immutable"),
-					Header("X-Ipfs-Path").
-						Equals("/ipfs/{{CID}}/root2/root3/root4/index.html", fixture.MustGetCid()),
+					Header("Ipfs-Uri").
+						Equals("ipfs://{{CID}}/root2/root3/root4/index.html", fixture.MustGetCid()),
 					Header("X-Ipfs-Roots").
 						Equals("{{cid1}},{{cid2}},{{cid3}},{{cid4}},{{cid5}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 					Header("Etag").
@@ -324,8 +324,8 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 				Expect().
 					Status(200).
 					Headers(
-						Header("X-Ipfs-Path").
-							Equals("/ipns/{{KEY}}/root2/root3/", ipnsKey),
+						Header("Ipfs-Uri").
+							Equals("ipns://{{KEY}}/root2/root3/", ipnsKey),
 						Header("X-Ipfs-Roots").
 							Equals("{{CID1}},{{CID2}},{{CID3}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3")),
 						Header("Etag").
@@ -345,8 +345,8 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 				Expect().
 					Status(200).
 					Headers(
-						Header("X-Ipfs-Path").
-							Equals("/ipns/{{KEY}}/root2/root3/root4/", ipnsKey),
+						Header("Ipfs-Uri").
+							Equals("ipns://{{KEY}}/root2/root3/root4/", ipnsKey),
 						Header("X-Ipfs-Roots").
 							Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4")),
 						Header("Etag").
@@ -366,8 +366,8 @@ func TestGatewayCacheWithIPNS(t *testing.T) {
 				Expect().
 					Status(200).
 					Headers(
-						Header("X-Ipfs-Path").
-							Equals("/ipns/{{KEY}}/root2/root3/root4/index.html", ipnsKey),
+						Header("Ipfs-Uri").
+							Equals("ipns://{{KEY}}/root2/root3/root4/index.html", ipnsKey),
 						Header("X-Ipfs-Roots").
 							Equals("{{CID1}},{{CID2}},{{CID3}},{{CID4}},{{CID5}}", fixture.MustGetCid(), fixture.MustGetCid("root2"), fixture.MustGetCid("root2", "root3"), fixture.MustGetCid("root2", "root3", "root4"), fixture.MustGetCid("root2", "root3", "root4", "index.html")),
 						Header("Etag").
