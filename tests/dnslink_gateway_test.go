@@ -11,6 +11,50 @@ import (
 	. "github.com/ipfs/gateway-conformance/tooling/test"
 )
 
+// TestDNSLinkGatewayIpfsUriAuthority asserts the Ipfs-Uri authority rules
+// for DNSLink hosts (IPIP-548): a dotted name becomes an ipns:// URI, and
+// a DNSLink name with no dot never does, because on each network such a
+// name can point at different content.
+func TestDNSLinkGatewayIpfsUriAuthority(t *testing.T) {
+	tooling.LogTestGroup(t, GroupDNSLink)
+
+	dnsLinks := dnslink.MustOpenDNSLink("dir_listing/dnslink.yml")
+	dotted := dnsLinks.MustGet("ipfs-uri-dotted-name")
+	dotless := dnsLinks.MustGet("ipfs-uri-name-with-no-dot")
+
+	tests := SugarTests{
+		{
+			Name: "GET with a dotted DNSLink Host returns Ipfs-Uri with the name as authority",
+			Hint: "A DNSLink name with at least one dot, including private network names, is a valid ipns:// authority",
+			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#ipfs-uri-response-header",
+			Request: Request().
+				Path("/").
+				Header("Host", dotted),
+			Response: Expect().
+				Status(200).
+				Headers(
+					Header("Ipfs-Uri").
+						Equals("ipns://{{host}}/", dotted),
+				),
+		},
+		{
+			Name: "GET with a DNSLink Host that has no dot returns no Ipfs-Uri header",
+			Hint: "A DNSLink name with no dot can point at different content on each network, so it is never an ipns:// authority; the gateway omits the header no matter how it answers the request",
+			Spec: "https://specs.ipfs.tech/http-gateways/path-gateway/#ipfs-uri-response-header",
+			Request: Request().
+				Path("/").
+				Header("Host", dotless),
+			Response: Expect().
+				Headers(
+					Header("Ipfs-Uri").
+						IsEmpty(),
+				),
+		},
+	}
+
+	RunWithSpecs(t, tests, specs.DNSLinkGateway)
+}
+
 func TestDNSLinkGatewayUnixFSDirectoryListing(t *testing.T) {
 	tooling.LogTestGroup(t, GroupDNSLink)
 
