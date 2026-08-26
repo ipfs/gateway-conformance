@@ -48,7 +48,7 @@ filenames in major scripts. All names are NFC-normalized UTF-8.
 
 ```sh
 ipfs version
-# ipfs version 0.44.0-dev
+# ipfs version 0.43.0
 mkdir dir-with-tricky-filenames &&
 printf 'plain ascii name\n' > 'dir-with-tricky-filenames/plain.txt' &&
 printf 'name with space\n' > 'dir-with-tricky-filenames/with space.txt' &&
