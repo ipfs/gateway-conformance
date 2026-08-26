@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.14.0] - 2026-08-27
+### Added
 - New `TestGatewayIpfsUri*` tests for the `Ipfs-Uri` response header introduced by [IPIP-548](https://github.com/ipfs/specs/pull/548), one request per failure class: canonical percent-encoded path segments (delimiters, platform-encoder gaps like `!'()*~`, 4-byte UTF-8), request-spelling independence over the existing `dir-with-percent-encoded-filename.car` (raw sub-delims, lowercase hex escapes), decode-once normalization (`%2F`, `%2E`, dot segments), nested-directory trailing slashes, query exclusion on alternate formats, redirects, and CIDv0 / legacy base58 peer ID authority normalization. Backed by the new `dir-with-tricky-filenames.car` and `dir-with-tricky-nested-filenames.car` fixtures, plus a hand-built `dir-with-slash-in-filename.car` proving that a dag-pb link with `/` in its name is not addressable by any content path (`%2F` always decodes to a separator); the full byte-level vectors live in the IPIP-0548 test fixtures table. `TestDNSLinkGatewayUnixFSDirectoryListing` also asserts the `ipns://` value for DNSLink hosts, and `TestDNSLinkGatewayIpfsUriAuthority` checks that only dotted DNSLink names appear as `ipns://` authorities.
 
 ### Changed
