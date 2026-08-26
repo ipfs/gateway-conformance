@@ -89,8 +89,6 @@ func TestTrustlessRaw(t *testing.T) {
 				Headers(
 					Header("Etag").
 						Exists(),
-					Header("X-IPFS-Path").
-						Equals("/ipfs/{{cid}}", fixture.MustGetCid("dir", "ascii.txt")),
 					Header("X-IPFS-Roots").
 						Contains(fixture.MustGetCid("dir", "ascii.txt")),
 					Header("Cache-Control").

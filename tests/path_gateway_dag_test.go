@@ -481,7 +481,7 @@ func TestNativeDag(t *testing.T) {
 				Response: Expect().
 					Headers(
 						Header("Etag").Hint("includes Etag").Contains("{{cid}}.dag-{{format}}", dagTraversalCID, row.Format),
-						Header("X-Ipfs-Path").Hint("includes X-Ipfs-Path").Exists(),
+						Header("Ipfs-Uri").Hint("includes Ipfs-Uri").Exists(),
 						Header("X-Ipfs-Roots").Hint("includes X-Ipfs-Roots").Exists(),
 						Header("Cache-Control").Hint("includes Cache-Control").Contains("public, max-age=29030400, immutable"),
 					),
@@ -663,7 +663,7 @@ func TestGatewayJSONCborAndIPNS(t *testing.T) {
 					Headers(
 						Header("Content-Type").Equals("application/vnd.ipld.dag-{{format}}", row.Format),
 						Header("Etag").Equals(`"{{cid}}.dag-{{format}}"`, plainCID, row.Format),
-						Header("X-Ipfs-Path").Not().IsEmpty(),
+						Header("Ipfs-Uri").Not().IsEmpty(),
 						Header("X-Ipfs-Roots").Not().IsEmpty(),
 					),
 			},

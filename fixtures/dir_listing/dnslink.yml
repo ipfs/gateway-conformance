@@ -3,3 +3,11 @@ dnslinks:
   dir-listing-website:
     domain: dnslink-dir-listing.example.org
     path: /ipfs/bafybeig6ka5mlwkl4subqhaiatalkcleo4jgnr3hqwvpmsqfca27cijp3i # ./rootDir/
+  # IPIP-548: a dotted name from a private network is a valid ipns:// authority
+  ipfs-uri-dotted-name:
+    domain: example.local
+    path: /ipfs/bafybeig6ka5mlwkl4subqhaiatalkcleo4jgnr3hqwvpmsqfca27cijp3i # ./rootDir/
+  # IPIP-548: a DNSLink name with no dot is never an ipns:// authority
+  ipfs-uri-name-with-no-dot:
+    domain: examplemissingtld
+    path: /ipfs/bafybeig6ka5mlwkl4subqhaiatalkcleo4jgnr3hqwvpmsqfca27cijp3i # ./rootDir/

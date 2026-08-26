@@ -39,6 +39,22 @@ func TestHeaderBuilderClone(t *testing.T) {
 	assert.NotEqual(t, cloned.Value_, cloned.Key_, "Value_ must not be copied from Key_")
 }
 
+func TestHeaderFailureFirstValue(t *testing.T) {
+	resp := &http.Response{
+		Header: http.Header{
+			// missing Content-Type, the first expected value
+			"Access-Control-Allow-Headers": []string{"Range, User-Agent, X-Requested-With"},
+		},
+	}
+	headers := resp.Header["Access-Control-Allow-Headers"]
+
+	hb := Header("Access-Control-Allow-Headers").Has("Content-Type", "Range", "User-Agent", "X-Requested-With")
+
+	checkOutput := hb.Check_.Check(headers)
+
+	assert.False(t, checkOutput.Success, checkOutput.Reason)
+}
+
 func TestHeaderFailure(t *testing.T) {
 	resp := &http.Response{
 		Header: http.Header{

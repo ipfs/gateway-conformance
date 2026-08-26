@@ -26,10 +26,8 @@ func TestCors(t *testing.T) {
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
-						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
-						"X-Chunked-Output",
-						"X-Stream-Output",
+						"Ipfs-Uri",
 					),
 				),
 		},
@@ -46,10 +44,8 @@ func TestCors(t *testing.T) {
 					Header("Access-Control-Expose-Headers").Has(
 						"Content-Range",
 						"Content-Length",
-						"X-Ipfs-Path",
 						"X-Ipfs-Roots",
-						"X-Chunked-Output",
-						"X-Stream-Output",
+						"Ipfs-Uri",
 					),
 				),
 		},
