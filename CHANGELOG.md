@@ -6,11 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- New `TestUnixFSPBNodeFieldOrder` and `TestTrustlessRawPBNodeFieldOrder` tests covering both PBNode field orders: the streaming-friendly `Data`-before-`Links` order proposed for the `unixfs-v1-2026` profile in [IPIP-550](https://github.com/ipfs/specs/pull/550), and the legacy `Links`-before-`Data` order. Path resolution must work through UnixFS directories and HAMT shards in either encoding, and raw block responses must return the stored bytes verbatim without re-encoding to a preferred order. Backed by the new `pbnode-field-orders.car` fixture, byte-identical to the IPIP-550 fixtures table.
 
 ### Changed
 
 ### Fixed
+
+## [0.14.1] - 2026-08-27
+### Added
+- New `TestUnixFSPBNodeFieldOrder` and `TestTrustlessRawPBNodeFieldOrder` tests covering both PBNode field orders: the streaming-friendly `Data`-before-`Links` order proposed for the `unixfs-v1-2026` profile in [IPIP-550](https://github.com/ipfs/specs/pull/550), and the legacy `Links`-before-`Data` order. Path resolution must work through UnixFS directories and HAMT shards in either encoding, and raw block responses must return the stored bytes verbatim without re-encoding to a preferred order. Backed by the new `pbnode-field-orders.car` fixture, byte-identical to the IPIP-550 fixtures table.
 
 ## [0.14.0] - 2026-08-27
 ### Added
