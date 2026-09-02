@@ -12,10 +12,10 @@ import (
 // PBNode field ordering fixtures from IPIP-550
 // (https://github.com/ipfs/specs/pull/550): the same single-entry
 // UnixFS Directory and HAMTShard encoded twice, once with the Data
-// field before Links (streaming-friendly order written by the
-// unixfs-v1-2026 profile) and once with Links before Data (legacy
-// order written by unixfs-v1-2025 and earlier). Both orders are valid
-// dag-pb and gateways must resolve content through either. Blocks are
+// field before Links (streaming-friendly opt-in order) and once with
+// Links before Data (canonical order, the default everywhere).
+// Both orders are valid dag-pb and gateways must resolve content
+// through either. Blocks are
 // provisioned from fixtures/path_gateway_unixfs/pbnode-field-orders.car
 // and asserted byte-exact against the hex in the IPIP fixtures table.
 var (
