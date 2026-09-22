@@ -135,6 +135,15 @@ Interested in write a new test case?
 Test cases are written in Domain Specific Language (DLS) based on Golang.
 More details at [`/docs/test-dsl-syntax.md`](/docs/test-dsl-syntax.md)
 
+## Maintainer Info
+
+> [!IMPORTANT]
+> There is no dedicated maintainer at the moment.
+>
+> After Protocol Labs nucleation, the [Shipyard](https://ipshipyard.com/) team maintained this project in 2024, 2025 and 2026. Shipyard's IPFS maintenance work [ended with 2026 Q3](https://ipshipyard.com/blog/2026-the-end-of-ipfs-at-shipyard/).
+>
+> Bring support and transition questions to the [community forum](https://discuss.ipfs.tech/).
+
 ## License
 
 This project is dual-licensed under Apache 2.0 and MIT terms:
